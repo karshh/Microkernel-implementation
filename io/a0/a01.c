@@ -164,6 +164,7 @@ struct glbs{
 	int last_module;
 	int last_sensor;
 	int sensor_count;
+	int poll;
 };
 
 
@@ -195,6 +196,7 @@ struct glbs{
 		glbv->last_poll_completed = 1;
 		glbv->last_module = 0;
 		glbv->sensor_count = 0;
+		glbv->poll =5;
 	
 	}
 /********************************************************************************************************
@@ -782,6 +784,19 @@ struct glbs{
 	Note pie_* functions replace equivilent bw* functions
 
 ********************************************************************************************************/
+int set_timer_check(struct glbs * glbv, int timer){
+	//purpose is to determine how long a loop in main takes, and how the individual actions take
+	//update global delay timer for train
+	//delay in ms
+	volatile int *VALUE_R;
+	
+	//get address of timer init value
+
+	VALUE_R = (int *)( TIMER3_BASE + VAL_OFFSET );
+		glbv->timer_check[timer] = *VALUE_R;
+	return 0;
+}
+
 
 int pie_putc(int channel, struct glbs * glbv, char c ) {
 	switch(channel){
@@ -979,6 +994,10 @@ int push_character(int channel,struct glbs * glbv){
 		char c ;
 		if (ccbuff_pop(ccb, &c) ==0){
 			if(channel == COM1){
+			if(glbv->poll == 0 && c == 0x85)
+			glbv->poll = 1;
+
+			set_timer_check(glbv,0);
 /*
 				volatile int j=0;
 				while(j < 100000){
@@ -988,6 +1007,8 @@ int push_character(int channel,struct glbs * glbv){
 				
 	//	{int j= 0; for(j=0;j<10000;j++) ;//push next char to terminal
 			}
+
+
 		*data = c;
 		return 0;
 		}
@@ -1330,6 +1351,59 @@ int poll_sensor(struct glbs *glbv){
 	}
 	else{return -1;}
 }
+int output_max_check(struct glbs * glbv, int timer){
+	//first calculate last timer info:
+	volatile int diff;
+	//get address of timer init value
+
+	int i;
+	for(i=1; i< timer+1; i++){
+		diff = glbv->timer_check[i-1] - glbv->timer_check[i];
+		if( glbv->timer_check[i] > glbv->timer_check[i-1]) diff = 0x6d014600 - diff;
+		diff /= 508;
+		if(glbv->max_loop[i] < diff){
+			glbv->max_loop[i] = diff;
+			pie_printf(COM2, glbv, "\033[6;%dH%d", 72 +( (i - 1)  *5) , i);
+			pie_printf(COM2, glbv, "\033[7;%dH%d", 72 +( (i - 1)  *5) , diff);
+		}
+		if(glbv->last_loop[i] != diff){
+		 	glbv->last_loop[i] = diff;
+			pie_printf(COM2, glbv, "\033[8;%dH     \033[8;%dH%d", 72 +( (i - 1)  *5) ,72 +( (i - 1)  *5) , diff);
+		}
+	}
+	i = timer +1;
+	diff = glbv->timer_check[0] - glbv->timer_check[i-1];
+	if( glbv->timer_check[i-1] > glbv->timer_check[0]) diff = 0x6d014600 - diff;
+	diff /= 508;
+	if(glbv->max_loop[i] < diff){
+		glbv->max_loop[i] = diff;
+		pie_printf(COM2, glbv, "\033[6;%dH%d", 72 +( (i - 1)  *5) , i);
+		pie_printf(COM2, glbv, "\033[7;%dH%d", 72 +( (i - 1)  *5) , diff);
+	}
+	if(glbv->last_loop[i] != diff){
+	 	glbv->last_loop[i] = diff;
+		pie_printf(COM2, glbv, "\033[8;%dH     \033[8;%dH%d", 72 +( (i - 1)  *5) ,72 +( (i - 1)  *5) , diff);
+	}
+
+	//pie_printf(COM2, glbv, "\033[%d;%dH %x", 6, 42 , diff);
+
+
+/*
+	if(glbv->max_loop < diff){
+		 glbv->max_loop = diff;
+		pie_printf(COM2, glbv, "\033[%d;%dH %c", 7, 62 +( (sw - 1)  *5) , c);
+	}
+
+	if(glbv->last_loop != diff){
+		 glbv->last_loop = diff;
+		pie_printf(COM2, glbv, "\033[6;72H MAX LOOP:%d", diff);
+		pie_printf(COM2, glbv, "\033[%d;%dH",TERMINAL_HEIGHT-2, 3+ glbv->command_length); 
+	}
+*/
+return 0;
+}
+
+
 
 
 int process_command_char(int channel, struct glbs * glbv , char c){
@@ -1346,11 +1420,19 @@ int process_command_char(int channel, struct glbs * glbv , char c){
 		break;
 	}
 	if(channel == COM1){
+			if(glbv->poll == 1) {
+				set_timer_check(glbv,1);
+				glbv->poll = 2;}
 		ccbuff_push(&(glbv->sensor_ccb),c);
 		glbv->sensor_bytes_recieved ++;
 		
 		if(glbv->sensor_bytes_recieved == 10){
 			//lets assume we get 10 bytes
+			if(glbv->poll == 2) {
+				set_timer_check(glbv,2);
+				glbv->poll = 3;
+				output_max_check(glbv, 2);
+			}
 
 			int i;
 
@@ -1568,72 +1650,6 @@ int init_clock(struct glbs * glbv){
 		pie_printf(COM2,  glbv, "\033[2;2H00:00:00.0");
 	return 0;	
 }
-int set_timer_check(struct glbs * glbv, int timer){
-	//purpose is to determine how long a loop in main takes, and how the individual actions take
-	//update global delay timer for train
-	//delay in ms
-	volatile int *VALUE_R;
-	
-	//get address of timer init value
-
-	VALUE_R = (int *)( TIMER3_BASE + VAL_OFFSET );
-		glbv->timer_check[timer] = *VALUE_R;
-	return 0;
-}
-
-int output_max_check(struct glbs * glbv, int timer){
-	//first calculate last timer info:
-	volatile int diff;
-	//get address of timer init value
-
-	int i;
-	for(i=1; i< timer+1; i++){
-		diff = glbv->timer_check[i-1] - glbv->timer_check[i];
-		if( glbv->timer_check[i] > glbv->timer_check[i-1]) diff = 0x6d014600 - diff;
-		diff /= 508;
-		if(glbv->max_loop[i] < diff){
-			glbv->max_loop[i] = diff;
-			pie_printf(COM2, glbv, "\033[6;%dH%d", 72 +( (i - 1)  *5) , i);
-			pie_printf(COM2, glbv, "\033[7;%dH%d", 72 +( (i - 1)  *5) , diff);
-		}
-		if(glbv->last_loop[i] != diff){
-		 	glbv->last_loop[i] = diff;
-			pie_printf(COM2, glbv, "\033[8;%dH     \033[8;%dH%d", 72 +( (i - 1)  *5) ,72 +( (i - 1)  *5) , diff);
-		}
-	}
-	i = timer +1;
-	diff = glbv->timer_check[0] - glbv->timer_check[i-1];
-	if( glbv->timer_check[i-1] > glbv->timer_check[0]) diff = 0x6d014600 - diff;
-	diff /= 508;
-	if(glbv->max_loop[i] < diff){
-		glbv->max_loop[i] = diff;
-		pie_printf(COM2, glbv, "\033[6;%dH%d", 72 +( (i - 1)  *5) , i);
-		pie_printf(COM2, glbv, "\033[7;%dH%d", 72 +( (i - 1)  *5) , diff);
-	}
-	if(glbv->last_loop[i] != diff){
-	 	glbv->last_loop[i] = diff;
-		pie_printf(COM2, glbv, "\033[8;%dH     \033[8;%dH%d", 72 +( (i - 1)  *5) ,72 +( (i - 1)  *5) , diff);
-	}
-
-	//pie_printf(COM2, glbv, "\033[%d;%dH %x", 6, 42 , diff);
-
-
-/*
-	if(glbv->max_loop < diff){
-		 glbv->max_loop = diff;
-		pie_printf(COM2, glbv, "\033[%d;%dH %c", 7, 62 +( (sw - 1)  *5) , c);
-	}
-
-	if(glbv->last_loop != diff){
-		 glbv->last_loop = diff;
-		pie_printf(COM2, glbv, "\033[6;72H MAX LOOP:%d", diff);
-		pie_printf(COM2, glbv, "\033[%d;%dH",TERMINAL_HEIGHT-2, 3+ glbv->command_length); 
-	}
-*/
-return 0;
-}
-
-
 
 //
 int update_switch(struct glbs * glbv, int sw,int swd){
