@@ -17,7 +17,7 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 # -mapcs-32: always create a complete stack frame
 
 ARFLAGS = rcs
-LDFLAGS = -init main -Map m.map -N -T ../test/orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
+LDFLAGS = -init main -Map m.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
 all: clean queue.o buffer.o #main.o main.elf install
 

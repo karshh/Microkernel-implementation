@@ -27,6 +27,15 @@ int addToBuffer(BUFFER_TYPE c, circularBuffer * cb);
 // Otherwise, we return 1 on succesful assignment.
 int getFromBuffer(BUFFER_TYPE * c, circularBuffer * cb);
 
+// Checks if buffer is empty
+// Here, if tail == head, then get will return 1 else the buffer is not empty
+int isBufferEmpty( circularBuffer * cb);
+
+
+//Returns the number of elements currently in circular buffer
+int bufferLength( circularBuffer * cb);
+
+
 
 #endif
 
