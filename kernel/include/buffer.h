@@ -3,10 +3,8 @@
 #define _BUFFER_
 
 
-#define BUFFER_CAPACITY 512
-
-// not sure what the buffer type is going to be, so assigned it as int for now. Change it later.
-typedef int BUFFER_TYPE; 
+#define BUFFER_CAPACITY 128
+#define BUFFER_TYPE void*
 
 typedef struct circularBuffer {
 	BUFFER_TYPE buffer[BUFFER_CAPACITY];
