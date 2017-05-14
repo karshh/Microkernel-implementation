@@ -19,7 +19,7 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 ARFLAGS = rcs
 LDFLAGS = -init main -Map m.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
-all: clean queue.o buffer.o #main.o main.elf install
+all: clean #queue.o buffer.o main.o main.elf install
 
 
 buffer.s: buffer.c
@@ -35,17 +35,23 @@ queue.o: queue.s
 	$(AS) $(ASFLAGS) -o queue.o queue.s
 
 
-#main.s: main.c
-#	$(XCC) -S $(CFLAGS) main.c
+bwio.s: bwio.c
+	$(XCC) -S $(CFLAGS) bwio.c
 
-#main.o: main.s
-#	$(AS) $(ASFLAGS) -o main.o main.s
+bwio.o: bwio.s
+	$(AS) $(ASFLAGS) -o bwio.o bwio.s
 
-#main.elf: main.o
-#	$(LD) $(LDFLAGS) -o $@ buffer.o bwio.o port.o config.o karshio.o command.o time.o menu.o main.o -lgcc
+main.s: main.c
+	$(XCC) -S $(CFLAGS) main.c
 
-#install: main.elf
-#	cp main.elf /u/cs452/tftp/ARM/usharma/
+main.o: main.s
+	$(AS) $(ASFLAGS) -o main.o main.s
+
+test.elf: main.o
+	$(LD) $(LDFLAGS) -o $@ bwio.o main.o -lgcc
+
+install: test.elf
+	cp test.elf /u/cs452/tftp/ARM/usharma/
 
 clean:
 	-rm -f *.s *.a *.o *.map
