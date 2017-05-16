@@ -22,6 +22,9 @@ LDFLAGS = -init main -Map m.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/
 all: clean #queue.o buffer.o main.o main.elf install
 
 
+interruptHandler.s: interruptHandler.c
+	$(XCC) -S $(CFLAGS) interruptHandler.c
+
 buffer.s: buffer.c
 	$(XCC) -S $(CFLAGS) buffer.c
 
