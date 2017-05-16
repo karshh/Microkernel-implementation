@@ -19,7 +19,7 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 ARFLAGS = rcs
 LDFLAGS = -init main -Map m.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
-all: clean queue.o buffer.o bwio.o main.o test.elf install
+all: clean userRequestCall.o queue.o buffer.o bwio.o main.o test.elf install
 
 
 buffer.s: buffer.c
@@ -27,6 +27,11 @@ buffer.s: buffer.c
 
 buffer.o: buffer.s
 	$(AS) $(ASFLAGS) -o buffer.o buffer.s
+userRequestCall.s: userRequestCall.c
+	$(XCC) -S $(CFLAGS) userRequestCall.c
+
+userRequestCall.o: userRequestCall.s
+	$(AS) $(ASFLAGS) -o userRequestCall.o userRequestCall.s
 
 queue.s: queue.c
 	$(XCC) -S $(CFLAGS) queue.c
@@ -48,7 +53,7 @@ main.o: main.s
 	$(AS) $(ASFLAGS) -o main.o main.s
 
 test.elf: main.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o main.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ userRequestCall.o bwio.o main.o -lgcc
 
 install: test.elf
 	#cp test.elf /u/cs452/tftp/ARM/usharma/
