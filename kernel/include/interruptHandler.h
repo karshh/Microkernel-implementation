@@ -4,10 +4,11 @@
 
 #define INTERRUPT_HANDLER
 
-void swiHandlerEntry();
 
+void activate();
 
-void swiHandlerExit();
+void swiHandler();
+
 
 
 #endif

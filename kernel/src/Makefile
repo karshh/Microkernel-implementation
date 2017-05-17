@@ -21,15 +21,18 @@ LDFLAGS = -init main -Map m.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/
 
 all: clean userRequestCall.o queue.o buffer.o bwio.o main.o test.elf install
 
+#interruptHandler.s: interruptHandler.c
+#	$(XCC) -S $(CFLAGS) interruptHandler.c
 
-interruptHandler.s: interruptHandler.c
-	$(XCC) -S $(CFLAGS) interruptHandler.c
+interruptHandler.o: interruptHandler.s
+	$(AS) $(ASFLAGS) -o interruptHandler.o interruptHandler.s
 
 buffer.s: buffer.c
 	$(XCC) -S $(CFLAGS) buffer.c
 
 buffer.o: buffer.s
 	$(AS) $(ASFLAGS) -o buffer.o buffer.s
+
 userRequestCall.s: userRequestCall.c
 	$(XCC) -S $(CFLAGS) userRequestCall.c
 
@@ -49,18 +52,18 @@ bwio.s: bwio.c
 bwio.o: bwio.s
 	$(AS) $(ASFLAGS) -o bwio.o bwio.s
 
-main.s: main.c
-	$(XCC) -S $(CFLAGS) main.c
+test.s: test.c
+	$(XCC) -S $(CFLAGS) test.c
 
-main.o: main.s
-	$(AS) $(ASFLAGS) -o main.o main.s
+test.o: test.s
+	$(AS) $(ASFLAGS) -o test.o test.s
 
-test.elf: main.o
-	$(LD) $(LDFLAGS) -o $@ userRequestCall.o bwio.o main.o -lgcc
+test.elf: test.o
+	$(LD) $(LDFLAGS) -o $@ bwio.o interruptHandler.o test.o -lgcc
 
 install: test.elf
-	#cp test.elf /u/cs452/tftp/ARM/usharma/
-	cp test.elf /u/cs452/tftp/ARM/pnjarlan/
+	cp test.elf /u/cs452/tftp/ARM/`whoami`/
+	#cp test.elf /u/cs452/tftp/ARM/`whoami`/
 
 clean:
-	-rm -f *.s *.a *.o *.map *.elf
+	-rm -f *.a *.o *.map *.elf
