@@ -2,9 +2,10 @@
 #ifndef _BUFFER_
 #define _BUFFER_
 
+#include "td.h"
 
-#define BUFFER_CAPACITY 128
-#define BUFFER_TYPE void*
+#define BUFFER_CAPACITY 32
+#define BUFFER_TYPE TD*
 
 typedef struct circularBuffer {
 	BUFFER_TYPE buffer[BUFFER_CAPACITY];

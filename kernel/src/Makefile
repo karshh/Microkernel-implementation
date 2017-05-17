@@ -19,7 +19,7 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 ARFLAGS = rcs
 LDFLAGS = -init main -Map m.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
-all: clean userRequestCall.o queue.o buffer.o bwio.o main.o test.elf install
+all: clean userRequestCall.o queue.o userRequestCall.o buffer.o bwio.o main.o test.elf install
 
 #interruptHandler.s: interruptHandler.c
 #	$(XCC) -S $(CFLAGS) interruptHandler.c
@@ -59,7 +59,7 @@ test.o: test.s
 	$(AS) $(ASFLAGS) -o test.o test.s
 
 test.elf: test.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o interruptHandler.o test.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o buffer.o queue.o userRequestCall.o interruptHandler.o test.o -lgcc
 
 install: test.elf
 	cp test.elf /u/cs452/tftp/ARM/`whoami`/

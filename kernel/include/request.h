@@ -4,12 +4,12 @@
 
 #define _REQUEST_
 typedef enum requestType {
+	NONE,
 	MYTID,
 	MYPARENTID,
 	CREATE,
 	PASS,
 	EXIT
-	
 } requestType;
 
 typedef struct request{

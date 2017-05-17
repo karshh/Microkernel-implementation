@@ -3,7 +3,7 @@
 #include "request.h"
 #include "userRequestCall.h"
 #include "bwio.h"
-
+#include "interruptHandler.h"
 
 
 void kernelEnter(request * myRequest) {
@@ -41,6 +41,7 @@ void kernelEnter(request * myRequest) {
 
 void _switch() {
 	asm ("swi 0");	
+	asm ("/* Comment */");	
 	
 }
 
@@ -48,7 +49,7 @@ void PL() {
 	bwprintf(COM2, "CONTEXT SWITCH SUCCEEDED!");
 }
 
-
+static int j;
 
 int main(void) {
 	bwsetfifo(COM2, OFF);

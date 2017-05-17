@@ -4,10 +4,11 @@
 
 #define INTERRUPT_HANDLER
 
+#include "request.h"
 
-void activate();
+request * activate(request * req, int ** sp);
 
-void swiHandler();
+request * swiHandler(request * req);
 
 
 

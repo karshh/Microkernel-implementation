@@ -5,7 +5,6 @@
 #define _KERNEL_HANDLER_
 
 #include "queue.h"
-#include "TD.h"
 
 
 typedef struct kernelHandler {
@@ -35,5 +34,7 @@ typedef struct kernelHandler {
 
 // return 1 if kernel handler was succesfully initialized. 
 int kernelHandlerInit();
+
+void kernelTestRun();
 
 #endif
