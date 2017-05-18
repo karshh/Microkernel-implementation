@@ -8,7 +8,7 @@
 
 request * activate(request * req, int ** sp);
 
-request * swiHandler(request * req);
+void swiHandler();
 
 
 

@@ -4,7 +4,7 @@
 	.global	activate
 	.type	activate, %function
 activate:
-	mov	r3, r1
+	ldr	r3, [r1]
 	stmfd	sp!, {r1, r4-r10, fp, ip, lr}
 	msr	cpsr, #0xdf
 	mov	sp, r3
@@ -24,7 +24,7 @@ swiHandler:
 	mov	r3, sp
 	msr	cpsr, #0xd3
 	ldmfd	sp!, {r1, r4-r10, fp, ip}
-	mov	r1, r3
+	str	r3, [r1]
 	ldmfd	sp!, {pc}
 	.size	swiHandler, .-swiHandler
 	.ident	"GCC: (GNU) 4.0.2"
