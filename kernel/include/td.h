@@ -17,7 +17,7 @@ typedef enum State {
 typedef struct TD {
 	int* sp;	 // stack pointer.
 	
-	int retVal;	 // ALWAYS INITIALIZE THIS TO -1
+	int reqVal;	
 	
 	int spsr;	 // for the same reasons above, we must store it's CPSR here when it
 			 	 // returns from the requestCall.

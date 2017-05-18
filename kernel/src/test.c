@@ -1,73 +1,58 @@
 #include "ts7200.h"
 
-#include "request.h"
-#include "userRequestCall.h"
-#include "queue.h"
 #include "bwio.h"
+#include "request.h"
+#include "queue.h"
+#include "kernelRequestCall.h"
+#include "userRequestCall.h"
 #include "interruptHandler.h"
-#include "kernelHandler.h"
 
 #define REDBOOT_LOAD_OFFSET 0x218000
 
-#define USER_STACK_PTR_ADDR 0x1A00000
+#define USER_STACK_PTR_ADDR 0x0400000
+
 
 void userTask1(void) {
-    bwprintf(COM2, "USER TASK 1 ENTRY\r\n");
+	register int r asm("r0");
+
+    bwprintf(COM2, "USER TASK 1 ENTRY. REQUEST ID = %d\r\n", r);
     bwprintf(COM2, "USER TASK 1 MIDDLE \r\n");
     bwprintf(COM2, "USER TASK 1 EXIT, REQUESTING TID.\r\n");
-    MyTid();
+    int tid = MyTid();
+
+    bwprintf(COM2, "USER TASK 1 GOT TID = %d.\r\n", tid);
+    bwprintf(COM2, "USER TASK 1 EXIT, REQUESTING Parent TID.\r\n");
+    int parentTid = MyParentTid();
+    bwprintf(COM2, "USER TASK 1 GOT Parent TID = %d.\r\n", parentTid);
 }
 
-static void processRequest(request * myRequest, TD * task) {
-//changed kernal entry point to have an argument, which points to r0.
-//saves me from writing janky code
-
-	switch(myRequest->reqType){
-	case(MYTID):
-		//#TODO change when you get create_task done
-		//lets return 314
-		myRequest->reqVal = task->TID;
-		//note does not change r0;
-		bwputc(COM2,'R');
-		//changes r0; but doesnt matter as we are chaning the result of 314
-		//asm("movs	pc, lr");
-		break;
-	case(MYPARENTID):
-		myRequest->reqVal = task->parentTID;
-		//#TODO change when you get create_task done
-		//lets return 69
-		break;
-	case(CREATE):
-		break;
-	case(PASS):
-		break;
-	case(EXIT):
-		break;
-	default:
-		break;
-	}
-
-
+int user_contextswitch1(int * i) {//request * myRequest){
+//note since r0...r3 are used in gcc convention for passing args, r0 has the first arg...i.e my Request
+//since we don't change any of the argument values r0--r1 retains thier value when running swi.
+//* ((int *) (0x01000008)) = i;
+	//bwprintf(COM2,"User:Sending %d \n\r", i);
+	asm ("swi 0");	
+	return 0;
+	
 }
+
 
 void kernelTestRun() {
 	
 
-	// TODO: initialize a test task;
 	queue Q;
 	queueInit(&Q);
 
 	TD td;
-	td.TID = 1;
-	td.parentTID = 0;
+	td.TID = 1234;
+	td.parentTID = 123;
 	td.priority = HIGH;
 	td.state = READY;
 	td.spsr = 0xd0;
-	td.retVal = -1;
+	td.reqVal = -1;
 
 	request r_;
-	r_.reqType = NONE;
-	r_.reqVal = -1;
+	r_.reqType = MYPARENTID;
 
 	td.sp = (int*) USER_STACK_PTR_ADDR;
 
@@ -75,29 +60,17 @@ void kernelTestRun() {
 	*(td.sp - 12) = td.spsr; 
 	td.sp -= 12;
 
-	if (queuePush(&Q, &td, td.priority)) bwprintf(COM2, "Pushed TD %d on the queue\n\r", td.TID);
-
+	if (queuePush(&Q, &td, td.priority)) bwprintf(COM2, "Kernel:Pushed TD %d on the queue\n\r", td.TID);
+	request r;
 	TD * task;
-	if (queuePop(&Q, &task)) {
-		if (task->state != READY && task->state != ACTIVE) {
-			bwprintf(COM2, "FAIL, TASK %d IS NOT READY OR ACTIVE. \n\r", task->TID);
-		} 
-		else {
-			request * r = activate(&r_, &(task->sp));
-			bwprintf(COM2, "Request for task %d recieved\n\r", task->TID);
-			if (r->reqType != MYTID) {
-				bwprintf(COM2, "Wrong request type recieved [%d]. \n\r", r->reqType);
-			} else {
-				processRequest(r, task);
-				bwprintf(COM2,"SUCCESS! TID: %d \n\r", r->reqVal);
-			}
+	while(queuePop(&Q, &task)) {
+		bwprintf(COM2, "Kernel:Running task %d. \n\r", task->TID);
+		 r = *activate(task->reqVal, &(task->sp));
+		processRequest(task, &r);
+		queuePush(&Q, task, task->priority);
+	}
 
-		}
-	} 
-
-	bwprintf(COM2, "Exiting..\n\r");
-
-		// TODO: make sure contents are properly placed on stack.
+	bwprintf(COM2, "Kernel:Exiting..\n\r");
 
 
 }
@@ -109,9 +82,19 @@ void kernelTestRun() {
 int main(void) {
 	bwsetfifo(COM2, OFF);
 	* ((int *) (0x28)) = ((int) swiHandler) + REDBOOT_LOAD_OFFSET;
+
         // switching to user mode explicitly in the start.
 	
-	bwprintf(COM2, "Starting test...\r\n");
+	bwprintf(COM2, "Kernel:Starting test...\r\n");
 	kernelTestRun();
+	//request r;
+	//r.reqType = MYPARENTID;
+	//* ((int *) (0x01000004)) = &r;
+
+	//user_contextswitch1(&r);
+	/*register request * r_ asm("r0");
+	r_ = &r;
+	asm ("bl dummy");
+	*/
 	return 0;
 }

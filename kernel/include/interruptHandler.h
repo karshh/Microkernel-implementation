@@ -6,9 +6,9 @@
 
 #include "request.h"
 
-request * activate(request * req, int ** sp);
+request * activate(int reqVal, int ** sp);
 
-void swiHandler();
+request * swiHandler(request * req);
 
 
 

@@ -14,7 +14,6 @@ typedef enum requestType {
 
 typedef struct request{
 	requestType reqType;
-	int reqVal;
 } request;
 
 

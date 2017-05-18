@@ -27,7 +27,7 @@ bss             0x0000000000000000        0x0
  *(.bss)
                 0x0000000000000000                _BssEnd = .
 
-text            0x0000000000000000     0x1930
+text            0x0000000000000000     0x196c
  *(.text)
  .text          0x0000000000000000      0xc54 bwio.o
                 0x0000000000000378                bwputr
@@ -56,34 +56,38 @@ text            0x0000000000000000     0x1930
                 0x00000000000010dc                queuePop
                 0x0000000000001018                queuePriorityPop
                 0x0000000000000ecc                queueInit
- .text          0x000000000000116c       0xfc userRequestCall.o
-                0x0000000000001204                MyParentTid
-                0x00000000000011a0                MyTid
+ .text          0x000000000000116c       0x9c userRequestCall.o
+                0x00000000000011d0                MyParentTid
+                0x0000000000001198                MyTid
                 0x000000000000116c                user_contextswitch
- .text          0x0000000000001268       0x44 interruptHandler.o
-                0x0000000000001288                swiHandler
-                0x0000000000001268                activate
- .text          0x00000000000012ac      0x35c test.o
-                0x000000000000138c                kernelTestRun
-                0x00000000000015a4                main
-                0x00000000000012ac                userTask1
- .text          0x0000000000001608      0x110 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_udivsi3.o)
-                0x0000000000001608                __udivsi3
-                0x0000000000001700                __aeabi_uidivmod
- .text          0x0000000000001718       0xcc /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_umodsi3.o)
-                0x0000000000001718                __umodsi3
- .text          0x00000000000017e4        0x4 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_dvmd_tls.o)
-                0x00000000000017e4                __aeabi_ldiv0
-                0x00000000000017e4                __div0
-                0x00000000000017e4                __aeabi_idiv0
+ .text          0x0000000000001208       0xe0 kernelRequestCall.o
+                0x00000000000012b8                kernel_MyParentTid
+                0x0000000000001288                kernel_MyTid
+                0x0000000000001208                processRequest
+ .text          0x00000000000012e8       0x48 interruptHandler.o
+                0x0000000000001308                swiHandler
+                0x00000000000012e8                activate
+ .text          0x0000000000001330      0x308 test.o
+                0x000000000000142c                kernelTestRun
+                0x00000000000015d4                main
+                0x0000000000001408                user_contextswitch1
+                0x0000000000001330                userTask1
+ .text          0x0000000000001638      0x110 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_udivsi3.o)
+                0x0000000000001638                __udivsi3
+                0x0000000000001730                __aeabi_uidivmod
+ .text          0x0000000000001748       0xcc /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_umodsi3.o)
+                0x0000000000001748                __umodsi3
+ .text          0x0000000000001814        0x4 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_dvmd_tls.o)
+                0x0000000000001814                __aeabi_ldiv0
+                0x0000000000001814                __div0
+                0x0000000000001814                __aeabi_idiv0
  *(.got)
- .got           0x00000000000017e8        0x8 userRequestCall.o
+ .got           0x0000000000001818        0x8 test.o
  *(.got.plt)
- .got.plt       0x00000000000017f0        0xc userRequestCall.o
-                0x00000000000017f0                _GLOBAL_OFFSET_TABLE_
+ .got.plt       0x0000000000001820        0xc test.o
+                0x0000000000001820                _GLOBAL_OFFSET_TABLE_
  *(.rodata)
- .rodata        0x00000000000017fc       0x20 userRequestCall.o
- .rodata        0x000000000000181c      0x114 test.o
+ .rodata        0x000000000000182c      0x140 test.o
  *(.glue_7)
  *(.glue_7t)
 
@@ -92,18 +96,20 @@ LOAD bwio.o
 LOAD buffer.o
 LOAD queue.o
 LOAD userRequestCall.o
+LOAD kernelRequestCall.o
 LOAD interruptHandler.o
 LOAD test.o
 LOAD /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a
 OUTPUT(test.elf elf32-littlearm)
 
-.comment        0x0000000000000000       0x6c
+.comment        0x0000000000000000       0x7e
  .comment       0x0000000000000000       0x12 bwio.o
  .comment       0x0000000000000012       0x12 buffer.o
  .comment       0x0000000000000024       0x12 queue.o
  .comment       0x0000000000000036       0x12 userRequestCall.o
- .comment       0x0000000000000048       0x12 interruptHandler.o
- .comment       0x000000000000005a       0x12 test.o
+ .comment       0x0000000000000048       0x12 kernelRequestCall.o
+ .comment       0x000000000000005a       0x12 interruptHandler.o
+ .comment       0x000000000000006c       0x12 test.o
 
 .debug_line     0x0000000000000000      0x14f
  .debug_line    0x0000000000000000       0x86 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_udivsi3.o)
