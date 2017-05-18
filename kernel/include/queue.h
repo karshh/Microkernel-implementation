@@ -8,11 +8,12 @@
 #define HIGH	1
 #define MEDIUM	2
 #define LOW	3
-
+#define ZOMBIE	4 // Zombie queueE 
 typedef struct priorityQueue {
 	circularBuffer high;
 	circularBuffer medium;
 	circularBuffer low;
+	circularBuffer zombie;
 	
 } queue;
 

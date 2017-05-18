@@ -24,6 +24,12 @@ void userTask1(void) {
     bwprintf(COM2, "USER TASK 1 EXIT, REQUESTING Parent TID.\r\n");
     int parentTid = MyParentTid();
     bwprintf(COM2, "USER TASK 1 GOT Parent TID = %d.\r\n", parentTid);
+    bwprintf(COM2, "USER TASK 1 EXIT, REQUESTING to Pass the train.\r\n");
+    Pass();
+    bwprintf(COM2, "USER TASK has had a nap but is awake  \r\n" );
+    bwprintf(COM2, "USER TASK 1 EXIT, REQUESTING to get off the train.\r\n");
+    Exit();
+    bwprintf(COM2, "USER TASK fucked up. Train don't stop here  \r\n" );
 }
 
 int user_contextswitch1(int * i) {//request * myRequest){

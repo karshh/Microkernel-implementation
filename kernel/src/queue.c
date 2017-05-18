@@ -10,20 +10,49 @@
 int queueInit(queue * Q) {
 	return circularBufferInit(&(Q->high)) &&
 		circularBufferInit(&(Q->medium)) &&
+		circularBufferInit(&(Q->zombie)) &&
 		circularBufferInit(&(Q->low));
 }
 
 
 int queuePush(queue * Q, BUFFER_TYPE item, int P) {
-	return P == HIGH ? addToBuffer(item, &(Q->high)) :
-		(P == MEDIUM ? addToBuffer(item, &(Q->medium)) :
-		 (P == LOW ? addToBuffer(item, &(Q->low)) : 0));
+	switch (P){
+	case(HIGH):
+		return addToBuffer(item, &(Q->high));
+		break;
+	case(MEDIUM):
+		return addToBuffer(item, &(Q->medium));
+		break;
+	case(LOW):
+		return addToBuffer(item, &(Q->low));
+		break;
+	case(ZOMBIE):
+		return addToBuffer(item, &(Q->zombie));
+		break;
+	default:
+		return 0;
+		break;
+	}
 }
 
 int queuePriorityPop(queue * Q, BUFFER_TYPE * item, int P) {
-	return P == HIGH ? getFromBuffer (item, &(Q->high)) :
-		(P == MEDIUM ? getFromBuffer (item, &(Q->medium)) :
-		 (P == LOW ? getFromBuffer (item, &(Q->low)) : 0));
+	switch (P){
+	case(HIGH):
+		return getFromBuffer (item, &(Q->high)) ;
+		break;
+	case(MEDIUM):
+		return getFromBuffer (item, &(Q->medium));
+		break;
+	case(LOW):
+		return getFromBuffer (item, &(Q->low));
+		break;
+	case(ZOMBIE):
+		return getFromBuffer (item, &(Q->zombie));
+		break;
+	default:
+		return 0;
+		break;
+	}
 }
 
 int queuePop(queue * Q, BUFFER_TYPE * item) {

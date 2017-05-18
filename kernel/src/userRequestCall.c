@@ -31,4 +31,29 @@ int MyParentTid(){
 	return user_contextswitch(0xdeadbeef, &myRequest);
 }
 
+void Pass(){
+	
+	request myRequest;
+	myRequest.reqType = PASS;
+	//r0 = &myrequest
+	//note args arg1...arg3 are useless might remove in future
+	//r1 = 3
+	//r2 = 1
+	//r3 = 4
+	
+	return user_contextswitch(0xdeadbeef, &myRequest);
+}
 
+
+void Exit(){
+	
+	request myRequest;
+	myRequest.reqType = EXIT;
+	//r0 = &myrequest
+	//note args arg1...arg3 are useless might remove in future
+	//r1 = 3
+	//r2 = 1
+	//r3 = 4
+	
+	return user_contextswitch(0xdeadbeef, &myRequest);
+}
