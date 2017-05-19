@@ -56,9 +56,9 @@ int queuePriorityPop(queue * Q, BUFFER_TYPE * item, int P) {
 }
 
 int queuePop(queue * Q, BUFFER_TYPE * item) {
-	return queuePriorityPop(Q, item, HIGH) ? 1 :
-		(queuePriorityPop(Q, item, MEDIUM) ? 1 :
-		 (queuePriorityPop(Q, item, LOW) ? 1 : 0));
+	return queuePriorityPop(Q, item, HIGH) ||
+		queuePriorityPop(Q, item, MEDIUM) ||
+		 queuePriorityPop(Q, item, LOW);
 }
 
 
