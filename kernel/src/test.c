@@ -6,6 +6,7 @@
 #include "kernelRequestCall.h"
 #include "userRequestCall.h"
 #include "interruptHandler.h"
+#include "kernelHandler.h"
 
 #define REDBOOT_LOAD_OFFSET 0x218000
 
@@ -69,6 +70,7 @@ void kernelTestRun() {
 	if (queuePush(&Q, &td, td.priority)) bwprintf(COM2, "Kernel:Pushed TD %d on the queue\n\r", td.TID);
 	request r;
 	TD * task;
+//might refactor queues to use kernal held queue pts...for now will do processing for creat in queuepush
 	while(queuePop(&Q, &task)) {
 		bwprintf(COM2, "Kernel:Running task %d. \n\r", task->TID);
 		 r = *activate(task->reqVal, &(task->sp));

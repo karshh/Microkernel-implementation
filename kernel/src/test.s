@@ -156,12 +156,12 @@ user_contextswitch1:
 	.global	kernelTestRun
 	.type	kernelTestRun, %function
 kernelTestRun:
-	@ args = 0, pretend = 0, frame = 588
+	@ args = 0, pretend = 0, frame = 600
 	@ frame_needed = 1, uses_anonymous_args = 0
 	mov	ip, sp
 	stmfd	sp!, {sl, fp, ip, lr, pc}
 	sub	fp, ip, #4
-	sub	sp, sp, #588
+	sub	sp, sp, #600
 	ldr	sl, .L16
 .L15:
 	add	sl, pc, sl
@@ -169,37 +169,37 @@ kernelTestRun:
 	mov	r0, r3
 	bl	queueInit(PLT)
 	ldr	r3, .L16+4
-	str	r3, [fp, #-576]
+	str	r3, [fp, #-588]
 	mov	r3, #123
-	str	r3, [fp, #-572]
+	str	r3, [fp, #-584]
 	mov	r3, #1
-	str	r3, [fp, #-568]
-	mov	r3, #1
+	str	r3, [fp, #-576]
+	mov	r3, #2
 	str	r3, [fp, #-564]
 	mov	r3, #208
-	str	r3, [fp, #-584]
-	mvn	r3, #0
-	str	r3, [fp, #-588]
-	mov	r3, #2
 	str	r3, [fp, #-596]
+	mvn	r3, #0
+	str	r3, [fp, #-600]
+	mov	r3, #2
+	str	r3, [fp, #-608]
 	mov	r3, #4194304
-	str	r3, [fp, #-592]
-	ldr	r3, [fp, #-592]
+	str	r3, [fp, #-604]
+	ldr	r3, [fp, #-604]
 	sub	r2, r3, #44
 	ldr	r3, .L16+8
 	ldr	r3, [sl, r3]
 	add	r3, r3, #2195456
 	str	r3, [r2, #0]
-	ldr	r3, [fp, #-592]
+	ldr	r3, [fp, #-604]
 	sub	r2, r3, #48
-	ldr	r3, [fp, #-584]
+	ldr	r3, [fp, #-596]
 	str	r3, [r2, #0]
-	ldr	r3, [fp, #-592]
+	ldr	r3, [fp, #-604]
 	sub	r3, r3, #48
-	str	r3, [fp, #-592]
-	ldr	ip, [fp, #-568]
+	str	r3, [fp, #-604]
+	ldr	ip, [fp, #-576]
 	sub	r3, fp, #560
-	sub	r2, fp, #592
+	sub	r2, fp, #604
 	mov	r0, r3
 	mov	r1, r2
 	mov	r2, ip
@@ -207,7 +207,7 @@ kernelTestRun:
 	mov	r3, r0
 	cmp	r3, #0
 	beq	.L11
-	ldr	r3, [fp, #-576]
+	ldr	r3, [fp, #-588]
 	mov	r0, #1
 	ldr	r2, .L16+12
 	add	r2, sl, r2
@@ -216,30 +216,30 @@ kernelTestRun:
 	bl	bwprintf(PLT)
 	b	.L11
 .L12:
-	ldr	r3, [fp, #-604]
+	ldr	r3, [fp, #-616]
 	ldr	r2, [r3, #16]
 	mov	r0, #1
 	ldr	r3, .L16+16
 	add	r3, sl, r3
 	mov	r1, r3
 	bl	bwprintf(PLT)
-	ldr	r3, [fp, #-604]
+	ldr	r3, [fp, #-616]
 	ldr	r2, [r3, #4]
-	ldr	r3, [fp, #-604]
+	ldr	r3, [fp, #-616]
 	mov	r0, r2
 	mov	r1, r3
 	bl	activate(PLT)
 	mov	r3, r0
 	ldr	r3, [r3, #0]
-	str	r3, [fp, #-600]
-	ldr	r3, [fp, #-604]
-	sub	r2, fp, #600
+	str	r3, [fp, #-612]
+	ldr	r3, [fp, #-616]
+	sub	r2, fp, #612
 	mov	r0, r3
 	mov	r1, r2
 	bl	processRequest(PLT)
-	ldr	r2, [fp, #-604]
-	ldr	r3, [fp, #-604]
-	ldr	ip, [r3, #24]
+	ldr	r2, [fp, #-616]
+	ldr	r3, [fp, #-616]
+	ldr	ip, [r3, #28]
 	sub	r3, fp, #560
 	mov	r0, r3
 	mov	r1, r2
@@ -247,7 +247,7 @@ kernelTestRun:
 	bl	queuePush(PLT)
 .L11:
 	sub	r3, fp, #560
-	sub	r2, fp, #604
+	sub	r2, fp, #616
 	mov	r0, r3
 	mov	r1, r2
 	bl	queuePop(PLT)
