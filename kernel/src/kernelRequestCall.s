@@ -4,17 +4,16 @@
 	.global	processRequest
 	.type	processRequest, %function
 processRequest:
-	@ args = 0, pretend = 0, frame = 20
+	@ args = 0, pretend = 0, frame = 16
 	@ frame_needed = 1, uses_anonymous_args = 0
 	mov	ip, sp
 	stmfd	sp!, {fp, ip, lr, pc}
 	sub	fp, ip, #4
-	sub	sp, sp, #20
+	sub	sp, sp, #16
 	str	r0, [fp, #-16]
 	str	r1, [fp, #-20]
 	str	r2, [fp, #-24]
-	str	r3, [fp, #-28]
-	ldr	r3, [fp, #-28]
+	ldr	r3, [fp, #-24]
 	ldr	r3, [r3, #0]
 	sub	r3, r3, #1
 	cmp	r3, #4
@@ -28,43 +27,42 @@ processRequest:
 	b	.L6
 	b	.L7
 .L3:
-	ldr	r0, [fp, #-24]
+	ldr	r0, [fp, #-20]
 	bl	kernel_MyTid(PLT)
 	mov	r3, r0
-	str	r3, [fp, #-32]
+	str	r3, [fp, #-28]
 	b	.L9
 .L4:
-	ldr	r0, [fp, #-24]
+	ldr	r0, [fp, #-20]
 	bl	kernel_MyParentTid(PLT)
 	mov	r3, r0
-	str	r3, [fp, #-32]
+	str	r3, [fp, #-28]
 	b	.L9
 .L5:
-	ldr	r0, [fp, #-16]
+	ldr	r0, [fp, #-20]
 	ldr	r1, [fp, #-24]
-	ldr	r2, [fp, #-28]
-	ldr	r3, [fp, #-20]
+	ldr	r2, [fp, #-16]
 	bl	kernel_Create(PLT)
 	mov	r3, r0
-	str	r3, [fp, #-32]
+	str	r3, [fp, #-28]
 	b	.L9
 .L6:
-	ldr	r0, [fp, #-24]
+	ldr	r0, [fp, #-20]
 	bl	kernel_Pass(PLT)
 	mov	r3, r0
-	str	r3, [fp, #-32]
+	str	r3, [fp, #-28]
 	b	.L9
 .L7:
-	ldr	r0, [fp, #-24]
+	ldr	r0, [fp, #-20]
 	bl	kernel_Exit(PLT)
 	mov	r3, r0
-	str	r3, [fp, #-32]
+	str	r3, [fp, #-28]
 	b	.L9
 .L2:
 	mov	r3, #0
-	str	r3, [fp, #-32]
+	str	r3, [fp, #-28]
 .L9:
-	ldr	r3, [fp, #-32]
+	ldr	r3, [fp, #-28]
 	mov	r0, r3
 	sub	sp, fp, #12
 	ldmfd	sp, {fp, sp, pc}
@@ -153,17 +151,16 @@ kernel_Exit:
 	.global	kernel_Create
 	.type	kernel_Create, %function
 kernel_Create:
-	@ args = 0, pretend = 0, frame = 40
+	@ args = 0, pretend = 0, frame = 36
 	@ frame_needed = 1, uses_anonymous_args = 0
 	mov	ip, sp
 	stmfd	sp!, {fp, ip, lr, pc}
 	sub	fp, ip, #4
-	sub	sp, sp, #44
+	sub	sp, sp, #40
 	str	r0, [fp, #-40]
 	str	r1, [fp, #-44]
 	str	r2, [fp, #-48]
-	str	r3, [fp, #-52]
-	ldr	r3, [fp, #-48]
+	ldr	r3, [fp, #-44]
 	ldr	r3, [r3, #4]
 	str	r3, [fp, #-36]
 	ldr	r3, [fp, #-36]
@@ -173,14 +170,14 @@ kernel_Create:
 	cmp	r3, #3
 	ble	.L22
 .L20:
-	ldr	r2, [fp, #-44]
+	ldr	r2, [fp, #-40]
 	mvn	r3, #0
 	str	r3, [r2, #4]
 	b	.L23
 .L22:
-	ldr	r3, [fp, #-44]
+	ldr	r3, [fp, #-40]
 	add	r3, r3, #4
-	ldr	r0, [fp, #-52]
+	ldr	r0, [fp, #-48]
 	mov	r1, r3
 	bl	getNextTID(PLT)
 	mov	r3, r0
@@ -188,35 +185,32 @@ kernel_Create:
 	ldr	r3, [fp, #-32]
 	cmp	r3, #0
 	beq	.L24
-	ldr	r2, [fp, #-44]
+	ldr	r2, [fp, #-40]
 	mvn	r3, #1
 	str	r3, [r2, #4]
 	b	.L23
 .L24:
-	ldr	r3, [fp, #-44]
+	ldr	r3, [fp, #-40]
 	ldr	r3, [r3, #4]
 	str	r3, [fp, #-28]
-	ldr	r3, [fp, #-48]
+	ldr	r3, [fp, #-44]
 	ldr	r3, [r3, #8]
 	str	r3, [fp, #-24]
-	ldr	r3, [fp, #-44]
+	ldr	r3, [fp, #-40]
 	ldr	r3, [r3, #16]
 	str	r3, [fp, #-20]
 	ldr	r3, [fp, #-24]
 	str	r3, [sp, #0]
-	ldr	r0, [fp, #-52]
+	ldr	r0, [fp, #-48]
 	ldr	r1, [fp, #-28]
 	ldr	r2, [fp, #-20]
 	ldr	r3, [fp, #-36]
 	bl	setTask(PLT)
 	mov	r3, r0
 	str	r3, [fp, #-16]
-	ldr	r3, [fp, #-16]
-	ldr	r3, [r3, #28]
-	ldr	r0, [fp, #-40]
+	ldr	r0, [fp, #-48]
 	ldr	r1, [fp, #-16]
-	mov	r2, r3
-	bl	queuePush(PLT)
+	bl	kernel_queuePush(PLT)
 .L23:
 	mov	r3, #1
 	mov	r0, r3

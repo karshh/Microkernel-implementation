@@ -117,15 +117,8 @@ int user_contextswitch1(int * i) {//request * myRequest){
 void kernelTestRun(kernelHandler * ks) {
 	
 
-	queue Q;
-	queueInit(&Q);
-
-
 	bwprintf(COM2, "Kernel:Starting Run...\r\n");
 
-
-
-	 
 
 	int TID;
 	if(getNextTID(ks, &TID)) {
@@ -133,23 +126,24 @@ void kernelTestRun(kernelHandler * ks) {
 	}
  
 	int code  = ((int) userTask1) + REDBOOT_LOAD_OFFSET;
-	TD * td = setTask(ks,TID,TID,MEDIUM,code);   //if TID == , it is created by kernel
+	TD * td = setTask(ks,TID,-1,MEDIUM,code);   //if TID == , it is created by kernel
 	bwprintf(COM2,"First Task sp%x\n\r",td->sp); //see sl
 	
+	if (kernel_queuePush(ks, td)) bwprintf(COM2, "Kernel:Pushed TD %d on the queue\n\r", td->TID);
+
 	request r_;
-	r_.reqType = MYPARENTID;
+	r_.reqType = MYTID;
  
 
 
-	if (queuePush(&Q, td, td->priority)) bwprintf(COM2, "Kernel:Pushed TD %d on the queue\n\r", td->TID);
 	request r;
 	TD * task;
 //might refactor queues to use kernal held queue pts...for now will do processing for creat in queuepush
-	while(queuePop(&Q, &task)) {
+	while(kernel_queuePop(ks, &task)) {
 		bwprintf(COM2, "Kernel:Running task %d. \n\r", task->TID);
 		 r = *activate(task->reqVal, &(task->sp));
-		processRequest(&Q, ks, task, &r);
-		queuePush( &Q, task, task->priority);
+		processRequest(ks, task, &r);
+		kernel_queuePush(ks, task);
 	}
 
 	bwprintf(COM2, "Kernel:Exiting..\n\r");

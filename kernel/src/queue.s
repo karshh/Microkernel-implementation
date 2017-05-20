@@ -84,16 +84,16 @@ queueInit:
 	.global	queuePush
 	.type	queuePush, %function
 queuePush:
-	@ args = 0, pretend = 0, frame = 16
+	@ args = 0, pretend = 0, frame = 12
 	@ frame_needed = 1, uses_anonymous_args = 0
 	mov	ip, sp
 	stmfd	sp!, {fp, ip, lr, pc}
 	sub	fp, ip, #4
-	sub	sp, sp, #16
+	sub	sp, sp, #12
 	str	r0, [fp, #-16]
 	str	r1, [fp, #-20]
-	str	r2, [fp, #-24]
-	ldr	r3, [fp, #-24]
+	ldr	r3, [fp, #-20]
+	ldr	r3, [r3, #28]
 	sub	r3, r3, #1
 	cmp	r3, #3
 	addls	pc, pc, r3, asl #2
@@ -110,7 +110,7 @@ queuePush:
 	mov	r1, r3
 	bl	addToBuffer(PLT)
 	mov	r3, r0
-	str	r3, [fp, #-28]
+	str	r3, [fp, #-24]
 	b	.L22
 .L18:
 	ldr	r3, [fp, #-16]
@@ -119,7 +119,7 @@ queuePush:
 	mov	r1, r3
 	bl	addToBuffer(PLT)
 	mov	r3, r0
-	str	r3, [fp, #-28]
+	str	r3, [fp, #-24]
 	b	.L22
 .L19:
 	ldr	r3, [fp, #-16]
@@ -128,7 +128,7 @@ queuePush:
 	mov	r1, r3
 	bl	addToBuffer(PLT)
 	mov	r3, r0
-	str	r3, [fp, #-28]
+	str	r3, [fp, #-24]
 	b	.L22
 .L20:
 	ldr	r3, [fp, #-16]
@@ -137,13 +137,13 @@ queuePush:
 	mov	r1, r3
 	bl	addToBuffer(PLT)
 	mov	r3, r0
-	str	r3, [fp, #-28]
+	str	r3, [fp, #-24]
 	b	.L22
 .L16:
 	mov	r3, #0
-	str	r3, [fp, #-28]
+	str	r3, [fp, #-24]
 .L22:
-	ldr	r3, [fp, #-28]
+	ldr	r3, [fp, #-24]
 	mov	r0, r3
 	sub	sp, fp, #12
 	ldmfd	sp, {fp, sp, pc}

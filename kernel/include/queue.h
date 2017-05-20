@@ -22,7 +22,7 @@ typedef struct priorityQueue {
 int queueInit(queue * Q);
 
 // push it into one of the queues, based on priority. Returns 1 if succesful, 0 otherwise.
-int queuePush(queue * Q, BUFFER_TYPE item, int P);
+int queuePush(queue * Q, BUFFER_TYPE item);
 
 // pop's an item with specific priority from the queue. Returns 1 if succesful, 0 otherwise.
 int queuePriorityPop(queue * Q, BUFFER_TYPE * item, int P);

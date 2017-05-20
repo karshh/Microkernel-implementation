@@ -11,7 +11,7 @@
 // the context switch will execute one of the following code based on the
 // sw code. 
 
-int kernel_Create(queue * Q, TD * t, request * r, kernelHandler *ks);
+int kernel_Create(TD * t, request * r, kernelHandler * ks);
 
 int kernel_MyTid(TD * t);
 
@@ -28,6 +28,6 @@ void kernelTestRun();
 
 
 // return 1 if request was succesfully processed.
-int processRequest(queue * Q,kernelHandler *ks, TD * t, request * r);
+int processRequest(kernelHandler *ks, TD * t, request * r);
 
 #endif

@@ -566,26 +566,23 @@ user_contextswitch1:
 	.global	kernelTestRun
 	.type	kernelTestRun, %function
 kernelTestRun:
-	@ args = 0, pretend = 0, frame = 588
+	@ args = 0, pretend = 0, frame = 44
 	@ frame_needed = 1, uses_anonymous_args = 0
 	mov	ip, sp
 	stmfd	sp!, {sl, fp, ip, lr, pc}
 	sub	fp, ip, #4
-	sub	sp, sp, #592
+	sub	sp, sp, #48
 	ldr	sl, .L48
 .L47:
 	add	sl, pc, sl
-	str	r0, [fp, #-604]
-	sub	r3, fp, #568
-	mov	r0, r3
-	bl	queueInit(PLT)
+	str	r0, [fp, #-60]
 	mov	r0, #1
 	ldr	r3, .L48+4
 	add	r3, sl, r3
 	mov	r1, r3
 	bl	bwprintf(PLT)
-	sub	r3, fp, #572
-	ldr	r0, [fp, #-604]
+	sub	r3, fp, #28
+	ldr	r0, [fp, #-60]
 	mov	r1, r3
 	bl	getNextTID(PLT)
 	mov	r3, r0
@@ -601,13 +598,12 @@ kernelTestRun:
 	ldr	r3, [sl, r3]
 	add	r3, r3, #2195456
 	str	r3, [fp, #-24]
-	ldr	r2, [fp, #-572]
-	ldr	ip, [fp, #-572]
+	ldr	r2, [fp, #-28]
 	ldr	r3, [fp, #-24]
 	str	r3, [sp, #0]
-	ldr	r0, [fp, #-604]
+	ldr	r0, [fp, #-60]
 	mov	r1, r2
-	mov	r2, ip
+	mvn	r2, #0
 	mov	r3, #2
 	bl	setTask(PLT)
 	mov	r3, r0
@@ -619,17 +615,12 @@ kernelTestRun:
 	add	r3, sl, r3
 	mov	r1, r3
 	bl	bwprintf(PLT)
-	mov	r3, #2
-	str	r3, [fp, #-584]
-	ldr	r3, [fp, #-20]
-	ldr	r2, [r3, #28]
-	sub	r3, fp, #568
-	mov	r0, r3
+	ldr	r0, [fp, #-60]
 	ldr	r1, [fp, #-20]
-	bl	queuePush(PLT)
+	bl	kernel_queuePush(PLT)
 	mov	r3, r0
 	cmp	r3, #0
-	beq	.L43
+	beq	.L41
 	ldr	r3, [fp, #-20]
 	ldr	r2, [r3, #16]
 	mov	r0, #1
@@ -637,46 +628,42 @@ kernelTestRun:
 	add	r3, sl, r3
 	mov	r1, r3
 	bl	bwprintf(PLT)
+.L41:
+	mov	r3, #1
+	str	r3, [fp, #-40]
 	b	.L43
 .L44:
-	ldr	r3, [fp, #-600]
+	ldr	r3, [fp, #-56]
 	ldr	r2, [r3, #16]
 	mov	r0, #1
 	ldr	r3, .L48+24
 	add	r3, sl, r3
 	mov	r1, r3
 	bl	bwprintf(PLT)
-	ldr	r3, [fp, #-600]
+	ldr	r3, [fp, #-56]
 	ldr	r2, [r3, #4]
-	ldr	r3, [fp, #-600]
+	ldr	r3, [fp, #-56]
 	mov	r0, r2
 	mov	r1, r3
 	bl	activate(PLT)
 	mov	r3, r0
-	sub	ip, fp, #596
+	sub	ip, fp, #52
 	ldmia	r3, {r0, r1, r2}
 	stmia	ip, {r0, r1, r2}
-	ldr	r2, [fp, #-600]
-	sub	r3, fp, #568
-	sub	ip, fp, #596
-	mov	r0, r3
-	ldr	r1, [fp, #-604]
-	mov	r3, ip
+	ldr	r3, [fp, #-56]
+	sub	r2, fp, #52
+	ldr	r0, [fp, #-60]
+	mov	r1, r3
 	bl	processRequest(PLT)
-	ldr	r2, [fp, #-600]
-	ldr	r3, [fp, #-600]
-	ldr	ip, [r3, #28]
-	sub	r3, fp, #568
-	mov	r0, r3
-	mov	r1, r2
-	mov	r2, ip
-	bl	queuePush(PLT)
+	ldr	r3, [fp, #-56]
+	ldr	r0, [fp, #-60]
+	mov	r1, r3
+	bl	kernel_queuePush(PLT)
 .L43:
-	sub	r3, fp, #568
-	sub	r2, fp, #600
-	mov	r0, r3
-	mov	r1, r2
-	bl	queuePop(PLT)
+	sub	r3, fp, #56
+	ldr	r0, [fp, #-60]
+	mov	r1, r3
+	bl	kernel_queuePop(PLT)
 	mov	r3, r0
 	cmp	r3, #0
 	bne	.L44
@@ -708,14 +695,14 @@ kernelTestRun:
 	.global	main
 	.type	main, %function
 main:
-	@ args = 0, pretend = 0, frame = 16782904
+	@ args = 0, pretend = 0, frame = 16783432
 	@ frame_needed = 1, uses_anonymous_args = 0
 	mov	ip, sp
 	stmfd	sp!, {sl, fp, ip, lr, pc}
 	sub	fp, ip, #4
 	add	sp, sp, #-16777216
-	sub	sp, sp, #5632
-	sub	sp, sp, #56
+	sub	sp, sp, #6208
+	sub	sp, sp, #8
 	ldr	sl, .L53
 .L52:
 	add	sl, pc, sl
@@ -752,6 +739,6 @@ main:
 	.word	_GLOBAL_OFFSET_TABLE_-(.L52+8)
 	.word	swiHandler(GOT)
 	.word	.LC42(GOTOFF)
-	.word	-16782904
+	.word	-16783432
 	.size	main, .-main
 	.ident	"GCC: (GNU) 4.0.2"

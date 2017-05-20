@@ -30,6 +30,7 @@ int initKernel(kernelHandler * ks){
 	for (i = 0; i<MAX_TID;i++){
 		initTD(&ks->TDList[i],i,memOffset);
 	}
+
 /*
 	for (i = 0; i<MAX_TID;i++){
 		bwprintf(COM2, "Checking Memory at %d to %x \r\n",i, ks->TDList[i].sp);
@@ -38,6 +39,10 @@ int initKernel(kernelHandler * ks){
 
 	//create_first task
 	//for now we forget about shceduling and assume there is only one active td
+
+
+	// initialize kernel's queue.
+	queueInit(&(ks->Q));
 	return 0;
 }
 
@@ -62,5 +67,14 @@ TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code)
 return  td;
 
 }
+
+int kernel_queuePush(kernelHandler * ks, BUFFER_TYPE task) {
+	return queuePush(&(ks->Q), task);
+}
+
+int kernel_queuePop(kernelHandler * ks, BUFFER_TYPE * task){
+	return queuePop(&(ks->Q), task);
+}
+
 
 

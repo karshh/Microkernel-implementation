@@ -2,11 +2,6 @@
 #include "queue.h"
 #include "bwio.h"
 
-// Note that circularBuffer initialization, additions and retreivals returns a success or failure 
-// value. This way if any one of the function calls fail we can short-circuit out and return a 0.
-// Hence the use of ternary operators.
-
-
 
 int queueInit(queue * Q) {
 	volatile int ret =0;
@@ -19,8 +14,8 @@ int queueInit(queue * Q) {
 }
 
 
-int queuePush(queue * Q, BUFFER_TYPE item, volatile int P) {
-	switch (P){
+int queuePush(queue * Q, BUFFER_TYPE item) {
+	switch (item->priority){
 	case(HIGH):
 		return addToBuffer(item, &(Q->high));
 		break;

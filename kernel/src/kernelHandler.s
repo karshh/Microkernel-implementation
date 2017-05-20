@@ -13,7 +13,7 @@ getNextTID:
 	str	r0, [fp, #-16]
 	str	r1, [fp, #-20]
 	ldr	r3, [fp, #-16]
-	ldr	r3, [r3, #32]
+	ldr	r3, [r3, #560]
 	cmp	r3, #128
 	bne	.L2
 	mvn	r3, #0
@@ -21,14 +21,14 @@ getNextTID:
 	b	.L4
 .L2:
 	ldr	r3, [fp, #-16]
-	ldr	r2, [r3, #32]
+	ldr	r2, [r3, #560]
 	ldr	r3, [fp, #-20]
 	str	r2, [r3, #0]
 	ldr	r3, [fp, #-16]
-	ldr	r3, [r3, #32]
+	ldr	r3, [r3, #560]
 	add	r2, r3, #1
 	ldr	r3, [fp, #-16]
-	str	r2, [r3, #32]
+	str	r2, [r3, #560]
 	mov	r3, #0
 	str	r3, [fp, #-24]
 .L4:
@@ -50,12 +50,12 @@ initKernel:
 	str	r0, [fp, #-24]
 	ldr	r2, [fp, #-24]
 	mov	r3, #0
-	str	r3, [r2, #32]
+	str	r3, [r2, #560]
 	mov	r3, #0
 	str	r3, [fp, #-20]
 	ldr	r3, [fp, #-24]
-	add	r3, r3, #5632
-	add	r3, r3, #36
+	add	r3, r3, #6144
+	add	r3, r3, #52
 	add	r3, r3, #16777216
 	sub	r3, r3, #1
 	str	r3, [fp, #-16]
@@ -78,7 +78,7 @@ initKernel:
 	b	.L7
 .L8:
 	ldr	r3, [fp, #-24]
-	add	r1, r3, #36
+	add	r1, r3, #564
 	ldr	r2, [fp, #-20]
 	mov	r3, r2
 	mov	r3, r3, asl #2
@@ -98,6 +98,10 @@ initKernel:
 	ldr	r3, [fp, #-20]
 	cmp	r3, #127
 	ble	.L8
+	ldr	r3, [fp, #-24]
+	add	r3, r3, #16
+	mov	r0, r3
+	bl	queueInit(PLT)
 	mov	r3, #0
 	mov	r0, r3
 	sub	sp, fp, #12
@@ -105,7 +109,7 @@ initKernel:
 .L12:
 	.align	2
 .L11:
-	.word	16782900
+	.word	16783428
 	.size	initKernel, .-initKernel
 	.align	2
 	.global	setTask
@@ -122,7 +126,7 @@ setTask:
 	str	r2, [fp, #-32]
 	str	r3, [fp, #-36]
 	ldr	r3, [fp, #-24]
-	add	r1, r3, #36
+	add	r1, r3, #564
 	ldr	r2, [fp, #-28]
 	mov	r3, r2
 	mov	r3, r3, asl #2
@@ -147,7 +151,7 @@ setTask:
 	b	.L16
 .L14:
 	ldr	r3, [fp, #-24]
-	add	r1, r3, #36
+	add	r1, r3, #564
 	ldr	r2, [fp, #-32]
 	mov	r3, r2
 	mov	r3, r3, asl #2
@@ -202,6 +206,50 @@ setTask:
 .L19:
 	.align	2
 .L18:
-	.word	16782900
+	.word	16783428
 	.size	setTask, .-setTask
+	.align	2
+	.global	kernel_queuePush
+	.type	kernel_queuePush, %function
+kernel_queuePush:
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #8
+	str	r0, [fp, #-16]
+	str	r1, [fp, #-20]
+	ldr	r3, [fp, #-16]
+	add	r3, r3, #16
+	mov	r0, r3
+	ldr	r1, [fp, #-20]
+	bl	queuePush(PLT)
+	mov	r3, r0
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	kernel_queuePush, .-kernel_queuePush
+	.align	2
+	.global	kernel_queuePop
+	.type	kernel_queuePop, %function
+kernel_queuePop:
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #8
+	str	r0, [fp, #-16]
+	str	r1, [fp, #-20]
+	ldr	r3, [fp, #-16]
+	add	r3, r3, #16
+	mov	r0, r3
+	ldr	r1, [fp, #-20]
+	bl	queuePop(PLT)
+	mov	r3, r0
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	kernel_queuePop, .-kernel_queuePop
 	.ident	"GCC: (GNU) 4.0.2"

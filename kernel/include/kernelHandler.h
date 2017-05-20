@@ -18,13 +18,14 @@ typedef struct kernelHandler{
 	void * spsr;
 	int retVal;
 	
-	// information for the kernel to return back to redboot.
-	void * redbootsp;
-	void * redbootlr;
-	void * redbootspsr;
+	// information for the kernel to return back to redboot. Commented out for now
+	// due to lack of use.
+	// void * redbootsp;
+	// void * redbootlr;
+	// void * redbootspsr;
 	
 	// kernel uses this to schedule tasks.
-	queue * priorityQueue;
+	queue Q;
 
 	// kernel uses this to generate new TID's.
 	int TIDgen; //remove when implimenting free list/destry
@@ -44,4 +45,10 @@ void kernelTestRun(kernelHandler *ks);
 
 TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code);
 
+
+// Abstracting queue code away.
+int kernel_queuePush(kernelHandler * ks, BUFFER_TYPE task);
+
+int kernel_queuePop(kernelHandler * ks, BUFFER_TYPE * task);
 #endif
+
