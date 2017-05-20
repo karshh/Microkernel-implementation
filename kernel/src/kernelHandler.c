@@ -1,6 +1,10 @@
 #include "kernelHandler.h"
+#include "kernelRequestCall.h"
 #include "td.h"
 #include "bwio.h"
+#include "td.h"
+#include "request.h"
+#include "interruptHandler.h"
 
 int getNextTID(kernelHandler  * ks, int * TID){
 	if (ks->TIDgen == MAX_TID) return -1;  //check if there are enough TD's
@@ -46,6 +50,16 @@ int initKernel(kernelHandler * ks){
 	return 0;
 }
 
+void kernelRun(kernelHandler * ks) {
+
+	TD * task;
+	request r;
+	while(kernel_queuePop(ks, &task)) {
+		 r = *activate(task->reqVal, &(task->sp));
+		processRequest(ks, task, &r);
+		kernel_queuePush(ks, task);
+	}
+}
 
 TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code){
 

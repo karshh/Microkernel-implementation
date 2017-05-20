@@ -39,6 +39,10 @@ typedef struct kernelHandler{
 
 // return 1 if kernel handler was succesfully initialized. 
 int initKernel(kernelHandler * ks);
+
+// run the kernel
+void kernelRun(kernelHandler * ks);
+
 int getNextTID(kernelHandler  * ks, int * TID);
 
 void kernelTestRun(kernelHandler *ks);

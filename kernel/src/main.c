@@ -6,6 +6,7 @@
 #include "kernelRequestCall.h"
 #include "userRequestCall.h"
 #include "interruptHandler.h"
+#include "kernelHandler.h"
 
 #define REDBOOT_LOAD_OFFSET 0x218000
 
@@ -54,30 +55,15 @@ int main(void) {
 	bwsetfifo(COM2, OFF);
 	* ((int *) (0x28)) = ((int) kernelEnter) + REDBOOT_LOAD_OFFSET;
 	
-	// set this to 1 to print debug statements.
-	int debug = 0;
+	kernelHandler k;
 
-	// This variable is used to accurately set up stack of each user task.
-	// It will also be used to assign a TID for each task.
-	// It will need to be incremented for every instance of user task we make.
-	volatile int numTasks = 0;
-	queue Q;
-	queueInit(&Q);
+	// TODO: provide a paramter which would be the first user task to run. 
+	initKernel(&k);
 
-	// TODO, create first task here.
-	kernel_Create(MEDIUM, (((int)firstUserTask),
-							&numTasks, 0);
-	
 	if (debug) bwprintf(COM2, "Kernel:  Beginning run.\n\r");
 
-	TD * task;
-	request r;
-	while(queuePop(&Q, &task)) {
-		 r = *activate(task->reqVal, &(task->sp));
-		processRequest(task, &r);
-		queuePush(&Q, task, task->priority);
-	}
-
+	kernelRun(&k);
+	
 	if (debug) bwprintf(COM2, "Kernel: Exitting.\n\r");
 
 

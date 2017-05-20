@@ -112,6 +112,49 @@ initKernel:
 	.word	16783428
 	.size	initKernel, .-initKernel
 	.align	2
+	.global	kernelRun
+	.type	kernelRun, %function
+kernelRun:
+	@ args = 0, pretend = 0, frame = 20
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #20
+	str	r0, [fp, #-32]
+	b	.L14
+.L15:
+	ldr	r3, [fp, #-16]
+	ldr	r2, [r3, #4]
+	ldr	r3, [fp, #-16]
+	mov	r0, r2
+	mov	r1, r3
+	bl	activate(PLT)
+	mov	r3, r0
+	sub	ip, fp, #28
+	ldmia	r3, {r0, r1, r2}
+	stmia	ip, {r0, r1, r2}
+	ldr	r3, [fp, #-16]
+	sub	r2, fp, #28
+	ldr	r0, [fp, #-32]
+	mov	r1, r3
+	bl	processRequest(PLT)
+	ldr	r3, [fp, #-16]
+	ldr	r0, [fp, #-32]
+	mov	r1, r3
+	bl	kernel_queuePush(PLT)
+.L14:
+	sub	r3, fp, #16
+	ldr	r0, [fp, #-32]
+	mov	r1, r3
+	bl	kernel_queuePop(PLT)
+	mov	r3, r0
+	cmp	r3, #0
+	bne	.L15
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	kernelRun, .-kernelRun
+	.align	2
 	.global	setTask
 	.type	setTask, %function
 setTask:
@@ -144,12 +187,12 @@ setTask:
 	str	r3, [r2, #20]
 	ldr	r3, [fp, #-32]
 	cmn	r3, #1
-	bne	.L14
+	bne	.L19
 	ldr	r2, [fp, #-16]
 	mov	r3, #0
 	str	r3, [r2, #24]
-	b	.L16
-.L14:
+	b	.L21
+.L19:
 	ldr	r3, [fp, #-24]
 	add	r1, r3, #564
 	ldr	r2, [fp, #-32]
@@ -162,7 +205,7 @@ setTask:
 	add	r2, r1, r3
 	ldr	r3, [fp, #-16]
 	str	r2, [r3, #24]
-.L16:
+.L21:
 	ldr	r2, [fp, #-16]
 	mov	r3, #2
 	str	r3, [r2, #40]
@@ -176,7 +219,7 @@ setTask:
 	mov	r3, r3, asl #17
 	str	r3, [fp, #-20]
 	ldr	r2, [fp, #-24]
-	ldr	r3, .L18
+	ldr	r3, .L23
 	ldr	r2, [r2, r3]
 	ldr	r3, [fp, #-20]
 	rsb	r3, r3, r2
@@ -203,9 +246,9 @@ setTask:
 	mov	r0, r3
 	sub	sp, fp, #12
 	ldmfd	sp, {fp, sp, pc}
-.L19:
+.L24:
 	.align	2
-.L18:
+.L23:
 	.word	16783428
 	.size	setTask, .-setTask
 	.align	2
