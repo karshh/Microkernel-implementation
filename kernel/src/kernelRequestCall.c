@@ -54,7 +54,8 @@ int kernel_Pass(TD * t) {
 
 int kernel_Exit(TD * t) {
 	//literally does absolutly nothing
-	t->priority = ZOMBIE;
+	volatile int p = ZOMBIE;
+	t->priority = (int) p;
 	t->reqVal = 0;
 	return 1;
 }

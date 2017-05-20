@@ -12,16 +12,60 @@
 
 #define USER_STACK_PTR_ADDR 0x0400000
 
+void userTask3(void) {
+	register int r asm("r0");
+    bwprintf(COM2, "USER TASK 3 ENTRY. REQUEST ID = %d\r\n", r);
+    bwprintf(COM2, "USER TASK 3 MIDDLE \r\n");
+    bwprintf(COM2, "USER TASK 3 EXIT, REQUESTING TID.\r\n");
+    int tid = MyTid();
+    bwprintf(COM2, "USER TASK 3 GOT TID = %d.\r\n", tid);
+
+    bwprintf(COM2, "USER TASK 3 EXIT, REQUESTING Parent TID.\r\n");
+    int parentTid = MyParentTid();
+    bwprintf(COM2, "USER TASK 3 GOT Parent TID = %d.\r\n", parentTid);
+ 
+    bwprintf(COM2, "USER TASK 3 EXIT, REQUESTING to get off the train.\r\n");
+    Exit();
+}
+
 void userTask2(void) {
 	register int r asm("r0");
 
     bwprintf(COM2, "USER TASK 2 ENTRY. REQUEST ID = %d\r\n", r);
+    bwprintf(COM2, "USER TASK 2 MIDDLE \r\n");
+    bwprintf(COM2, "USER TASK 2 EXIT, REQUESTING TID.\r\n");
     int tid = MyTid();
+
     bwprintf(COM2, "USER TASK 2 GOT TID = %d.\r\n", tid);
+    bwprintf(COM2, "USER TASK 2 EXIT, REQUESTING Parent TID.\r\n");
+    int parentTid = MyParentTid();
+    bwprintf(COM2, "USER TASK 2 GOT Parent TID = %d.\r\n", parentTid);
+    bwprintf(COM2, "USER TASK 2 EXIT, REQUESTING to Pass the train.\r\n");
+    Pass();
+    bwprintf(COM2, "USER TASK has had a nap but is awake  \r\n" );
+	int create =-1;
+int j =0;
+while(j < 2){
+	j++;
+    bwprintf(COM2, "USER TASK 2 EXIT, REQUESTING to birth a child.\r\n");
+	create  = Create(3,(void *)((int) userTask3) + REDBOOT_LOAD_OFFSET);
+	if(create == -1){
+    		bwprintf(COM2, "USER TASK 2' child never born. no father: %d.\r\n", create);
+	}
+	else if(create == -2){
+    		bwprintf(COM2, "world is overpopulated. train gods refuse Task's 2 offer: %d.\r\n", create);
+	}else if(create >= 0){
+    		bwprintf(COM2, "USER TASK 2 gave birth to a bouncing baby task named: %d.\r\n", create);
+	}else{
+    		bwprintf(COM2, "USER TASK 2's fucked up when fucking: %d.\r\n", create);
+	}
+}
     bwprintf(COM2, "USER TASK 2 EXIT, REQUESTING to get off the train.\r\n");
     Exit();
-    bwprintf(COM2, "USER TASK fucked up. Train don't stop here  \r\n" );
+    bwprintf(COM2, "USER TASK 2fucked up. Train don't stop here  \r\n" );
 }
+
+
 void userTask1(void) {
 	register int r asm("r0");
 
@@ -38,25 +82,25 @@ void userTask1(void) {
     Pass();
     bwprintf(COM2, "USER TASK has had a nap but is awake  \r\n" );
 	int create =-1;
-int j =10;
-while(j < 10){
+int j =0;
+while(j < 1){
 	j++;
     bwprintf(COM2, "USER TASK 1 EXIT, REQUESTING to birth a child.\r\n");
-	create  = Create(1,(void *)((int) userTask2) + REDBOOT_LOAD_OFFSET);
+	create  = Create(3,(void *)((int) userTask3) + REDBOOT_LOAD_OFFSET);
 	if(create == -1){
     		bwprintf(COM2, "USER TASK 1' child never born. no father: %d.\r\n", create);
 	}
 	else if(create == -2){
-    		bwprintf(COM2, "world is overpopulated. train gods refuse Task's offer: %d.\r\n", create);
+    		bwprintf(COM2, "world is overpopulated. train gods refuse Task's 1offer: %d.\r\n", create);
 	}else if(create >= 0){
-    		bwprintf(COM2, "USER TASK gave birth to a bouncing baby task named: %d.\r\n", create);
+    		bwprintf(COM2, "USER TASK 1gave birth to a bouncing baby task named: %d.\r\n", create);
 	}else{
     		bwprintf(COM2, "USER TASK 1's fucked up when fucking: %d.\r\n", create);
 	}
 }
     bwprintf(COM2, "USER TASK 1 EXIT, REQUESTING to get off the train.\r\n");
     Exit();
-    bwprintf(COM2, "USER TASK fucked up. Train don't stop here  \r\n" );
+    bwprintf(COM2, "USER TASK 1fucked up. Train don't stop here  \r\n" );
 }
 
 int user_contextswitch1(int * i) {//request * myRequest){
@@ -81,7 +125,6 @@ void kernelTestRun(kernelHandler * ks) {
 
 
 
-	bwprintf(COM2, "!!!!!!!!!!!!!!!!!!!!Kernel:Starting Run...\r\n");
 	 
 
 	int TID;
@@ -89,14 +132,10 @@ void kernelTestRun(kernelHandler * ks) {
 		bwprintf(COM2,"error getting TID\n\r"); //see sl
 	}
  
-	bwprintf(COM2, "!!!!!!!!!!!!!!!!!!!!Kernel:Starting Run...\r\n");
 	int code  = ((int) userTask1) + REDBOOT_LOAD_OFFSET;
-	bwprintf(COM2, "!!!!!!!!!!!!!!!!!!!!Kernel:Starting Run...\r\n");
-	TD * td = setTask(ks,TID,TID,HIGH,code);   //if TID == , it is created by kernel
-	bwprintf(COM2, "!!!!!!!!!!!!!!!!!!!!Kernel:Starting Run...\r\n");
-		bwprintf(COM2,"First Task sp%x\n\r",td->sp); //see sl
+	TD * td = setTask(ks,TID,TID,MEDIUM,code);   //if TID == , it is created by kernel
+	bwprintf(COM2,"First Task sp%x\n\r",td->sp); //see sl
 	
-	bwprintf(COM2, "!!!!!!!!!!!!!!!!!!!!Kernel:Starting Run...\r\n");
 	request r_;
 	r_.reqType = MYPARENTID;
  

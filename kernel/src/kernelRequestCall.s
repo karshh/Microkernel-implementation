@@ -129,22 +129,25 @@ kernel_Pass:
 	.global	kernel_Exit
 	.type	kernel_Exit, %function
 kernel_Exit:
-	@ args = 0, pretend = 0, frame = 4
+	@ args = 0, pretend = 0, frame = 8
 	@ frame_needed = 1, uses_anonymous_args = 0
 	mov	ip, sp
 	stmfd	sp!, {fp, ip, lr, pc}
 	sub	fp, ip, #4
-	sub	sp, sp, #4
-	str	r0, [fp, #-16]
-	ldr	r2, [fp, #-16]
+	sub	sp, sp, #8
+	str	r0, [fp, #-20]
 	mov	r3, #4
-	str	r3, [r2, #28]
+	str	r3, [fp, #-16]
 	ldr	r2, [fp, #-16]
+	ldr	r3, [fp, #-20]
+	str	r2, [r3, #28]
+	ldr	r2, [fp, #-20]
 	mov	r3, #0
 	str	r3, [r2, #4]
 	mov	r3, #1
 	mov	r0, r3
-	ldmfd	sp, {r3, fp, sp, pc}
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
 	.size	kernel_Exit, .-kernel_Exit
 	.align	2
 	.global	kernel_Create

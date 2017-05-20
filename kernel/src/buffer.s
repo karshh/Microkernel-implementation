@@ -13,10 +13,10 @@ circularBufferInit:
 	str	r0, [fp, #-16]
 	ldr	r2, [fp, #-16]
 	mov	r3, #0
-	str	r3, [r2, #512]
+	str	r3, [r2, #128]
 	ldr	r2, [fp, #-16]
 	mov	r3, #0
-	str	r3, [r2, #516]
+	str	r3, [r2, #132]
 	mov	r3, #1
 	mov	r0, r3
 	ldmfd	sp, {r3, fp, sp, pc}
@@ -34,12 +34,12 @@ addToBuffer:
 	str	r0, [fp, #-20]
 	str	r1, [fp, #-24]
 	ldr	r3, [fp, #-24]
-	ldr	r3, [r3, #512]
+	ldr	r3, [r3, #128]
 	add	r3, r3, #1
-	cmp	r3, #127
+	cmp	r3, #31
 	bgt	.L4
 	ldr	r3, [fp, #-24]
-	ldr	r3, [r3, #512]
+	ldr	r3, [r3, #128]
 	add	r3, r3, #1
 	str	r3, [fp, #-32]
 	b	.L6
@@ -50,7 +50,7 @@ addToBuffer:
 	ldr	r3, [fp, #-32]
 	str	r3, [fp, #-16]
 	ldr	r3, [fp, #-24]
-	ldr	r2, [r3, #516]
+	ldr	r2, [r3, #132]
 	ldr	r3, [fp, #-16]
 	cmp	r2, r3
 	bne	.L7
@@ -59,13 +59,13 @@ addToBuffer:
 	b	.L9
 .L7:
 	ldr	r3, [fp, #-24]
-	ldr	r1, [r3, #512]
+	ldr	r1, [r3, #128]
 	ldr	r2, [fp, #-24]
 	ldr	r3, [fp, #-20]
 	str	r3, [r2, r1, asl #2]
 	ldr	r2, [fp, #-24]
 	ldr	r3, [fp, #-16]
-	str	r3, [r2, #512]
+	str	r3, [r2, #128]
 	mov	r3, #1
 	str	r3, [fp, #-28]
 .L9:
@@ -87,12 +87,12 @@ getFromBuffer:
 	str	r0, [fp, #-20]
 	str	r1, [fp, #-24]
 	ldr	r3, [fp, #-24]
-	ldr	r3, [r3, #516]
+	ldr	r3, [r3, #132]
 	add	r3, r3, #1
-	cmp	r3, #127
+	cmp	r3, #31
 	bgt	.L12
 	ldr	r3, [fp, #-24]
-	ldr	r3, [r3, #516]
+	ldr	r3, [r3, #132]
 	add	r3, r3, #1
 	str	r3, [fp, #-32]
 	b	.L14
@@ -103,9 +103,9 @@ getFromBuffer:
 	ldr	r3, [fp, #-32]
 	str	r3, [fp, #-16]
 	ldr	r3, [fp, #-24]
-	ldr	r2, [r3, #512]
+	ldr	r2, [r3, #128]
 	ldr	r3, [fp, #-24]
-	ldr	r3, [r3, #516]
+	ldr	r3, [r3, #132]
 	cmp	r2, r3
 	bne	.L15
 	mov	r3, #0
@@ -113,14 +113,14 @@ getFromBuffer:
 	b	.L17
 .L15:
 	ldr	r3, [fp, #-24]
-	ldr	r2, [r3, #516]
+	ldr	r2, [r3, #132]
 	ldr	r3, [fp, #-24]
 	ldr	r2, [r3, r2, asl #2]
 	ldr	r3, [fp, #-20]
 	str	r2, [r3, #0]
 	ldr	r2, [fp, #-24]
 	ldr	r3, [fp, #-16]
-	str	r3, [r2, #516]
+	str	r3, [r2, #132]
 	mov	r3, #1
 	str	r3, [fp, #-28]
 .L17:
@@ -141,9 +141,9 @@ isBufferEmpty:
 	sub	sp, sp, #8
 	str	r0, [fp, #-16]
 	ldr	r3, [fp, #-16]
-	ldr	r2, [r3, #512]
+	ldr	r2, [r3, #128]
 	ldr	r3, [fp, #-16]
-	ldr	r3, [r3, #516]
+	ldr	r3, [r3, #132]
 	cmp	r2, r3
 	bne	.L20
 	mov	r3, #1
@@ -170,9 +170,9 @@ bufferLength:
 	sub	sp, sp, #8
 	str	r0, [fp, #-16]
 	ldr	r3, [fp, #-16]
-	ldr	r2, [r3, #512]
+	ldr	r2, [r3, #128]
 	ldr	r3, [fp, #-16]
-	ldr	r3, [r3, #516]
+	ldr	r3, [r3, #132]
 	cmp	r2, r3
 	bne	.L25
 	mov	r3, #0
@@ -180,25 +180,25 @@ bufferLength:
 	b	.L27
 .L25:
 	ldr	r3, [fp, #-16]
-	ldr	r2, [r3, #512]
+	ldr	r2, [r3, #128]
 	ldr	r3, [fp, #-16]
-	ldr	r3, [r3, #516]
+	ldr	r3, [r3, #132]
 	cmp	r2, r3
 	ble	.L28
 	ldr	r3, [fp, #-16]
-	ldr	r2, [r3, #512]
+	ldr	r2, [r3, #128]
 	ldr	r3, [fp, #-16]
-	ldr	r3, [r3, #516]
+	ldr	r3, [r3, #132]
 	rsb	r2, r3, r2
 	str	r2, [fp, #-20]
 	b	.L27
 .L28:
 	ldr	r3, [fp, #-16]
-	ldr	r2, [r3, #512]
+	ldr	r2, [r3, #128]
 	ldr	r3, [fp, #-16]
-	ldr	r3, [r3, #516]
+	ldr	r3, [r3, #132]
 	rsb	r3, r3, r2
-	add	r3, r3, #128
+	add	r3, r3, #32
 	str	r3, [fp, #-20]
 .L27:
 	ldr	r3, [fp, #-20]

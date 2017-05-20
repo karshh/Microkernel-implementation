@@ -32,6 +32,7 @@ typedef struct kernelHandler{
 	TD TDList[MAX_TID];
 	//an idea from ben to safely allocate space is to have 
 	char taskSpace[MAX_STACKSIZE+16];//add extra padding to deal with wierd offsets
+	int memOffset;
 	
 } kernelHandler;
 

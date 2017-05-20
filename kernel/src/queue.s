@@ -4,48 +4,78 @@
 	.global	queueInit
 	.type	queueInit, %function
 queueInit:
-	@ args = 0, pretend = 0, frame = 8
+	@ args = 0, pretend = 0, frame = 20
 	@ frame_needed = 1, uses_anonymous_args = 0
 	mov	ip, sp
 	stmfd	sp!, {fp, ip, lr, pc}
 	sub	fp, ip, #4
-	sub	sp, sp, #8
-	str	r0, [fp, #-16]
-	ldr	r3, [fp, #-16]
-	mov	r0, r3
-	bl	circularBufferInit(PLT)
-	mov	r3, r0
-	cmp	r3, #0
-	beq	.L2
-	ldr	r3, [fp, #-16]
-	add	r3, r3, #136
-	mov	r0, r3
-	bl	circularBufferInit(PLT)
-	mov	r3, r0
-	cmp	r3, #0
-	beq	.L2
-	ldr	r3, [fp, #-16]
+	sub	sp, sp, #20
+	str	r0, [fp, #-20]
+	mov	r3, #0
+	str	r3, [fp, #-16]
+	ldr	r3, [fp, #-20]
 	add	r3, r3, #408
 	mov	r0, r3
 	bl	circularBufferInit(PLT)
 	mov	r3, r0
+	str	r3, [fp, #-16]
+	ldr	r3, [fp, #-16]
 	cmp	r3, #0
 	beq	.L2
-	ldr	r3, [fp, #-16]
-	add	r3, r3, #272
+	ldr	r3, [fp, #-20]
 	mov	r0, r3
 	bl	circularBufferInit(PLT)
 	mov	r3, r0
 	cmp	r3, #0
 	beq	.L2
 	mov	r3, #1
-	str	r3, [fp, #-20]
-	b	.L7
+	str	r3, [fp, #-32]
+	b	.L5
 .L2:
 	mov	r3, #0
-	str	r3, [fp, #-20]
-.L7:
+	str	r3, [fp, #-32]
+.L5:
+	ldr	r3, [fp, #-32]
+	str	r3, [fp, #-16]
+	ldr	r3, [fp, #-16]
+	cmp	r3, #0
+	beq	.L6
 	ldr	r3, [fp, #-20]
+	add	r3, r3, #136
+	mov	r0, r3
+	bl	circularBufferInit(PLT)
+	mov	r3, r0
+	cmp	r3, #0
+	beq	.L6
+	mov	r3, #1
+	str	r3, [fp, #-28]
+	b	.L9
+.L6:
+	mov	r3, #0
+	str	r3, [fp, #-28]
+.L9:
+	ldr	r3, [fp, #-28]
+	str	r3, [fp, #-16]
+	ldr	r3, [fp, #-16]
+	cmp	r3, #0
+	beq	.L10
+	ldr	r3, [fp, #-20]
+	add	r3, r3, #272
+	mov	r0, r3
+	bl	circularBufferInit(PLT)
+	mov	r3, r0
+	cmp	r3, #0
+	beq	.L10
+	mov	r3, #1
+	str	r3, [fp, #-24]
+	b	.L13
+.L10:
+	mov	r3, #0
+	str	r3, [fp, #-24]
+.L13:
+	ldr	r3, [fp, #-24]
+	str	r3, [fp, #-16]
+	ldr	r3, [fp, #-16]
 	mov	r0, r3
 	sub	sp, fp, #12
 	ldmfd	sp, {fp, sp, pc}
@@ -67,22 +97,22 @@ queuePush:
 	sub	r3, r3, #1
 	cmp	r3, #3
 	addls	pc, pc, r3, asl #2
-	b	.L10
+	b	.L16
 	.p2align 2
-.L15:
-	b	.L11
-	b	.L12
-	b	.L13
-	b	.L14
-.L11:
+.L21:
+	b	.L17
+	b	.L18
+	b	.L19
+	b	.L20
+.L17:
 	ldr	r3, [fp, #-16]
 	ldr	r0, [fp, #-20]
 	mov	r1, r3
 	bl	addToBuffer(PLT)
 	mov	r3, r0
 	str	r3, [fp, #-28]
-	b	.L16
-.L12:
+	b	.L22
+.L18:
 	ldr	r3, [fp, #-16]
 	add	r3, r3, #136
 	ldr	r0, [fp, #-20]
@@ -90,8 +120,8 @@ queuePush:
 	bl	addToBuffer(PLT)
 	mov	r3, r0
 	str	r3, [fp, #-28]
-	b	.L16
-.L13:
+	b	.L22
+.L19:
 	ldr	r3, [fp, #-16]
 	add	r3, r3, #272
 	ldr	r0, [fp, #-20]
@@ -99,8 +129,8 @@ queuePush:
 	bl	addToBuffer(PLT)
 	mov	r3, r0
 	str	r3, [fp, #-28]
-	b	.L16
-.L14:
+	b	.L22
+.L20:
 	ldr	r3, [fp, #-16]
 	add	r3, r3, #408
 	ldr	r0, [fp, #-20]
@@ -108,11 +138,11 @@ queuePush:
 	bl	addToBuffer(PLT)
 	mov	r3, r0
 	str	r3, [fp, #-28]
-	b	.L16
-.L10:
+	b	.L22
+.L16:
 	mov	r3, #0
 	str	r3, [fp, #-28]
-.L16:
+.L22:
 	ldr	r3, [fp, #-28]
 	mov	r0, r3
 	sub	sp, fp, #12
@@ -135,22 +165,22 @@ queuePriorityPop:
 	sub	r3, r3, #1
 	cmp	r3, #3
 	addls	pc, pc, r3, asl #2
-	b	.L19
+	b	.L25
 	.p2align 2
-.L24:
-	b	.L20
-	b	.L21
-	b	.L22
-	b	.L23
-.L20:
+.L30:
+	b	.L26
+	b	.L27
+	b	.L28
+	b	.L29
+.L26:
 	ldr	r3, [fp, #-16]
 	ldr	r0, [fp, #-20]
 	mov	r1, r3
 	bl	getFromBuffer(PLT)
 	mov	r3, r0
 	str	r3, [fp, #-28]
-	b	.L25
-.L21:
+	b	.L31
+.L27:
 	ldr	r3, [fp, #-16]
 	add	r3, r3, #136
 	ldr	r0, [fp, #-20]
@@ -158,8 +188,8 @@ queuePriorityPop:
 	bl	getFromBuffer(PLT)
 	mov	r3, r0
 	str	r3, [fp, #-28]
-	b	.L25
-.L22:
+	b	.L31
+.L28:
 	ldr	r3, [fp, #-16]
 	add	r3, r3, #272
 	ldr	r0, [fp, #-20]
@@ -167,8 +197,8 @@ queuePriorityPop:
 	bl	getFromBuffer(PLT)
 	mov	r3, r0
 	str	r3, [fp, #-28]
-	b	.L25
-.L23:
+	b	.L31
+.L29:
 	ldr	r3, [fp, #-16]
 	add	r3, r3, #408
 	ldr	r0, [fp, #-20]
@@ -176,11 +206,11 @@ queuePriorityPop:
 	bl	getFromBuffer(PLT)
 	mov	r3, r0
 	str	r3, [fp, #-28]
-	b	.L25
-.L19:
+	b	.L31
+.L25:
 	mov	r3, #0
 	str	r3, [fp, #-28]
-.L25:
+.L31:
 	ldr	r3, [fp, #-28]
 	mov	r0, r3
 	sub	sp, fp, #12
@@ -190,44 +220,52 @@ queuePriorityPop:
 	.global	queuePop
 	.type	queuePop, %function
 queuePop:
-	@ args = 0, pretend = 0, frame = 12
+	@ args = 0, pretend = 0, frame = 16
 	@ frame_needed = 1, uses_anonymous_args = 0
 	mov	ip, sp
 	stmfd	sp!, {fp, ip, lr, pc}
 	sub	fp, ip, #4
-	sub	sp, sp, #12
-	str	r0, [fp, #-16]
-	str	r1, [fp, #-20]
-	ldr	r0, [fp, #-16]
-	ldr	r1, [fp, #-20]
+	sub	sp, sp, #16
+	str	r0, [fp, #-20]
+	str	r1, [fp, #-24]
+	mov	r3, #0
+	str	r3, [fp, #-16]
+	ldr	r0, [fp, #-20]
+	ldr	r1, [fp, #-24]
 	mov	r2, #1
 	bl	queuePriorityPop(PLT)
 	mov	r3, r0
+	str	r3, [fp, #-16]
+	ldr	r3, [fp, #-16]
 	cmp	r3, #0
-	bne	.L28
-	ldr	r0, [fp, #-16]
-	ldr	r1, [fp, #-20]
+	beq	.L34
+	mov	r3, #1
+	str	r3, [fp, #-28]
+	b	.L36
+.L34:
+	ldr	r0, [fp, #-20]
+	ldr	r1, [fp, #-24]
 	mov	r2, #2
 	bl	queuePriorityPop(PLT)
 	mov	r3, r0
+	str	r3, [fp, #-16]
+	ldr	r3, [fp, #-16]
 	cmp	r3, #0
-	bne	.L28
-	ldr	r0, [fp, #-16]
-	ldr	r1, [fp, #-20]
+	beq	.L37
+	mov	r3, #1
+	str	r3, [fp, #-28]
+	b	.L36
+.L37:
+	ldr	r0, [fp, #-20]
+	ldr	r1, [fp, #-24]
 	mov	r2, #3
 	bl	queuePriorityPop(PLT)
 	mov	r3, r0
-	cmp	r3, #0
-	beq	.L31
-.L28:
-	mov	r3, #1
-	str	r3, [fp, #-24]
-	b	.L32
-.L31:
-	mov	r3, #0
-	str	r3, [fp, #-24]
-.L32:
-	ldr	r3, [fp, #-24]
+	str	r3, [fp, #-16]
+	ldr	r3, [fp, #-16]
+	str	r3, [fp, #-28]
+.L36:
+	ldr	r3, [fp, #-28]
 	mov	r0, r3
 	sub	sp, fp, #12
 	ldmfd	sp, {fp, sp, pc}

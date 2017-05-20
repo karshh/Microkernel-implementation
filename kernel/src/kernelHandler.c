@@ -11,7 +11,7 @@ int getNextTID(kernelHandler  * ks, int * TID){
 
 int initKernel(kernelHandler * ks){
 
-	ks->TIDgen = 5;
+	ks->TIDgen = 0;
 
 	int i = 0;
 	/******************************************************
@@ -25,12 +25,16 @@ int initKernel(kernelHandler * ks){
 	not going to do so now unless if program is unrunable
         */
 	int memOffset = (int) &(ks->taskSpace[MAX_STACKSIZE-1]);
-	bwprintf(COM2, "Task Memory start at %x to %x \r\n",memOffset, memOffset - (MAX_TID * (MAX_STACKSIZE/MAX_TID)));
 	memOffset = memOffset - (memOffset%16);
-	bwprintf(COM2, "Task Memory start at %x to %x \r\n",memOffset, memOffset - (MAX_TID * (MAX_STACKSIZE/MAX_TID)));
+	ks->memOffset = memOffset;
 	for (i = 0; i<MAX_TID;i++){
 		initTD(&ks->TDList[i],i,memOffset);
 	}
+/*
+	for (i = 0; i<MAX_TID;i++){
+		bwprintf(COM2, "Checking Memory at %d to %x \r\n",i, ks->TDList[i].sp);
+	}
+*/
 
 	//create_first task
 	//for now we forget about shceduling and assume there is only one active td
@@ -41,30 +45,20 @@ int initKernel(kernelHandler * ks){
 TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code){
 
 
-	bwprintf(COM2, "---------------------------...\r\n");
 	TD * td = &(ks->TDList[TID]);
-	bwprintf(COM2, "---------------------------...\r\n");
 	td->priority = priority;
-	bwprintf(COM2, "---------------------------...\r\n");
 	td->parentTID = parentTID;
-	bwprintf(COM2, "---------------------------...\r\n");
 	if(parentTID == KERNAL_CHILD) td->parent = 0;
 	else td->parent = &(ks->TDList[parentTID]);
 
-	bwprintf(COM2, "---------------------------...\r\n");
 	td->state = READY;
-	bwprintf(COM2, "---------------------------...\r\n");
 	td->spsr = 0xd0;
-	bwprintf(COM2, "---------------------------...\r\n");
 	td->reqVal = -1;
-	bwprintf(COM2, "Hur?---------------------------...\r\n");
-	bwprintf(COM2, "Hur?%x---------------------------...\r\n",td->sp);
+	volatile int mem = (volatile int) (TID * (MAX_STACKSIZE/MAX_TID));//giving stack space of 1kb
+	td->sp  = (int *) (ks->memOffset -(int) mem);
 	*(td->sp - 11) = code;
-	bwprintf(COM2, "---------------------------...\r\n");
  	*(td->sp - 12) = td->spsr; 	
-	bwprintf(COM2, "---------------------------...\r\n");
 		td->sp -= 12;
-	bwprintf(COM2, "---------------------------...\r\n");
 return  td;
 
 }

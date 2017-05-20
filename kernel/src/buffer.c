@@ -34,7 +34,7 @@ int isBufferEmpty( circularBuffer * cb){
 //Returns the number of elements currently in circular buffer
 int bufferLength( circularBuffer * cb){
     	if (cb->head == cb->tail) return 0;
-	else if (cb->head > cb->tail) return cb->head - cb->tail;
+	 else if (cb->head > cb->tail) return cb->head - cb->tail;
 	else  return cb->head + BUFFER_CAPACITY- cb->tail;
 }
 

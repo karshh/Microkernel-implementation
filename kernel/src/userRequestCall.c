@@ -16,8 +16,6 @@ int Create( int priority, void (*code)){
 	myRequest.reqType = CREATE;
 	myRequest.arg1 = (void *) priority;
 	myRequest.arg2 = code;
-	bwprintf(COM2,"arg1 %x \n\r",priority);
-	bwprintf(COM2,"arg2 %x \n\r",(int)code);
 	return user_contextswitch(0xdeadbeef, &myRequest);
 }
 int MyTid(){

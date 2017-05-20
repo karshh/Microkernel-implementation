@@ -1,5 +1,6 @@
 
 #include "queue.h"
+#include "bwio.h"
 
 // Note that circularBuffer initialization, additions and retreivals returns a success or failure 
 // value. This way if any one of the function calls fail we can short-circuit out and return a 0.
@@ -8,14 +9,17 @@
 
 
 int queueInit(queue * Q) {
-	return circularBufferInit(&(Q->high)) &&
-		circularBufferInit(&(Q->medium)) &&
-		circularBufferInit(&(Q->zombie)) &&
-		circularBufferInit(&(Q->low));
+	volatile int ret =0;
+	ret = circularBufferInit(&(Q->zombie)) ;
+	ret = ret && circularBufferInit(&(Q->high)) ;
+	ret = ret && circularBufferInit(&(Q->medium)) ;
+	ret = ret && circularBufferInit(&(Q->low)) ;
+	
+	return ret;
 }
 
 
-int queuePush(queue * Q, BUFFER_TYPE item, int P) {
+int queuePush(queue * Q, BUFFER_TYPE item, volatile int P) {
 	switch (P){
 	case(HIGH):
 		return addToBuffer(item, &(Q->high));
@@ -35,7 +39,7 @@ int queuePush(queue * Q, BUFFER_TYPE item, int P) {
 	}
 }
 
-int queuePriorityPop(queue * Q, BUFFER_TYPE * item, int P) {
+int queuePriorityPop(queue * Q, BUFFER_TYPE * item, volatile int P) {
 	switch (P){
 	case(HIGH):
 		return getFromBuffer (item, &(Q->high)) ;
@@ -56,9 +60,16 @@ int queuePriorityPop(queue * Q, BUFFER_TYPE * item, int P) {
 }
 
 int queuePop(queue * Q, BUFFER_TYPE * item) {
-	return queuePriorityPop(Q, item, HIGH) ||
-		queuePriorityPop(Q, item, MEDIUM) ||
-		 queuePriorityPop(Q, item, LOW);
+	volatile int ret = 0;
+		ret = queuePriorityPop(Q, item, HIGH);
+	if(ret) return 1;
+		ret = queuePriorityPop(Q, item, MEDIUM);
+		
+	if(ret) return 1;
+		ret = queuePriorityPop(Q, item, LOW);
+	return ret;
+	
+	
 }
 
 

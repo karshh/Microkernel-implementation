@@ -9,8 +9,8 @@
 
 typedef struct circularBuffer {
 	BUFFER_TYPE buffer[BUFFER_CAPACITY];
-	int head;
-	int tail; 
+	volatile int head;
+	volatile int tail; 
 
 } circularBuffer;
 
