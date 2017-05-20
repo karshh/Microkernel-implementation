@@ -7,10 +7,9 @@
 #include "queue.h"
 #include "td.h"
 
-#define MAX_TID 128
 
 
-typedef struct kernelHandler {
+typedef struct kernelHandler{
 //Kernal struct
 	
 	// information returned back to the task which invoked the handler.
@@ -31,14 +30,17 @@ typedef struct kernelHandler {
 	int TIDgen; //remove when implimenting free list/destry
 
 	TD TDList[MAX_TID];
-} kernelHander;
-
+	//an idea from ben to safely allocate space is to have 
+	char taskSpace[MAX_STACKSIZE+16];//add extra padding to deal with wierd offsets
+	
+} kernelHandler;
 
 // return 1 if kernel handler was succesfully initialized. 
-int kernelHandlerInit(kernelHander * ks);
+int initKernel(kernelHandler * ks);
+int getNextTID(kernelHandler  * ks, int * TID);
 
+void kernelTestRun(kernelHandler *ks);
 
-void kernelTestRun();
+TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code);
 
-int getNextTID(kernelHander * ks, int * TID);
 #endif

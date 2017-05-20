@@ -14,6 +14,8 @@ typedef enum requestType {
 
 typedef struct request{
 	requestType reqType;
+	void * arg1;
+	void * arg2;
 } request;
 
 

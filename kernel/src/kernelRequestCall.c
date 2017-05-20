@@ -3,9 +3,12 @@
 
 #include "kernelRequestCall.h"
 #include "queue.h"
+#include "kernelHandler.h"
+#include "bwio.h"
 
 
-int processRequest(TD * t, request * r) {
+
+int processRequest(queue * Q, kernelHandler * ks, TD * t, request * r) {
 	switch(r->reqType){
 	case(MYTID):
 		return kernel_MyTid(t);
@@ -14,7 +17,7 @@ int processRequest(TD * t, request * r) {
 		return kernel_MyParentTid(t);
 		break;
 	case(CREATE):
-		//return kernel_Create(t, r);
+		return kernel_Create(Q, t,r,ks);
 		break;
 	case(PASS):
 		return kernel_Pass(t);
@@ -53,5 +56,30 @@ int kernel_Exit(TD * t) {
 	//literally does absolutly nothing
 	t->priority = ZOMBIE;
 	t->reqVal = 0;
+	return 1;
+}
+
+
+int kernel_Create(queue * Q, TD * t, request * r, kernelHandler * ks){
+	int priority =(int) r->arg1;
+	if (priority <1 || priority >3){
+		 //change to 
+		t->reqVal = -1;
+	}else{
+		int err = getNextTID(ks,&(t->reqVal));
+		//got a live child
+		if (err) 
+		{ t->reqVal  = -2;}
+		else{
+		int TID = t->reqVal;
+		int code =(int) r->arg2;
+		int PTID = t->TID;
+
+			TD * childTD = setTask(ks,TID, PTID,priority,code);   //if TID == , it is created by kernel
+	
+			queuePush( Q, childTD, childTD->priority);
+		}
+	}
+	
 	return 1;
 }

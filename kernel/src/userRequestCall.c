@@ -9,6 +9,17 @@ int user_contextswitch(int dummy, request * r) {
 	return r_;
 	
 }
+
+
+int Create( int priority, void (*code)){
+	request myRequest;
+	myRequest.reqType = CREATE;
+	myRequest.arg1 = (void *) priority;
+	myRequest.arg2 = code;
+	bwprintf(COM2,"arg1 %x \n\r",priority);
+	bwprintf(COM2,"arg2 %x \n\r",(int)code);
+	return user_contextswitch(0xdeadbeef, &myRequest);
+}
 int MyTid(){
 	
 	request myRequest;
@@ -40,8 +51,8 @@ void Pass(){
 	//r1 = 3
 	//r2 = 1
 	//r3 = 4
-	
-	return user_contextswitch(0xdeadbeef, &myRequest);
+
+	user_contextswitch(0xdeadbeef, &myRequest);
 }
 
 
@@ -55,5 +66,5 @@ void Exit(){
 	//r2 = 1
 	//r3 = 4
 	
-	return user_contextswitch(0xdeadbeef, &myRequest);
+	user_contextswitch(0xdeadbeef, &myRequest);
 }
