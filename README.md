@@ -3,8 +3,8 @@ ____
 
 | Submitters | ID |
 | ------ | ------ |
-| Utkarsh Sharma | 20165196 |
-| Paily Njarlangattil  | 20467764 |
+| Paily Njarlangattil  | 20165196 |
+| Utkarsh Sharma | 20467764 |
 
 This section describes the operation of a program which demonstrates user task functions through context switches. 
 After pulling the source code, or downloading the zip, the program will need to be compiled. 
