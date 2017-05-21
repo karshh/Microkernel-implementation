@@ -1,7 +1,5 @@
-
 #include "userRequestCall.h"
 #include "request.h"
-#include "bwio.h"
 
 int user_contextswitch(int dummy, request * r) {
 	asm ("swi 0");

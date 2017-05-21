@@ -6,6 +6,7 @@
 
 #include "queue.h"
 #include "td.h"
+#include "kernelMacros.h"
 
 
 
@@ -38,14 +39,14 @@ typedef struct kernelHandler{
 } kernelHandler;
 
 // return 1 if kernel handler was succesfully initialized. 
-int initKernel(kernelHandler * ks);
+int initKernel(kernelHandler * ks, int priority, int code);
 
 // run the kernel
-void kernelRun(kernelHandler * ks);
+void kernelRun();
 
 int getNextTID(kernelHandler  * ks, int * TID);
 
-void kernelTestRun(kernelHandler *ks);
+void kernelTestRun(int priority, int code);
 
 TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code);
 

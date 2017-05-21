@@ -4,11 +4,8 @@
 #define _QUEUE_
 
 #include "buffer.h"
+#include "kernelMacros.h"
 
-#define HIGH	1
-#define MEDIUM	2
-#define LOW	3
-#define ZOMBIE	4 // Zombie queueE 
 typedef struct priorityQueue {
 	circularBuffer high;
 	circularBuffer medium;

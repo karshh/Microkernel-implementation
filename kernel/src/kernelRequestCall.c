@@ -1,8 +1,4 @@
-
-
-
 #include "kernelRequestCall.h"
-#include "queue.h"
 #include "kernelHandler.h"
 #include "bwio.h"
 

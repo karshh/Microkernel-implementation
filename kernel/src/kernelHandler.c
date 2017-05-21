@@ -1,10 +1,9 @@
 #include "kernelHandler.h"
 #include "kernelRequestCall.h"
 #include "td.h"
-#include "bwio.h"
-#include "td.h"
-#include "request.h"
 #include "interruptHandler.h"
+#include "request.h"
+#include "bwio.h"
 
 int getNextTID(kernelHandler  * ks, int * TID){
 	if (ks->TIDgen == MAX_TID) return -1;  //check if there are enough TD's
@@ -13,11 +12,15 @@ int getNextTID(kernelHandler  * ks, int * TID){
 	return 0;
 }
 
-int initKernel(kernelHandler * ks){
+int initKernel(kernelHandler * ks, int priority, int code){
+	//turn off fifos
+	bwsetfifo(COM2, OFF);
+	//turn off swi handler
+	* ((int *) (0x28)) = ((int) swiHandler) + REDBOOT_LOAD_OFFSET;
 
 	ks->TIDgen = 0;
 
-	int i = 0;
+	int TID = 0;
 	/******************************************************
 	a suggestion by ben the TA
 	i've allocated a subset of the kernel stack in a 16M array of characters.
@@ -31,39 +34,51 @@ int initKernel(kernelHandler * ks){
 	int memOffset = (int) &(ks->taskSpace[MAX_STACKSIZE-1]);
 	memOffset = memOffset - (memOffset%16);
 	ks->memOffset = memOffset;
-	for (i = 0; i<MAX_TID;i++){
-		initTD(&ks->TDList[i],i,memOffset);
-	}
 
-/*
-	for (i = 0; i<MAX_TID;i++){
-		bwprintf(COM2, "Checking Memory at %d to %x \r\n",i, ks->TDList[i].sp);
+	for (TID = 0; TID<MAX_TID;TID++){
+		initTD(&ks->TDList[TID],TID,memOffset);
 	}
-*/
-
-	//create_first task
-	//for now we forget about shceduling and assume there is only one active td
 
 
 	// initialize kernel's queue.
 	queueInit(&(ks->Q));
+
+	//set first task
+	TID =0;
+	if(getNextTID(ks, &TID)) {
+		bwprintf(COM2,"error getting TID\n\r"); //see sl
+		return -1;
+	}
+ 
+	TD * td = setTask(ks,TID,KERNAL_CHILD,priority,code);   //if PTID == -1 , it is created by kernel
+
+	if (!(kernel_queuePush(ks, td))){
+		 bwprintf(COM2, "Kernel:failed to push TD %d on the queue\n\r", td->TID);
+		return -2;
+	}
+
+	//everthing good by this point
 	return 0;
 }
 
-void kernelRun(kernelHandler * ks) {
+void kernelRun(int priority, int code) {
 
+	kernelHandler ks;
+	if(initKernel(&ks, priority, code)){
+		//if we return non-zero initialization failed and we don't go further
+		return;
+	}
+	
 	TD * task;
 	request r;
-	while(kernel_queuePop(ks, &task)) {
+	while(kernel_queuePop(&ks, &task)) {
 		 r = *activate(task->reqVal, &(task->sp));
-		processRequest(ks, task, &r);
-		kernel_queuePush(ks, task);
+		processRequest(&ks, task, &r);
+		kernel_queuePush(&ks, task);
 	}
 }
 
 TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code){
-
-
 	TD * td = &(ks->TDList[TID]);
 	td->priority = priority;
 	td->parentTID = parentTID;
@@ -75,7 +90,7 @@ TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code)
 	td->reqVal = -1;
 	volatile int mem = (volatile int) (TID * (MAX_STACKSIZE/MAX_TID));//giving stack space of 1kb
 	td->sp  = (int *) (ks->memOffset -(int) mem);
-	*(td->sp - 11) = code;
+	*(td->sp - 11) = code+REDBOOT_LOAD_OFFSET; //assumes redboot is loaded at 0x21000
  	*(td->sp - 12) = td->spsr; 	
 		td->sp -= 12;
 return  td;
