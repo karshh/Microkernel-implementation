@@ -143,10 +143,11 @@ int k_Push(kernelHandler * ks,  TD * task){
 }
 
 
-int k_Popp(kernelHandler * ks, TD * task, int priority){
+int k_Popp(kernelHandler * ks,volatile TD * task, int priority){
 	//pops off specific priority. makes no assumption what will happen to task after pop
 	//it is calling function's responsability to change Task's state
 
+	bwprintf(COM2,"K-popp1!!! %x is popped\n\r",task);
 	if(ks->priorityTail[priority] == 0) return -1; //queue is empty
 	task = 0;
 	task = (TD * )ks->priorityTail[priority];
@@ -163,6 +164,7 @@ int k_Popp(kernelHandler * ks, TD * task, int priority){
 
 	task->nextTD = 0;
 	task->prevTD = 0;
+	bwprintf(COM2,"K-popp2!!! %x is popped\n\r",task);
 	bwprintf(COM2,"K-popp! TID %d is popped\n\r",task->TID);
 	return 0;
 }
@@ -172,9 +174,16 @@ int k_Pop(kernelHandler * ks, TD * task){
 	bwprintf(COM2,"K-pop? before pop\n\r",i);
 	bwprintf(COM2,"K-pop?  \n\r");
 	//will modify to use bitstring check instead of loop later
-	TD * test =0;
+	volatile TD * test =0;
+	task =0;
+	bwprintf(COM2,"K-pop1!!! %x is popped\n\r",test);
+	k_Popp(ks,test,3);
+	bwprintf(COM2,"K-pop2!!! %x is popped\n\r",test);
+	return 1;
+/*
+
 	task = 0;
-	while(k_Popp(ks,test,i)){ //true if k_popp returns -1
+	while(k_Popp(ks,(TD *)test,i)){ //true if k_popp returns -1
 		i ++;
 		if (i == 32) break;
 	}
@@ -184,6 +193,7 @@ int k_Pop(kernelHandler * ks, TD * task){
 	bwprintf(COM2,"K-pop!! TID %d is popped\n\r",test->TID);
 	
 	return 1;
+*/
 	
 }
 

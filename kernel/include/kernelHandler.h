@@ -66,7 +66,7 @@ int kernel_queuePop(kernelHandler * ks, BUFFER_TYPE * task);
 //temporary queue functions for now
 int k_Push(kernelHandler * ks, TD * task);
 int k_Pop(kernelHandler * ks, TD * task);
-int k_Popp(kernelHandler * ks,TD * task, int priority);
+int k_Popp(kernelHandler * ks,volatile TD * task, int priority);
 
 #endif
 
