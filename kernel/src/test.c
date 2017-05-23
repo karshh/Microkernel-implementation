@@ -94,6 +94,6 @@ while(j < 1){
 int main(void) {
 
 	int code  = ((int) userTask3);
-	kernelRun(HIGH, code);
+	kernelRun(LOW, code);
 	return 0;
 }

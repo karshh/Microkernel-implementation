@@ -16,21 +16,23 @@ typedef enum State {
 
 
 typedef struct TD {
-	int* sp;	 // stack pointer.
+	volatile int* sp;	 // stack pointer.
 	
-	int reqVal;	
+	volatile int reqVal;	
 	
-	int spsr;	 // for the same reasons above, we must store it's CPSR here when it
+	volatile int spsr;	 // for the same reasons above, we must store it's CPSR here when it
 			 	 // returns from the requestCall.
-	int lr;
+	volatile int lr;
 
-	int TID; 
-	int parentTID; //will use for getMyparentTid for now
-	struct TD * parent; //pointer to parent if null, then ptid is first_task
-	int priority;
-	struct TD * nextTD; //used for next TD//pointer to parent if null, then ptid is first_task
-	struct TD * prevTD; //pointer to parent if null, then ptid is first_task
-	State state;
+	volatile int TID; 
+	volatile int parentTID; //will use for getMyparentTid for now
+	volatile struct TD * parent; //pointer to parent if null, then ptid is first_task
+	volatile int priority;
+	volatile State state;
+
+	volatile struct TD * nextTD; //used for priority queues and free list
+		//when pop, next means the task after the poped task
+	volatile struct TD * prevTD; 
 
 } TD;
 

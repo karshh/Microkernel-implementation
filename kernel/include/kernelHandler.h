@@ -12,7 +12,7 @@
 
 typedef struct kernelHandler{
 //Kernal struct
-	
+	/*
 	// information returned back to the task which invoked the handler.
 	void * sp;
 	void * lr;
@@ -24,7 +24,7 @@ typedef struct kernelHandler{
 	// void * redbootsp;
 	// void * redbootlr;
 	// void * redbootspsr;
-	
+	*/
 	// kernel uses this to schedule tasks.
 	queue Q;
 
@@ -32,9 +32,16 @@ typedef struct kernelHandler{
 	int TIDgen; //remove when implimenting free list/destry
 
 	TD TDList[MAX_TID];
-	//an idea from ben to safely allocate space is to have 
-	char taskSpace[MAX_STACKSIZE+16];//add extra padding to deal with wierd offsets
+	volatile TD * priorityHead[32];
+	volatile TD * priorityTail[32];
+
 	int memOffset;
+
+
+
+	//an idea from ben to safely allocate space is to have 
+	//wondering if this should be placed in another datastructure to limit cache misses
+	char taskSpace[MAX_STACKSIZE+16];//add extra padding to deal with wierd offsets
 	
 } kernelHandler;
 
@@ -53,7 +60,13 @@ TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code)
 
 // Abstracting queue code away.
 int kernel_queuePush(kernelHandler * ks, BUFFER_TYPE task);
-
 int kernel_queuePop(kernelHandler * ks, BUFFER_TYPE * task);
+
+
+//temporary queue functions for now
+int k_Push(kernelHandler * ks, TD * task);
+int k_Pop(kernelHandler * ks, TD * task);
+int k_Popp(kernelHandler * ks,TD * task, int priority);
+
 #endif
 
