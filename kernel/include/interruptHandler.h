@@ -6,7 +6,7 @@
 
 #include "request.h"
 
-request * activate(int reqVal, volatile int ** sp);
+request * activate(int reqVal, int ** sp);
 
 request * swiHandler(request * req);
 

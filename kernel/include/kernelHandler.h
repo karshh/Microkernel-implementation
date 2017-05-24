@@ -26,15 +26,16 @@ typedef struct kernelHandler{
 	// void * redbootspsr;
 	*/
 	// kernel uses this to schedule tasks.
-	queue Q;
+	//queue Q;
 
 	// kernel uses this to generate new TID's.
-	int TIDgen; //remove when implimenting free list/destry
 
 	TD TDList[MAX_TID];
 	volatile TD * priorityHead[32];
 	volatile TD * priorityTail[32];
-
+	unsigned int priotiyBitLookup;  
+	volatile TD * freeHead;
+	volatile TD * freeTail;
 	int memOffset;
 
 
@@ -59,14 +60,17 @@ TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code)
 
 
 // Abstracting queue code away.
-int kernel_queuePush(kernelHandler * ks, BUFFER_TYPE task);
-int kernel_queuePop(kernelHandler * ks, BUFFER_TYPE * task);
+//int kernel_queuePush(kernelHandler * ks, BUFFER_TYPE task);
+//int kernel_queuePop(kernelHandler * ks, BUFFER_TYPE * task);
 
 
 //temporary queue functions for now
-int k_Push(kernelHandler * ks, TD * task);
-int k_Pop(kernelHandler * ks, TD * task);
-int k_Popp(kernelHandler * ks,volatile TD * task, int priority);
+int kernel_queuePush(kernelHandler * ks,volatile TD * task);
+int kernel_queuePop_priority(kernelHandler * ks, volatile TD ** task, volatile int priority);
+int kernel_queuePop(kernelHandler * ks, volatile TD ** task);
+
+int free_Push(kernelHandler * ks,volatile TD * task);
+int free_Pop(kernelHandler * ks, volatile TD ** task);
 
 #endif
 

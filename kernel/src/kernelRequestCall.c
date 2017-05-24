@@ -50,8 +50,9 @@ int kernel_Pass(TD * t) {
 
 int kernel_Exit(TD * t) {
 	//literally does absolutly nothing
-	volatile int p = ZOMBIE;
+	volatile int p = ZOMBIE_PRIORITY;
 	t->priority = (int) p;
+	t->state = ZOMBIE;
 	t->reqVal = 0;
 	return 1;
 }
@@ -59,7 +60,7 @@ int kernel_Exit(TD * t) {
 
 int kernel_Create(TD * t, request * r, kernelHandler * ks) {
 	int priority =(int) r->arg1;
-	if (priority <1 || priority >3){
+	if (priority <0 || priority >31){
 		 //change to 
 		t->reqVal = -1;
 	}else{
@@ -75,8 +76,8 @@ int kernel_Create(TD * t, request * r, kernelHandler * ks) {
 			
 		int PTID = t->TID;
 		TD * childTD = setTask(ks,TID, PTID,priority,code);   //if TID == , it is created by kernel
-		//kernel_queuePush(ks, childTD);
-		k_Push(ks, childTD);
+	//	kernel_queuePush(ks, childTD);
+		 kernel_queuePush(ks, childTD);
 		}
 	}
 	

@@ -16,7 +16,7 @@ typedef enum State {
 
 
 typedef struct TD {
-	volatile int* sp;	 // stack pointer.
+	int* sp;	 // stack pointer.
 	
 	volatile int reqVal;	
 	

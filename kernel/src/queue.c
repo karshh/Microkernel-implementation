@@ -25,7 +25,7 @@ int queuePush(queue * Q, BUFFER_TYPE item) {
 	case(LOW):
 		return addToBuffer(item, &(Q->low));
 		break;
-	case(ZOMBIE):
+	case(ZOMBIE_PRIORITY):
 		return addToBuffer(item, &(Q->zombie));
 		break;
 	default:
@@ -45,7 +45,7 @@ int queuePriorityPop(queue * Q, BUFFER_TYPE * item, volatile int P) {
 	case(LOW):
 		return getFromBuffer (item, &(Q->low));
 		break;
-	case(ZOMBIE):
+	case(ZOMBIE_PRIORITY):
 		return getFromBuffer (item, &(Q->zombie));
 		break;
 	default:
