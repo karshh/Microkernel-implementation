@@ -11,6 +11,11 @@ int initTD( TD * td, int TID, int memOffset){
 	td->sp = (int *) memOffset;
 	td->spsr = 0xd0; //set SPSR to just user mode
 	td->lr = 0; //must be set on task creation
+	
+	//not getting free list yet so init to 0.
+	td->nextTD = 0;
+	td->prevTD = 0;
+
 	return 1;
 }
 

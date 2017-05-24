@@ -8,7 +8,7 @@
 #define HIGH	1
 #define MEDIUM	2
 #define LOW	3
-#define ZOMBIE	4 // Zombie queueE 
+#define ZOMBIE_PRIORITY	4 // Zombie queueE 
 
 //TID macros
 #define KERNAL_CHILD -1 

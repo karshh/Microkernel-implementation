@@ -12,7 +12,7 @@
 
 typedef struct kernelHandler{
 //Kernal struct
-	
+	/*
 	// information returned back to the task which invoked the handler.
 	void * sp;
 	void * lr;
@@ -24,17 +24,25 @@ typedef struct kernelHandler{
 	// void * redbootsp;
 	// void * redbootlr;
 	// void * redbootspsr;
-	
+	*/
 	// kernel uses this to schedule tasks.
-	queue Q;
+	//queue Q;
 
 	// kernel uses this to generate new TID's.
-	int TIDgen; //remove when implimenting free list/destry
 
 	TD TDList[MAX_TID];
-	//an idea from ben to safely allocate space is to have 
-	char taskSpace[MAX_STACKSIZE+16];//add extra padding to deal with wierd offsets
+	volatile TD * priorityHead[32];
+	volatile TD * priorityTail[32];
+	unsigned int priotiyBitLookup;  
+	volatile TD * freeHead;
+	volatile TD * freeTail;
 	int memOffset;
+
+
+
+	//an idea from ben to safely allocate space is to have 
+	//wondering if this should be placed in another datastructure to limit cache misses
+	char taskSpace[MAX_STACKSIZE+16];//add extra padding to deal with wierd offsets
 	
 } kernelHandler;
 
@@ -52,8 +60,17 @@ TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code)
 
 
 // Abstracting queue code away.
-int kernel_queuePush(kernelHandler * ks, BUFFER_TYPE task);
+//int kernel_queuePush(kernelHandler * ks, BUFFER_TYPE task);
+//int kernel_queuePop(kernelHandler * ks, BUFFER_TYPE * task);
 
-int kernel_queuePop(kernelHandler * ks, BUFFER_TYPE * task);
+
+//temporary queue functions for now
+int kernel_queuePush(kernelHandler * ks,volatile TD * task);
+int kernel_queuePop_priority(kernelHandler * ks, volatile TD ** task, volatile int priority);
+int kernel_queuePop(kernelHandler * ks, volatile TD ** task);
+
+int free_Push(kernelHandler * ks,volatile TD * task);
+int free_Pop(kernelHandler * ks, volatile TD ** task);
+
 #endif
 
