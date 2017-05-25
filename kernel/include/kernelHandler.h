@@ -12,34 +12,20 @@
 
 typedef struct kernelHandler{
 //Kernal struct
-	/*
-	// information returned back to the task which invoked the handler.
-	void * sp;
-	void * lr;
-	void * spsr;
-	int retVal;
-	
-	// information for the kernel to return back to redboot. Commented out for now
-	// due to lack of use.
-	// void * redbootsp;
-	// void * redbootlr;
-	// void * redbootspsr;
-	*/
-	// kernel uses this to schedule tasks.
-	//queue Q;
-
-	// kernel uses this to generate new TID's.
-
+	//list of TD's
 	TD TDList[MAX_TID];
+	//priority queues
 	volatile TD * priorityHead[32];
 	volatile TD * priorityTail[32];
 	unsigned int priotiyBitLookup;  
+
+	//free list
 	volatile TD * freeHead;
 	volatile TD * freeTail;
+
+	volatile TD * activeTask;
+	//memm offset for user task space
 	int memOffset;
-
-
-
 	//an idea from ben to safely allocate space is to have 
 	//wondering if this should be placed in another datastructure to limit cache misses
 	char taskSpace[MAX_STACKSIZE+16];//add extra padding to deal with wierd offsets

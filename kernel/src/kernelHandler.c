@@ -15,10 +15,8 @@ int getNextTID(kernelHandler  * ks, int * TID){
 int initKernel(kernelHandler * ks, int priority, int code){
 	//turn off fifos
 	bwsetfifo(COM2, OFF);
-	//turn off swi handler
-	* ((int *) (0x28)) = ((int) swiHandler) + REDBOOT_LOAD_OFFSET;
 
-
+	ks->activeTask = 0;
 	int TID = 0;
 	/******************************************************
 	a suggestion by ben the TA
@@ -74,6 +72,7 @@ int initKernel(kernelHandler * ks, int priority, int code){
 	return 0;
 }
 
+
 void kernelRun(int priority, int code) {
 
 	kernelHandler ks;
@@ -87,12 +86,14 @@ void kernelRun(int priority, int code) {
 	volatile TD * task =0;
 	while(kernel_queuePop(&ks, &task)) {
 		task->state = ACTIVE;
+		//sets active task
+		ks.activeTask = task;
 		TD *td = (TD *)task;
-		
-		r = *activate(task->reqVal, &(td->sp));
-
+		r =* activate(task->reqVal, td);
 		processRequest(&ks, td, &r);
 		if(task->state == ACTIVE)kernel_queuePush(&ks, task);
+		//we are done with task so setting active task to null
+		ks.activeTask = 0;
 	}
 
 

@@ -11,13 +11,7 @@ After pulling the source code, or downloading the zip, the program will need to 
 ```
 $ cd k1/src
 $ make
-mv interruptHandler.s interruptHandler.si
 rm -f *.s *.a *.o *.map *.elf
-mv interruptHandler.si interruptHandler.s
-[565]% make
-mv interruptHandler.s interruptHandler.si
-rm -f *.s *.a *.o *.map *.elf
-mv interruptHandler.si interruptHandler.s
 gcc -S -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float bwio.c
 as -mcpu=arm920t -mapcs-32 -o bwio.o bwio.s
 gcc -S -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float buffer.c
@@ -32,6 +26,7 @@ gcc -S -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float userRequestCal
 as -mcpu=arm920t -mapcs-32 -o userRequestCall.o userRequestCall.s
 gcc -S -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float kernelRequestCall.c
 as -mcpu=arm920t -mapcs-32 -o kernelRequestCall.o kernelRequestCall.s
+gcc -S -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float interruptHandler.c
 as -mcpu=arm920t -mapcs-32 -o interruptHandler.o interruptHandler.s
 gcc -S -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float test.c
 as -mcpu=arm920t -mapcs-32 -o test.o test.s
