@@ -8,7 +8,7 @@
 void otherUserTask() {
 	int tid = MyTid();
 	int parenttid = MyParentTid();
-	bwprintf(COM2,"MyTid:%d.        MyParentTid:%d.\r\n", tid, parenttid);
+	bwprintf(COM2,"mytid:%d.        myparenttid:%d.\r\n", tid, parenttid);
 	
 	Pass();
 	
@@ -17,7 +17,6 @@ void otherUserTask() {
 	bwprintf(COM2,"MyTid:%d.        MyParentTid:%d.\r\n", tid, parenttid);
 	Exit();
 }
-
 
 void firstUserTask() {
 	int priority = LOW;
@@ -46,6 +45,7 @@ void firstUserTask() {
 int main(void) {
 	
 
+	//kernelRun(MEDIUM, (int) firstUserTask);
 	kernelRun(MEDIUM, (int) firstUserTask);
 	
 	return 0;
