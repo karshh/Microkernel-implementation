@@ -4,12 +4,10 @@
 
 typedef struct message {
 	int senderTID;
-	char * sendMsg;
-	int sendMsgLen;
+	void* msg;
+	int msglen;
+	int receiverTID;
 
-	int recieverTID;
-	char * recieveMsg;
-	int recieveMsgLen;
 } message;
 
 

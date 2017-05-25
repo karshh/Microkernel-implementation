@@ -3,6 +3,21 @@
 #ifndef _TD_
 #define _TD_
 
+
+#include "message.h"
+
+
+#define MAIL_CAPACITY 32
+
+typedef struct Inbox {
+	volatile message mail[MAIL_CAPACITY];
+	volatile int mailIncr;
+	volatile int mailSeen;
+
+} Inbox;
+
+int initInbox(volatile Inbox * i);
+
 typedef enum State {
 	FREE, // state is not zombie and is on free list
 	ACTIVE,
@@ -34,11 +49,19 @@ typedef struct TD {
 		//when pop, next means the task after the poped task
 	volatile struct TD * prevTD; 
 
+	// message passing
+	volatile Inbox inbox;
+	volatile void* compose;
+	volatile int composelen;
+	
 } TD;
 
 
 int initTD( TD * td, int TID, int memOffset);//sets upmemory allocation for tasks
 
+int checkMail(TD * td, message * m);
+
+int putMail(TD * td, message m);
 
 #endif
 

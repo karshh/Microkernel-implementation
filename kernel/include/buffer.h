@@ -4,6 +4,7 @@
 
 #include "td.h"
 
+
 #define BUFFER_CAPACITY 32
 #define BUFFER_TYPE TD*
 
@@ -35,8 +36,6 @@ int isBufferEmpty( circularBuffer * cb);
 
 //Returns the number of elements currently in circular buffer
 int bufferLength( circularBuffer * cb);
-
-
 
 #endif
 

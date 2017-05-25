@@ -9,17 +9,21 @@ typedef enum requestType {
 	MYPARENTID,
 	CREATE,
 	PASS,
-	EXIT
+	EXIT,
+	SEND,
+	RECEIVE,
+	REPLY
 } requestType;
 
 typedef struct request{
 	requestType reqType;
 	void * arg1;
 	void * arg2;
+	void * arg3;
+	void * arg4;
+	void * arg5;
 } request;
 
 
-// return 1 if kernel handler was succesfully initialized. 
-int kernelHandlerInit();
 
 #endif

@@ -19,11 +19,6 @@ typedef struct kernelHandler{
 	void * spsr;
 	int retVal;
 	
-	// information for the kernel to return back to redboot. Commented out for now
-	// due to lack of use.
-	// void * redbootsp;
-	// void * redbootlr;
-	// void * redbootspsr;
 	*/
 	// kernel uses this to schedule tasks.
 	//queue Q;
