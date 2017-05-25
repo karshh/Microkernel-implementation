@@ -14,10 +14,10 @@ void Pass( );
 
 void Exit( );
 
-int Send(int tid, void *msg, int msglen, void *reply, int replylen);
+int Send(int tid, char *msg, int msglen, char *reply, int rplen);
 
-int Receive(int *tid, void *msg, int msglen);
+int Receive(int *tid, char *msg, int msglen);
 
-int Reply(int tid, void *reply, int replylen);
+int Reply(int tid, char *reply, int rplen);
 
 #endif

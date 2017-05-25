@@ -65,3 +65,54 @@ void Exit(){
 	
 	user_contextswitch(0xdeadbeef, &myRequest);
 }
+
+int Send(int tid, char *msg, int msglen, char *reply, int rplen){
+	
+	request myRequest;
+	myRequest.reqType = SEND;
+	myRequest.arg1 = (void *) tid;
+	myRequest.arg2 = (void *) msg;
+	myRequest.arg3 = (void *) msglen;
+	myRequest.arg4 = (void *) reply;
+	myRequest.arg5 = (void *) rplen;
+	//r0 = &myrequest
+	//note args arg1...arg3 are useless might remove in future
+	//r1 = 3
+	//r2 = 1
+	//r3 = 4
+	
+	return user_contextswitch(0xdeadbeef, &myRequest);
+}
+
+int Receive(int *tid, char *msg, int msglen){
+	
+	request myRequest;
+	myRequest.reqType = RECEIVE;
+	myRequest.arg1 = (void *) tid;
+	myRequest.arg2 = (void *) msg;
+	myRequest.arg3 = (void *) msglen;
+	//r0 = &myrequest
+	//note args arg1...arg3 are useless might remove in future
+	//r1 = 3
+	//r2 = 1
+	//r3 = 4
+	
+	return user_contextswitch(0xdeadbeef, &myRequest);
+}
+
+
+int Reply(int tid, char *reply, int rplen){
+	
+	request myRequest;
+	myRequest.reqType = REPLY;
+	myRequest.arg1 = (void *) tid;
+	myRequest.arg2 = (void *) reply;
+	myRequest.arg3 = (void *) rplen;
+	//r0 = &myrequest
+	//note args arg1...arg3 are useless might remove in future
+	//r1 = 3
+	//r2 = 1
+	//r3 = 4
+	
+	return user_contextswitch(0xdeadbeef, &myRequest);
+}

@@ -2,14 +2,17 @@
 #define _MESSAGE_
 
 
+#define MESSAGE_CAPACITY 1024
+
 typedef struct message {
 	int senderTID;
-	void* msg;
+	char msg[MESSAGE_CAPACITY + 1];
 	int msglen;
 	int receiverTID;
 
 } message;
 
+int messageInit(message * m);
 
 #endif
 

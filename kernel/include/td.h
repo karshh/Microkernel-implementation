@@ -10,9 +10,9 @@
 #define MAIL_CAPACITY 32
 
 typedef struct Inbox {
-	volatile message mail[MAIL_CAPACITY];
-	volatile int mailIncr;
-	volatile int mailSeen;
+	message mail[MAIL_CAPACITY];
+ 	int mailIncr;
+	int mailSeen;
 
 } Inbox;
 
@@ -24,7 +24,7 @@ typedef enum State {
 	READY,
 	ZOMBIE,
 	SEND_BLOCKED,
-	RECIEVE_BLOCKED,
+	RECEIVE_BLOCKED,
 	REPLY_BLOCKED,
 	EVENT_BLOCKED
 } State;
@@ -51,8 +51,9 @@ typedef struct TD {
 
 	// message passing
 	volatile Inbox inbox;
-	volatile void* compose;
+	volatile char* compose;
 	volatile int composelen;
+	volatile int* tidBuffer;
 	
 } TD;
 
@@ -61,7 +62,7 @@ int initTD( TD * td, int TID, int memOffset);//sets upmemory allocation for task
 
 int checkMail(TD * td, message * m);
 
-int putMail(TD * td, message m);
+int putMail(TD * td, message * m);
 
 #endif
 

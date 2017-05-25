@@ -4,6 +4,7 @@
 #include "interruptHandler.h"
 #include "request.h"
 #include "bwio.h"
+#include "message.h"
 
 int getNextTID(kernelHandler  * ks, int * TID){
 	volatile TD * task = 0;
@@ -82,7 +83,7 @@ void kernelRun(int priority, int code) {
 	}
 	
 	request r;
-
+	message m;
 	volatile TD * task =0;
 	while(kernel_queuePop(&ks, &task)) {
 		task->state = ACTIVE;
@@ -90,7 +91,7 @@ void kernelRun(int priority, int code) {
 		ks.activeTask = task;
 		TD *td = (TD *)task;
 		r =* activate(task->reqVal, td);
-		processRequest(&ks, td, &r);
+		processRequest(&ks, td, &r, &m);
 		if(task->state == ACTIVE)kernel_queuePush(&ks, task);
 		//we are done with task so setting active task to null
 		ks.activeTask = 0;

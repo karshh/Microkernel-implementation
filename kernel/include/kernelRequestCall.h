@@ -25,6 +25,12 @@ int kernel_Exit(TD * t);
 
 int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m);
 
+int kernel_Receive(TD * t, request * r, kernelHandler * ks, message * m);
+
+int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m);
+
+int processMail(int receiever, kernelHandler * ks, message * m, int pushIntoQueue);
+
 
 void kernelTestRun();
 
