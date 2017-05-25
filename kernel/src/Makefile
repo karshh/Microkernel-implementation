@@ -38,6 +38,8 @@ td.s: td.c
 td.o: td.s
 	$(AS) $(ASFLAGS) -o td.o td.s
 
+interruptHandler.s: interruptHandler.c
+	$(XCC) -S $(CFLAGS) interruptHandler.c
 
 interruptHandler.o: interruptHandler.s
 	$(AS) $(ASFLAGS) -o interruptHandler.o interruptHandler.s
@@ -98,6 +100,4 @@ install: test.elf k1.elf
 	cp k1.elf /u/cs452/tftp/ARM/`whoami`/
 
 clean:
-	mv interruptHandler.s interruptHandler.si
 	-rm -f *.s *.a *.o *.map *.elf
-	mv interruptHandler.si interruptHandler.s
