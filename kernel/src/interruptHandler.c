@@ -1,12 +1,13 @@
 #include "interruptHandler.h"
 #include "td.h"
 #include "request.h"
+#include "kernelMacros.h"
 
  request *  activate(int reqVal, TD *td){
 	request * rq;
 
 	//Set location on swi entry point
-	int ptr =(int) &&swi_new;
+	int ptr =(int) swiHandler+ REDBOOT_LOAD_OFFSET;
 	* ((int *) (0x28)) = ((int) ptr) ;
 
 
@@ -29,7 +30,7 @@
 	asm volatile(
 	"movs	pc, lr\n");
 
-	swi_new:; //semicolon is required...apparently
+	asm("swiHandler:"); //semicolon is required...apparently
 	int r;
 	asm volatile(
 	//r1 contains pointer to request object
