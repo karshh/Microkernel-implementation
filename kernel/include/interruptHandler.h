@@ -8,6 +8,7 @@
 #include "td.h"
 
 request *  activate(int reqVal, TD * td);
+request * swiHandler(int reqVal, TD * td);
 /*
 request * activate(int reqVal, int ** sp);
 
