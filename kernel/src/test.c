@@ -147,9 +147,21 @@ void userTask60() {
 
 
 
+void userTask11(void) {    
+    //bwprintf(COM2, "HERE\r\n");    
+    //bwprintf(COM2, "USER TASK 1 MIDDLE \r\n");    
+    // bwprintf(COM2, "USER TASK 1 EXIT, REQUESTING TID.\r\n");     
+     int tid = MyTid();     
+     bwprintf(COM2, "USER TASK 1 GOT TID = %d.\r\n", tid);     
+   //  bwprintf(COM2, "USER TASK 1 EXIT, REQUESTING Parent TID.\r\n");    
+   // int parentTid = MyParentTid();     
+   // bwprintf(COM2, "USER TASK 1 GOT Parent TID = %d.\r\n", parentTid); 
+     Exit();
+}
+
 int main(void) {
 
-	int code  = ((int) userTask60);
+	int code  = ((int) userTask11);
 	kernelRun(5, code);
 	return 0;
 }

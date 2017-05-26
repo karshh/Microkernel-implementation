@@ -1,5 +1,5 @@
 	.file	"k1.c"
-	.section	.rodata
+	.section	.rodata.str1.4,"aMS",%progbits,1
 	.align	2
 .LC0:
 	.ascii	"mytid:%d.        myparenttid:%d.\015\012\000"
@@ -11,45 +11,33 @@
 	.global	otherUserTask
 	.type	otherUserTask, %function
 otherUserTask:
-	@ args = 0, pretend = 0, frame = 8
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {sl, fp, ip, lr, pc}
-	sub	fp, ip, #4
-	sub	sp, sp, #8
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	stmfd	sp!, {r4, sl, lr}
 	ldr	sl, .L4
 .L3:
 	add	sl, pc, sl
 	bl	MyTid(PLT)
-	mov	r3, r0
-	str	r3, [fp, #-24]
+	mov	r4, r0
 	bl	MyParentTid(PLT)
+	ldr	r1, .L4+4
 	mov	r3, r0
-	str	r3, [fp, #-20]
+	mov	r2, r4
+	add	r1, sl, r1
 	mov	r0, #1
-	ldr	r3, .L4+4
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-24]
-	ldr	r3, [fp, #-20]
 	bl	bwprintf(PLT)
 	bl	Pass(PLT)
 	bl	MyTid(PLT)
-	mov	r3, r0
-	str	r3, [fp, #-24]
+	mov	r4, r0
 	bl	MyParentTid(PLT)
+	ldr	r1, .L4+8
 	mov	r3, r0
-	str	r3, [fp, #-20]
+	mov	r2, r4
+	add	r1, sl, r1
 	mov	r0, #1
-	ldr	r3, .L4+8
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-24]
-	ldr	r3, [fp, #-20]
 	bl	bwprintf(PLT)
-	bl	Exit(PLT)
-	sub	sp, fp, #16
-	ldmfd	sp, {sl, fp, sp, pc}
+	ldmfd	sp!, {r4, sl, lr}
+	b	Exit(PLT)
 .L5:
 	.align	2
 .L4:
@@ -57,7 +45,7 @@ otherUserTask:
 	.word	.LC0(GOTOFF)
 	.word	.LC1(GOTOFF)
 	.size	otherUserTask, .-otherUserTask
-	.section	.rodata
+	.section	.rodata.str1.4
 	.align	2
 .LC2:
 	.ascii	"Invalid priority.\015\012\000"
@@ -75,82 +63,54 @@ otherUserTask:
 	.global	firstUserTask
 	.type	firstUserTask, %function
 firstUserTask:
-	@ args = 0, pretend = 0, frame = 12
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {sl, fp, ip, lr, pc}
-	sub	fp, ip, #4
-	sub	sp, sp, #12
-	ldr	sl, .L19
-.L18:
-	add	sl, pc, sl
-	mov	r3, #3
-	str	r3, [fp, #-28]
-	mov	r3, #1
-	str	r3, [fp, #-24]
-	b	.L7
-.L8:
-	ldr	r0, [fp, #-28]
-	ldr	r3, .L19+4
-	ldr	r3, [sl, r3]
-	mov	r1, r3
-	bl	Create(PLT)
-	mov	r3, r0
-	str	r3, [fp, #-20]
-	ldr	r3, [fp, #-20]
-	cmn	r3, #1
-	bne	.L9
-	mov	r0, #1
-	ldr	r3, .L19+8
-	add	r3, sl, r3
-	mov	r1, r3
-	bl	bwprintf(PLT)
-	bl	Exit(PLT)
-	b	.L11
-.L9:
-	ldr	r3, [fp, #-20]
-	cmn	r3, #2
-	bne	.L12
-	mov	r0, #1
-	ldr	r3, .L19+12
-	add	r3, sl, r3
-	mov	r1, r3
-	bl	bwprintf(PLT)
-	bl	Exit(PLT)
-	b	.L11
-.L12:
-	mov	r0, #1
-	ldr	r3, .L19+16
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-20]
-	bl	bwprintf(PLT)
-.L11:
-	ldr	r3, [fp, #-24]
-	cmp	r3, #2
-	bne	.L14
-	mov	r3, #1
-	str	r3, [fp, #-28]
-.L14:
-	ldr	r3, [fp, #-24]
-	add	r3, r3, #1
-	str	r3, [fp, #-24]
-.L7:
-	ldr	r3, [fp, #-24]
-	cmp	r3, #4
-	ble	.L8
-	mov	r0, #1
-	ldr	r3, .L19+20
-	add	r3, sl, r3
-	mov	r1, r3
-	bl	bwprintf(PLT)
-	bl	Exit(PLT)
-	sub	sp, fp, #16
-	ldmfd	sp, {sl, fp, sp, pc}
-.L20:
-	.align	2
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	stmfd	sp!, {r4, r5, r6, sl, lr}
+	ldr	sl, .L22
+	ldr	r6, .L22+4
+	mov	r5, #3
+	mov	r4, #1
 .L19:
-	.word	_GLOBAL_OFFSET_TABLE_-(.L18+8)
+	add	sl, pc, sl
+.L7:
+	ldr	r1, [sl, r6]
+	mov	r0, r5
+	bl	Create(PLT)
+	ldr	r1, .L22+8
+	mov	r2, r0
+	cmn	r2, #1
+	mov	r0, #1
+	add	r1, sl, r1
+	beq	.L20
+	ldr	r1, .L22+12
+	cmn	r2, #2
+	mov	r0, #1
+	add	r1, sl, r1
+	beq	.L20
+	ldr	r1, .L22+16
+	mov	r0, #1
+	add	r1, sl, r1
+	bl	bwprintf(PLT)
+.L10:
+	cmp	r4, #2
+	add	r4, r4, #1
+	moveq	r5, #1
+	cmp	r4, #5
+	bne	.L7
+	ldr	r1, .L22+20
+	mov	r0, #1
+	add	r1, sl, r1
+	bl	bwprintf(PLT)
+	ldmfd	sp!, {r4, r5, r6, sl, lr}
+	b	Exit(PLT)
+.L20:
+	bl	bwprintf(PLT)
+	bl	Exit(PLT)
+	b	.L10
+.L23:
+	.align	2
+.L22:
+	.word	_GLOBAL_OFFSET_TABLE_-(.L19+8)
 	.word	otherUserTask(GOT)
 	.word	.LC2(GOTOFF)
 	.word	.LC3(GOTOFF)
@@ -162,25 +122,21 @@ firstUserTask:
 	.type	main, %function
 main:
 	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {sl, fp, ip, lr, pc}
-	sub	fp, ip, #4
-	ldr	sl, .L24
-.L23:
+	@ frame_needed = 0, uses_anonymous_args = 0
+	stmfd	sp!, {sl, lr}
+	ldr	sl, .L27
+	ldr	r3, .L27+4
+.L26:
 	add	sl, pc, sl
-	ldr	r3, .L24+4
-	ldr	r3, [sl, r3]
 	mov	r0, #2
-	mov	r1, r3
+	ldr	r1, [sl, r3]
 	bl	kernelRun(PLT)
-	mov	r3, #0
-	mov	r0, r3
-	ldmfd	sp, {sl, fp, sp, pc}
-.L25:
+	mov	r0, #0
+	ldmfd	sp!, {sl, pc}
+.L28:
 	.align	2
-.L24:
-	.word	_GLOBAL_OFFSET_TABLE_-(.L23+8)
+.L27:
+	.word	_GLOBAL_OFFSET_TABLE_-(.L26+8)
 	.word	firstUserTask(GOT)
 	.size	main, .-main
 	.ident	"GCC: (GNU) 4.0.2"

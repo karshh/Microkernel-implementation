@@ -4,57 +4,44 @@
 	.global	activate
 	.type	activate, %function
 activate:
-	@ args = 0, pretend = 0, frame = 20
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {sl, fp, ip, lr, pc}
-	sub	fp, ip, #4
-	sub	sp, sp, #20
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	@ link register save eliminated.
+.L2:
+	str	sl, [sp, #-4]!
 	ldr	sl, .L5
+	ldr	r3, .L5+4
 .L4:
 	add	sl, pc, sl
-	str	r0, [fp, #-32]
-	str	r1, [fp, #-36]
-	ldr	r3, .L5+4
-	add	r3, sl, r3
-	str	r3, [fp, #-24]
+	add	ip, sl, r3
 	mov	r2, #40
-	ldr	r3, [fp, #-24]
-	str	r3, [r2, #0]
-	ldr	r3, [fp, #-36]
-	ldr	r2, [r3, #0]
-	ldr	r3, [fp, #-32]
+	@ lr needed for prologue
+	str	ip, [r2, #0]
+	ldr	r3, [r1, #0]
 	stmfd	sp!, {r1, r4-r9, sl, fp, ip, lr }
 	msr	cpsr, #0xdf
-	mov	sp, r2
+	mov	sp, r3
 	ldmfd	sp!, {r1, r2, r4-r10, fp, ip, lr}
 	msr	cpsr, #0xd3
 	msr	spsr, r1
 	mov	lr, r2
-	mov	r0, r3
+	mov	r0, r0
 
 	movs	pc, lr
 
-.L2:
 	mov r0, r1
 mrs	r1, spsr
 mov	r2, lr
 msr	cpsr, #0xdf
 stmfd	sp!, {r1, r2, r4-r10, fp, ip, lr}
-mov	r2, sp
+mov	r3, sp
 msr	cpsr, #0xd3
 ldmfd	sp!, {r1, r4-r9,sl,fp,ip,lr}
-mov r1, r0
+mov r0, r0
 
-	ldr	r3, [fp, #-36]
-	str	r2, [r3, #0]
-	str	r1, [fp, #-20]
-	ldr	r3, [fp, #-20]
-	str	r3, [fp, #-28]
-	ldr	r3, [fp, #-28]
-	mov	r0, r3
-	sub	sp, fp, #16
-	ldmfd	sp, {sl, fp, sp, pc}
+	str	r3, [r1, #0]
+	ldmfd	sp!, {sl}
+	bx	lr
 .L6:
 	.align	2
 .L5:

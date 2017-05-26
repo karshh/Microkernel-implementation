@@ -4,46 +4,29 @@
 	.global	user_contextswitch
 	.type	user_contextswitch, %function
 user_contextswitch:
-	@ args = 0, pretend = 0, frame = 8
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {fp, ip, lr, pc}
-	sub	fp, ip, #4
-	sub	sp, sp, #8
-	str	r0, [fp, #-16]
-	str	r1, [fp, #-20]
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	@ link register save eliminated.
+	@ lr needed for prologue
 	swi 0
-	mov	r3, r0
-	mov	r0, r3
-	sub	sp, fp, #12
-	ldmfd	sp, {fp, sp, pc}
+	bx	lr
 	.size	user_contextswitch, .-user_contextswitch
 	.align	2
 	.global	Create
 	.type	Create, %function
 Create:
-	@ args = 0, pretend = 0, frame = 32
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {fp, ip, lr, pc}
-	sub	fp, ip, #4
-	sub	sp, sp, #32
-	str	r0, [fp, #-40]
-	str	r1, [fp, #-44]
+	@ args = 0, pretend = 0, frame = 24
+	@ frame_needed = 0, uses_anonymous_args = 0
+	str	lr, [sp, #-4]!
+	sub	sp, sp, #24
+	stmib	sp, {r0, r1}	@ phole stm
 	mov	r3, #3
-	str	r3, [fp, #-36]
-	ldr	r3, [fp, #-40]
-	str	r3, [fp, #-32]
-	ldr	r3, [fp, #-44]
-	str	r3, [fp, #-28]
-	sub	r3, fp, #36
+	mov	r1, sp
 	ldr	r0, .L5
-	mov	r1, r3
+	str	r3, [sp, #0]
 	bl	user_contextswitch(PLT)
-	mov	r3, r0
-	mov	r0, r3
-	sub	sp, fp, #12
-	ldmfd	sp, {fp, sp, pc}
+	add	sp, sp, #24
+	ldmfd	sp!, {pc}
 .L6:
 	.align	2
 .L5:
@@ -54,21 +37,16 @@ Create:
 	.type	MyTid, %function
 MyTid:
 	@ args = 0, pretend = 0, frame = 24
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {fp, ip, lr, pc}
-	sub	fp, ip, #4
+	@ frame_needed = 0, uses_anonymous_args = 0
+	str	lr, [sp, #-4]!
 	sub	sp, sp, #24
 	mov	r3, #1
-	str	r3, [fp, #-36]
-	sub	r3, fp, #36
+	mov	r1, sp
 	ldr	r0, .L9
-	mov	r1, r3
+	str	r3, [sp, #0]
 	bl	user_contextswitch(PLT)
-	mov	r3, r0
-	mov	r0, r3
-	sub	sp, fp, #12
-	ldmfd	sp, {fp, sp, pc}
+	add	sp, sp, #24
+	ldmfd	sp!, {pc}
 .L10:
 	.align	2
 .L9:
@@ -79,21 +57,16 @@ MyTid:
 	.type	MyParentTid, %function
 MyParentTid:
 	@ args = 0, pretend = 0, frame = 24
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {fp, ip, lr, pc}
-	sub	fp, ip, #4
+	@ frame_needed = 0, uses_anonymous_args = 0
+	str	lr, [sp, #-4]!
 	sub	sp, sp, #24
 	mov	r3, #2
-	str	r3, [fp, #-36]
-	sub	r3, fp, #36
+	mov	r1, sp
 	ldr	r0, .L13
-	mov	r1, r3
+	str	r3, [sp, #0]
 	bl	user_contextswitch(PLT)
-	mov	r3, r0
-	mov	r0, r3
-	sub	sp, fp, #12
-	ldmfd	sp, {fp, sp, pc}
+	add	sp, sp, #24
+	ldmfd	sp!, {pc}
 .L14:
 	.align	2
 .L13:
@@ -104,19 +77,16 @@ MyParentTid:
 	.type	Pass, %function
 Pass:
 	@ args = 0, pretend = 0, frame = 24
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {fp, ip, lr, pc}
-	sub	fp, ip, #4
+	@ frame_needed = 0, uses_anonymous_args = 0
+	str	lr, [sp, #-4]!
 	sub	sp, sp, #24
 	mov	r3, #4
-	str	r3, [fp, #-36]
-	sub	r3, fp, #36
+	mov	r1, sp
 	ldr	r0, .L17
-	mov	r1, r3
+	str	r3, [sp, #0]
 	bl	user_contextswitch(PLT)
-	sub	sp, fp, #12
-	ldmfd	sp, {fp, sp, pc}
+	add	sp, sp, #24
+	ldmfd	sp!, {pc}
 .L18:
 	.align	2
 .L17:
@@ -127,19 +97,16 @@ Pass:
 	.type	Exit, %function
 Exit:
 	@ args = 0, pretend = 0, frame = 24
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {fp, ip, lr, pc}
-	sub	fp, ip, #4
+	@ frame_needed = 0, uses_anonymous_args = 0
+	str	lr, [sp, #-4]!
 	sub	sp, sp, #24
 	mov	r3, #5
-	str	r3, [fp, #-36]
-	sub	r3, fp, #36
+	mov	r1, sp
 	ldr	r0, .L21
-	mov	r1, r3
+	str	r3, [sp, #0]
 	bl	user_contextswitch(PLT)
-	sub	sp, fp, #12
-	ldmfd	sp, {fp, sp, pc}
+	add	sp, sp, #24
+	ldmfd	sp!, {pc}
 .L22:
 	.align	2
 .L21:
@@ -149,36 +116,22 @@ Exit:
 	.global	Send
 	.type	Send, %function
 Send:
-	@ args = 4, pretend = 0, frame = 40
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {fp, ip, lr, pc}
-	sub	fp, ip, #4
-	sub	sp, sp, #40
-	str	r0, [fp, #-40]
-	str	r1, [fp, #-44]
-	str	r2, [fp, #-48]
-	str	r3, [fp, #-52]
-	mov	r3, #6
-	str	r3, [fp, #-36]
-	ldr	r3, [fp, #-40]
-	str	r3, [fp, #-32]
-	ldr	r3, [fp, #-44]
-	str	r3, [fp, #-28]
-	ldr	r3, [fp, #-48]
-	str	r3, [fp, #-24]
-	ldr	r3, [fp, #-52]
-	str	r3, [fp, #-20]
-	ldr	r3, [fp, #4]
-	str	r3, [fp, #-16]
-	sub	r3, fp, #36
+	@ args = 4, pretend = 0, frame = 24
+	@ frame_needed = 0, uses_anonymous_args = 0
+	str	lr, [sp, #-4]!
+	sub	sp, sp, #24
+	str	r3, [sp, #16]
+	ldr	r3, [sp, #28]
+	stmib	sp, {r0, r1}	@ phole stm
+	mov	ip, #6
+	mov	r1, sp
 	ldr	r0, .L25
-	mov	r1, r3
+	str	ip, [sp, #0]
+	str	r2, [sp, #12]
+	str	r3, [sp, #20]
 	bl	user_contextswitch(PLT)
-	mov	r3, r0
-	mov	r0, r3
-	sub	sp, fp, #12
-	ldmfd	sp, {fp, sp, pc}
+	add	sp, sp, #24
+	ldmfd	sp!, {pc}
 .L26:
 	.align	2
 .L25:
@@ -188,31 +141,19 @@ Send:
 	.global	Receive
 	.type	Receive, %function
 Receive:
-	@ args = 0, pretend = 0, frame = 36
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {fp, ip, lr, pc}
-	sub	fp, ip, #4
-	sub	sp, sp, #36
-	str	r0, [fp, #-40]
-	str	r1, [fp, #-44]
-	str	r2, [fp, #-48]
+	@ args = 0, pretend = 0, frame = 24
+	@ frame_needed = 0, uses_anonymous_args = 0
+	str	lr, [sp, #-4]!
+	sub	sp, sp, #24
+	stmib	sp, {r0, r1}	@ phole stm
 	mov	r3, #7
-	str	r3, [fp, #-36]
-	ldr	r3, [fp, #-40]
-	str	r3, [fp, #-32]
-	ldr	r3, [fp, #-44]
-	str	r3, [fp, #-28]
-	ldr	r3, [fp, #-48]
-	str	r3, [fp, #-24]
-	sub	r3, fp, #36
+	mov	r1, sp
 	ldr	r0, .L29
-	mov	r1, r3
+	str	r3, [sp, #0]
+	str	r2, [sp, #12]
 	bl	user_contextswitch(PLT)
-	mov	r3, r0
-	mov	r0, r3
-	sub	sp, fp, #12
-	ldmfd	sp, {fp, sp, pc}
+	add	sp, sp, #24
+	ldmfd	sp!, {pc}
 .L30:
 	.align	2
 .L29:
@@ -222,31 +163,19 @@ Receive:
 	.global	Reply
 	.type	Reply, %function
 Reply:
-	@ args = 0, pretend = 0, frame = 36
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {fp, ip, lr, pc}
-	sub	fp, ip, #4
-	sub	sp, sp, #36
-	str	r0, [fp, #-40]
-	str	r1, [fp, #-44]
-	str	r2, [fp, #-48]
+	@ args = 0, pretend = 0, frame = 24
+	@ frame_needed = 0, uses_anonymous_args = 0
+	str	lr, [sp, #-4]!
+	sub	sp, sp, #24
+	stmib	sp, {r0, r1}	@ phole stm
 	mov	r3, #8
-	str	r3, [fp, #-36]
-	ldr	r3, [fp, #-40]
-	str	r3, [fp, #-32]
-	ldr	r3, [fp, #-44]
-	str	r3, [fp, #-28]
-	ldr	r3, [fp, #-48]
-	str	r3, [fp, #-24]
-	sub	r3, fp, #36
+	mov	r1, sp
 	ldr	r0, .L33
-	mov	r1, r3
+	str	r3, [sp, #0]
+	str	r2, [sp, #12]
 	bl	user_contextswitch(PLT)
-	mov	r3, r0
-	mov	r0, r3
-	sub	sp, fp, #12
-	ldmfd	sp, {fp, sp, pc}
+	add	sp, sp, #24
+	ldmfd	sp!, {pc}
 .L34:
 	.align	2
 .L33:

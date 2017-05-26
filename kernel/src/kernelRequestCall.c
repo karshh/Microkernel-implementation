@@ -148,8 +148,12 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 
     //bwprintf(COM2, "Kernel: Case 12[TID:%d, Msg:%s, Msglen:%d, reqVal:%d]\r\n",
     //	m->receiverTID, m->msg, m->msglen, 0xdeadbeef);
-	//send mail.
-	if (!putMail(&(ks->TDList[tid]), m)) return 0;
+	
+	//If the mail isn't sent, just return an error code that the transaction couldn't be completed.
+	if (!putMail(&(ks->TDList[tid]), m)) {
+		t->reqVal = -3;
+		return 1;
+	}
 
 
     //bwprintf(COM2, "Kernel: Case 13.\r\n");

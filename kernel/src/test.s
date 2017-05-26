@@ -1,5 +1,5 @@
 	.file	"test.c"
-	.section	.rodata
+	.section	.rodata.str1.4,"aMS",%progbits,1
 	.align	2
 .LC0:
 	.ascii	"USER TASK 3 EXIT, REQUESTING TID.\015\012\000"
@@ -15,36 +15,28 @@
 	.global	userTask3
 	.type	userTask3, %function
 userTask3:
-	@ args = 0, pretend = 0, frame = 4
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {sl, fp, ip, lr, pc}
-	sub	fp, ip, #4
-	sub	sp, sp, #4
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	stmfd	sp!, {sl, lr}
 	ldr	sl, .L4
+	ldr	r1, .L4+4
 .L3:
 	add	sl, pc, sl
+	add	r1, sl, r1
 	mov	r0, #1
-	ldr	r3, .L4+4
-	add	r3, sl, r3
-	mov	r1, r3
 	bl	bwprintf(PLT)
 	bl	MyTid(PLT)
-	mov	r3, r0
-	str	r3, [fp, #-20]
+	ldr	r1, .L4+8
+	mov	r2, r0
+	add	r1, sl, r1
 	mov	r0, #1
-	ldr	r3, .L4+8
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-20]
 	bl	bwprintf(PLT)
+	ldr	r1, .L4+12
 	mov	r0, #1
-	ldr	r3, .L4+12
-	add	r3, sl, r3
-	mov	r1, r3
+	add	r1, sl, r1
 	bl	bwprintf(PLT)
-	bl	Exit(PLT)
-	ldmfd	sp, {r3, sl, fp, sp, pc}
+	ldmfd	sp!, {sl, lr}
+	b	Exit(PLT)
 .L5:
 	.align	2
 .L4:
@@ -53,7 +45,7 @@ userTask3:
 	.word	.LC1(GOTOFF)
 	.word	.LC2(GOTOFF)
 	.size	userTask3, .-userTask3
-	.section	.rodata
+	.section	.rodata.str1.4
 	.align	2
 .LC3:
 	.ascii	"USER TASK 2 MIDDLE \015\012\000"
@@ -108,141 +100,98 @@ userTask3:
 	.global	userTask2
 	.type	userTask2, %function
 userTask2:
-	@ args = 0, pretend = 0, frame = 16
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {sl, fp, ip, lr, pc}
-	sub	fp, ip, #4
-	sub	sp, sp, #16
-	ldr	sl, .L19
-.L18:
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	stmfd	sp!, {r4, r5, r6, sl, lr}
+	ldr	sl, .L23
+	ldr	r1, .L23+4
+.L19:
 	add	sl, pc, sl
 	mov	r0, #1
-	ldr	r3, .L19+4
-	add	r3, sl, r3
-	mov	r1, r3
+	add	r1, sl, r1
 	bl	bwprintf(PLT)
+	ldr	r1, .L23+8
 	mov	r0, #1
-	ldr	r3, .L19+8
-	add	r3, sl, r3
-	mov	r1, r3
+	add	r1, sl, r1
 	bl	bwprintf(PLT)
 	bl	MyTid(PLT)
-	mov	r3, r0
-	str	r3, [fp, #-32]
+	ldr	r1, .L23+12
+	mov	r2, r0
+	add	r1, sl, r1
 	mov	r0, #1
-	ldr	r3, .L19+12
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-32]
 	bl	bwprintf(PLT)
+	ldr	r1, .L23+16
 	mov	r0, #1
-	ldr	r3, .L19+16
-	add	r3, sl, r3
-	mov	r1, r3
+	add	r1, sl, r1
 	bl	bwprintf(PLT)
 	bl	MyParentTid(PLT)
-	mov	r3, r0
-	str	r3, [fp, #-28]
+	ldr	r1, .L23+20
+	mov	r2, r0
+	add	r1, sl, r1
 	mov	r0, #1
-	ldr	r3, .L19+20
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-28]
 	bl	bwprintf(PLT)
+	ldr	r1, .L23+24
 	mov	r0, #1
-	ldr	r3, .L19+24
-	add	r3, sl, r3
-	mov	r1, r3
+	add	r1, sl, r1
 	bl	bwprintf(PLT)
 	bl	Pass(PLT)
+	ldr	r1, .L23+28
 	mov	r0, #1
-	ldr	r3, .L19+28
-	add	r3, sl, r3
-	mov	r1, r3
+	add	r1, sl, r1
 	bl	bwprintf(PLT)
-	mvn	r3, #0
-	str	r3, [fp, #-24]
-	mov	r3, #0
-	str	r3, [fp, #-20]
-	b	.L17
-.L8:
-	ldr	r3, [fp, #-20]
-	add	r3, r3, #1
-	str	r3, [fp, #-20]
-	mov	r0, #1
-	ldr	r3, .L19+32
-	add	r3, sl, r3
-	mov	r1, r3
-	bl	bwprintf(PLT)
-	mov	r0, #3
-	ldr	r3, .L19+36
-	ldr	r3, [sl, r3]
-	mov	r1, r3
-	bl	Create(PLT)
-	mov	r3, r0
-	str	r3, [fp, #-24]
-	ldr	r3, [fp, #-24]
-	cmn	r3, #1
-	bne	.L9
-	mov	r0, #1
-	ldr	r3, .L19+40
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-24]
-	bl	bwprintf(PLT)
-	b	.L7
-.L9:
-	ldr	r3, [fp, #-24]
-	cmn	r3, #2
-	bne	.L11
-	mov	r0, #1
-	ldr	r3, .L19+44
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-24]
-	bl	bwprintf(PLT)
-	b	.L7
-.L11:
-	ldr	r3, [fp, #-24]
-	cmp	r3, #0
-	blt	.L13
-	mov	r0, #1
-	ldr	r3, .L19+48
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-24]
-	bl	bwprintf(PLT)
-	b	.L7
-.L13:
-	mov	r0, #1
-	ldr	r3, .L19+52
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-24]
-	bl	bwprintf(PLT)
+	ldr	r6, .L23+32
+	ldr	r5, .L23+36
+	mov	r4, #2
 .L7:
-.L17:
-	ldr	r3, [fp, #-20]
-	cmp	r3, #1
-	ble	.L8
+	add	r1, sl, r6
 	mov	r0, #1
-	ldr	r3, .L19+56
-	add	r3, sl, r3
-	mov	r1, r3
+	bl	bwprintf(PLT)
+	ldr	r1, [sl, r5]
+	mov	r0, #3
+	bl	Create(PLT)
+	ldr	r1, .L23+40
+	mov	r3, r0
+	cmn	r3, #1
+	mov	r2, r0
+	add	r1, sl, r1
+	mov	r0, #1
+	beq	.L20
+	ldr	r1, .L23+44
+	cmn	r3, #2
+	mov	r2, r3
+	add	r1, sl, r1
+	mov	r0, #1
+	beq	.L20
+	ldr	r1, .L23+48
+	cmp	r3, #0
+	mov	r2, r3
+	add	r1, sl, r1
+	mov	r0, #1
+	blt	.L22
+.L20:
+	bl	bwprintf(PLT)
+	subs	r4, r4, #1
+	bne	.L7
+	ldr	r1, .L23+52
+	mov	r0, #1
+	add	r1, sl, r1
 	bl	bwprintf(PLT)
 	bl	Exit(PLT)
+	ldr	r1, .L23+56
 	mov	r0, #1
-	ldr	r3, .L19+60
-	add	r3, sl, r3
-	mov	r1, r3
-	bl	bwprintf(PLT)
-	sub	sp, fp, #16
-	ldmfd	sp, {sl, fp, sp, pc}
-.L20:
+	add	r1, sl, r1
+	ldmfd	sp!, {r4, r5, r6, sl, lr}
+	b	bwprintf(PLT)
+.L22:
+	ldr	r1, .L23+60
+	mov	r2, r3
+	add	r1, sl, r1
+	mov	r0, #1
+	b	.L20
+.L24:
 	.align	2
-.L19:
-	.word	_GLOBAL_OFFSET_TABLE_-(.L18+8)
+.L23:
+	.word	_GLOBAL_OFFSET_TABLE_-(.L19+8)
 	.word	.LC3(GOTOFF)
 	.word	.LC4(GOTOFF)
 	.word	.LC5(GOTOFF)
@@ -255,11 +204,11 @@ userTask2:
 	.word	.LC11(GOTOFF)
 	.word	.LC12(GOTOFF)
 	.word	.LC13(GOTOFF)
-	.word	.LC14(GOTOFF)
 	.word	.LC15(GOTOFF)
 	.word	.LC16(GOTOFF)
+	.word	.LC14(GOTOFF)
 	.size	userTask2, .-userTask2
-	.section	.rodata
+	.section	.rodata.str1.4
 	.align	2
 .LC17:
 	.ascii	"USER TASK 1 MIDDLE \015\012\000"
@@ -311,141 +260,102 @@ userTask2:
 	.global	userTask1
 	.type	userTask1, %function
 userTask1:
-	@ args = 0, pretend = 0, frame = 16
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {sl, fp, ip, lr, pc}
-	sub	fp, ip, #4
-	sub	sp, sp, #16
-	ldr	sl, .L34
-.L33:
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	stmfd	sp!, {r4, r5, r6, sl, lr}
+	ldr	sl, .L41
+	ldr	r1, .L41+4
+.L38:
 	add	sl, pc, sl
 	mov	r0, #1
-	ldr	r3, .L34+4
-	add	r3, sl, r3
-	mov	r1, r3
+	add	r1, sl, r1
 	bl	bwprintf(PLT)
+	ldr	r1, .L41+8
 	mov	r0, #1
-	ldr	r3, .L34+8
-	add	r3, sl, r3
-	mov	r1, r3
+	add	r1, sl, r1
 	bl	bwprintf(PLT)
 	bl	MyTid(PLT)
-	mov	r3, r0
-	str	r3, [fp, #-32]
+	ldr	r1, .L41+12
+	mov	r2, r0
+	add	r1, sl, r1
 	mov	r0, #1
-	ldr	r3, .L34+12
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-32]
 	bl	bwprintf(PLT)
+	ldr	r1, .L41+16
 	mov	r0, #1
-	ldr	r3, .L34+16
-	add	r3, sl, r3
-	mov	r1, r3
+	add	r1, sl, r1
 	bl	bwprintf(PLT)
 	bl	MyParentTid(PLT)
-	mov	r3, r0
-	str	r3, [fp, #-28]
+	ldr	r1, .L41+20
+	mov	r2, r0
+	add	r1, sl, r1
 	mov	r0, #1
-	ldr	r3, .L34+20
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-28]
 	bl	bwprintf(PLT)
+	ldr	r1, .L41+24
 	mov	r0, #1
-	ldr	r3, .L34+24
-	add	r3, sl, r3
-	mov	r1, r3
+	add	r1, sl, r1
 	bl	bwprintf(PLT)
 	bl	Pass(PLT)
+	ldr	r1, .L41+28
 	mov	r0, #1
-	ldr	r3, .L34+28
-	add	r3, sl, r3
-	mov	r1, r3
+	add	r1, sl, r1
 	bl	bwprintf(PLT)
-	mvn	r3, #0
-	str	r3, [fp, #-24]
-	mov	r3, #0
-	str	r3, [fp, #-20]
-	b	.L32
-.L23:
-	ldr	r3, [fp, #-20]
-	add	r3, r3, #1
-	str	r3, [fp, #-20]
-	mov	r0, #1
-	ldr	r3, .L34+32
-	add	r3, sl, r3
-	mov	r1, r3
+	ldr	r6, .L41+32
+	ldr	r5, .L41+36
+	mov	r4, #0
+	b	.L26
+.L39:
 	bl	bwprintf(PLT)
-	ldr	r0, [fp, #-20]
-	ldr	r3, .L34+36
-	ldr	r3, [sl, r3]
-	mov	r1, r3
-	bl	Create(PLT)
-	mov	r3, r0
-	str	r3, [fp, #-24]
-	ldr	r3, [fp, #-24]
-	cmn	r3, #1
-	bne	.L24
-	mov	r0, #1
-	ldr	r3, .L34+40
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-24]
-	bl	bwprintf(PLT)
-	b	.L22
-.L24:
-	ldr	r3, [fp, #-24]
-	cmn	r3, #2
-	bne	.L26
-	mov	r0, #1
-	ldr	r3, .L34+44
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-24]
-	bl	bwprintf(PLT)
-	b	.L22
+	cmp	r4, #150
+	beq	.L40
 .L26:
-	ldr	r3, [fp, #-24]
+	add	r1, sl, r6
+	mov	r0, #1
+	add	r4, r4, #1
+	bl	bwprintf(PLT)
+	ldr	r1, [sl, r5]
+	mov	r0, r4
+	bl	Create(PLT)
+	ldr	r1, .L41+40
+	mov	r3, r0
+	cmn	r3, #1
+	mov	r2, r0
+	add	r1, sl, r1
+	mov	r0, #1
+	beq	.L39
+	ldr	r1, .L41+44
+	cmn	r3, #2
+	mov	r2, r3
+	add	r1, sl, r1
+	mov	r0, #1
+	beq	.L39
+	ldr	r1, .L41+48
 	cmp	r3, #0
-	blt	.L28
+	mov	r2, r3
+	add	r1, sl, r1
 	mov	r0, #1
-	ldr	r3, .L34+48
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-24]
+	bge	.L39
+	ldr	r1, .L41+52
+	mov	r2, r3
+	add	r1, sl, r1
+	mov	r0, #1
 	bl	bwprintf(PLT)
-	b	.L22
-.L28:
+	cmp	r4, #150
+	bne	.L26
+.L40:
+	ldr	r1, .L41+56
 	mov	r0, #1
-	ldr	r3, .L34+52
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-24]
-	bl	bwprintf(PLT)
-.L22:
-.L32:
-	ldr	r3, [fp, #-20]
-	cmp	r3, #149
-	ble	.L23
-	mov	r0, #1
-	ldr	r3, .L34+56
-	add	r3, sl, r3
-	mov	r1, r3
+	add	r1, sl, r1
 	bl	bwprintf(PLT)
 	bl	Exit(PLT)
+	ldr	r1, .L41+60
 	mov	r0, #1
-	ldr	r3, .L34+60
-	add	r3, sl, r3
-	mov	r1, r3
-	bl	bwprintf(PLT)
-	sub	sp, fp, #16
-	ldmfd	sp, {sl, fp, sp, pc}
-.L35:
+	add	r1, sl, r1
+	ldmfd	sp!, {r4, r5, r6, sl, lr}
+	b	bwprintf(PLT)
+.L42:
 	.align	2
-.L34:
-	.word	_GLOBAL_OFFSET_TABLE_-(.L33+8)
+.L41:
+	.word	_GLOBAL_OFFSET_TABLE_-(.L38+8)
 	.word	.LC17(GOTOFF)
 	.word	.LC18(GOTOFF)
 	.word	.LC19(GOTOFF)
@@ -462,13 +372,13 @@ userTask1:
 	.word	.LC28(GOTOFF)
 	.word	.LC29(GOTOFF)
 	.size	userTask1, .-userTask1
-	.section	.rodata
+	.section	.rodata.str1.4
 	.align	2
 .LC30:
-	.ascii	"Hi!\000"
+	.ascii	"<%d>: Sending a message to %d: %s.\015\012\000"
 	.align	2
 .LC31:
-	.ascii	"<%d>: Sending a message to %d: %s.\015\012\000"
+	.ascii	"Hi!\000"
 	.align	2
 .LC32:
 	.ascii	"<%d>: Send-recieve-reply transaction failed.\015\012"
@@ -484,94 +394,74 @@ userTask1:
 	.global	userTask61
 	.type	userTask61, %function
 userTask61:
-	@ args = 0, pretend = 0, frame = 32
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {sl, fp, ip, lr, pc}
-	sub	fp, ip, #4
-	sub	sp, sp, #36
-	ldr	sl, .L44
-.L43:
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 0, uses_anonymous_args = 0
+	stmfd	sp!, {r4, r5, r6, sl, lr}
+	ldr	sl, .L53
+	sub	sp, sp, #12
+.L50:
 	add	sl, pc, sl
 	bl	MyTid(PLT)
-	mov	r3, r0
-	str	r3, [fp, #-40]
+	ldr	r3, .L53+4
+	ldr	r1, .L53+8
+	add	r4, sl, r3
+	mov	r2, r0
+	mov	r5, r0
+	add	r1, sl, r1
+	mov	r0, #1
 	mov	r3, #2
-	str	r3, [fp, #-36]
-	ldr	r3, .L44+4
-	add	r3, sl, r3
-	str	r3, [fp, #-32]
-	mov	r3, #4
-	str	r3, [fp, #-28]
-	mov	r3, #7
-	str	r3, [fp, #-24]
-	ldr	r3, [fp, #-32]
-	str	r3, [sp, #0]
-	mov	r0, #1
-	ldr	r3, .L44+8
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-40]
-	ldr	r3, [fp, #-36]
+	add	r6, sp, #5
+	str	r4, [sp, #0]
 	bl	bwprintf(PLT)
-	sub	ip, fp, #47
-	ldr	r3, [fp, #-24]
-	str	r3, [sp, #0]
-	ldr	r0, [fp, #-36]
-	ldr	r1, [fp, #-32]
-	ldr	r2, [fp, #-28]
-	mov	r3, ip
+	mov	ip, #7
+	mov	r1, r4
+	mov	r2, #4
+	mov	r3, r6
+	mov	r0, #2
+	str	ip, [sp, #0]
 	bl	Send(PLT)
-	mov	r3, r0
-	str	r3, [fp, #-20]
-	ldr	r3, [fp, #-20]
-	cmn	r3, #3
-	bne	.L37
+	ldr	r1, .L53+12
+	mov	ip, r0
+	cmn	ip, #3
+	mov	r2, r5
+	add	r1, sl, r1
 	mov	r0, #1
-	ldr	r3, .L44+12
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-40]
-	bl	bwprintf(PLT)
-	b	.L39
-.L37:
-	ldr	r3, [fp, #-20]
-	cmn	r3, #2
-	bne	.L40
+	beq	.L51
+	ldr	r1, .L53+16
+	cmn	ip, #2
+	mov	r2, r5
+	add	r1, sl, r1
 	mov	r0, #1
-	ldr	r3, .L44+16
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-40]
-	ldr	r3, [fp, #-36]
-	bl	bwprintf(PLT)
-	b	.L39
-.L40:
-	sub	ip, fp, #47
-	ldr	r3, [fp, #-20]
-	str	r3, [sp, #0]
+	mov	r3, #2
+	beq	.L52
+	ldr	r1, .L53+20
+	mov	r2, r5
+	add	r1, sl, r1
+	mov	r3, r6
 	mov	r0, #1
-	ldr	r3, .L44+20
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-40]
-	mov	r3, ip
+	str	ip, [sp, #0]
 	bl	bwprintf(PLT)
-.L39:
+.L46:
 	bl	Exit(PLT)
-	sub	sp, fp, #16
-	ldmfd	sp, {sl, fp, sp, pc}
-.L45:
+	add	sp, sp, #12
+	ldmfd	sp!, {r4, r5, r6, sl, pc}
+.L52:
+	bl	bwprintf(PLT)
+	b	.L46
+.L51:
+	bl	bwprintf(PLT)
+	b	.L46
+.L54:
 	.align	2
-.L44:
-	.word	_GLOBAL_OFFSET_TABLE_-(.L43+8)
-	.word	.LC30(GOTOFF)
+.L53:
+	.word	_GLOBAL_OFFSET_TABLE_-(.L50+8)
 	.word	.LC31(GOTOFF)
+	.word	.LC30(GOTOFF)
 	.word	.LC32(GOTOFF)
 	.word	.LC33(GOTOFF)
 	.word	.LC34(GOTOFF)
 	.size	userTask61, .-userTask61
-	.section	.rodata
+	.section	.rodata.str1.4
 	.align	2
 .LC35:
 	.ascii	"<%d>: Requesting a message.\015\012\000"
@@ -581,10 +471,10 @@ userTask61:
 	.ascii	"\000"
 	.align	2
 .LC37:
-	.ascii	"Bye!\000"
+	.ascii	"<%d>: Replying the following: %s.\015\012\000"
 	.align	2
 .LC38:
-	.ascii	"<%d>: Replying the following: %s.\015\012\000"
+	.ascii	"Bye!\000"
 	.align	2
 .LC39:
 	.ascii	"<%d>: Exitting now.\015\012\000"
@@ -593,81 +483,65 @@ userTask61:
 	.global	userTask62
 	.type	userTask62, %function
 userTask62:
-	@ args = 0, pretend = 0, frame = 28
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {sl, fp, ip, lr, pc}
-	sub	fp, ip, #4
-	sub	sp, sp, #32
-	ldr	sl, .L49
-.L48:
+	@ args = 0, pretend = 0, frame = 12
+	@ frame_needed = 0, uses_anonymous_args = 0
+	stmfd	sp!, {r4, r5, sl, lr}
+	ldr	sl, .L58
+	sub	sp, sp, #16
+.L57:
 	add	sl, pc, sl
 	bl	MyTid(PLT)
-	mov	r3, r0
-	str	r3, [fp, #-32]
+	ldr	r1, .L58+4
+	mov	r5, r0
+	add	r1, sl, r1
+	mov	r2, r5
 	mov	r0, #1
-	ldr	r3, .L49+4
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-32]
 	bl	bwprintf(PLT)
+	add	r4, sp, #7
+	add	r0, sp, #16
 	mov	r3, #0
-	str	r3, [fp, #-36]
-	mov	r3, #5
-	str	r3, [fp, #-28]
-	sub	r3, fp, #36
-	sub	r2, fp, #41
-	mov	r0, r3
-	mov	r1, r2
-	ldr	r2, [fp, #-28]
+	mov	r1, r4
+	str	r3, [r0, #-4]!
+	mov	r2, #5
 	bl	Receive(PLT)
-	ldr	ip, [fp, #-36]
-	sub	r3, fp, #41
-	str	r3, [sp, #0]
+	ldr	r1, .L58+8
+	ldr	r3, [sp, #12]
+	add	r1, sl, r1
+	mov	r2, r5
 	mov	r0, #1
-	ldr	r3, .L49+8
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-32]
-	mov	r3, ip
+	str	r4, [sp, #0]
 	bl	bwprintf(PLT)
-	ldr	r3, .L49+12
-	add	r3, sl, r3
-	str	r3, [fp, #-24]
-	mov	r3, #5
-	str	r3, [fp, #-20]
+	ldr	r3, .L58+12
+	ldr	r1, .L58+16
+	add	r4, sl, r3
+	mov	r3, r4
+	add	r1, sl, r1
+	mov	r2, r5
 	mov	r0, #1
-	ldr	r3, .L49+16
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-32]
-	ldr	r3, [fp, #-24]
 	bl	bwprintf(PLT)
-	ldr	r3, [fp, #-36]
-	mov	r0, r3
-	ldr	r1, [fp, #-24]
-	ldr	r2, [fp, #-20]
+	mov	r1, r4
+	mov	r2, #5
+	ldr	r0, [sp, #12]
 	bl	Reply(PLT)
+	ldr	r1, .L58+20
+	mov	r2, r5
+	add	r1, sl, r1
 	mov	r0, #1
-	ldr	r3, .L49+20
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-32]
 	bl	bwprintf(PLT)
 	bl	Exit(PLT)
-	sub	sp, fp, #16
-	ldmfd	sp, {sl, fp, sp, pc}
-.L50:
+	add	sp, sp, #16
+	ldmfd	sp!, {r4, r5, sl, pc}
+.L59:
 	.align	2
-.L49:
-	.word	_GLOBAL_OFFSET_TABLE_-(.L48+8)
+.L58:
+	.word	_GLOBAL_OFFSET_TABLE_-(.L57+8)
 	.word	.LC35(GOTOFF)
 	.word	.LC36(GOTOFF)
-	.word	.LC37(GOTOFF)
 	.word	.LC38(GOTOFF)
+	.word	.LC37(GOTOFF)
 	.word	.LC39(GOTOFF)
 	.size	userTask62, .-userTask62
-	.section	.rodata
+	.section	.rodata.str1.4
 	.align	2
 .LC40:
 	.ascii	"<%d>: Creating 2 children. \015\012\000"
@@ -679,92 +553,94 @@ userTask62:
 	.global	userTask60
 	.type	userTask60, %function
 userTask60:
-	@ args = 0, pretend = 0, frame = 8
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {sl, fp, ip, lr, pc}
-	sub	fp, ip, #4
-	sub	sp, sp, #8
-	ldr	sl, .L54
-.L53:
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	stmfd	sp!, {r4, r5, sl, lr}
+	ldr	sl, .L63
+.L62:
 	add	sl, pc, sl
 	bl	MyTid(PLT)
-	mov	r3, r0
-	str	r3, [fp, #-24]
-	mov	r3, #0
-	str	r3, [fp, #-20]
+	ldr	r1, .L63+4
+	mov	r4, r0
+	mov	r2, r0
+	add	r1, sl, r1
 	mov	r0, #1
-	ldr	r3, .L54+4
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-24]
 	bl	bwprintf(PLT)
+	ldr	r3, .L63+8
 	mov	r0, #6
-	ldr	r3, .L54+8
-	ldr	r3, [sl, r3]
-	mov	r1, r3
+	ldr	r1, [sl, r3]
 	bl	Create(PLT)
+	ldr	r2, .L63+12
 	mov	r3, r0
-	str	r3, [fp, #-20]
+	add	r5, sl, r2
+	mov	r1, r5
+	mov	r2, r4
 	mov	r0, #1
-	ldr	r3, .L54+12
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-24]
-	ldr	r3, [fp, #-20]
 	bl	bwprintf(PLT)
+	ldr	r3, .L63+16
 	mov	r0, #6
-	ldr	r3, .L54+16
-	ldr	r3, [sl, r3]
-	mov	r1, r3
+	ldr	r1, [sl, r3]
 	bl	Create(PLT)
+	mov	r1, r5
 	mov	r3, r0
-	str	r3, [fp, #-20]
+	mov	r2, r4
 	mov	r0, #1
-	ldr	r3, .L54+12
-	add	r3, sl, r3
-	mov	r1, r3
-	ldr	r2, [fp, #-24]
-	ldr	r3, [fp, #-20]
 	bl	bwprintf(PLT)
-	bl	Exit(PLT)
-	sub	sp, fp, #16
-	ldmfd	sp, {sl, fp, sp, pc}
-.L55:
+	ldmfd	sp!, {r4, r5, sl, lr}
+	b	Exit(PLT)
+.L64:
 	.align	2
-.L54:
-	.word	_GLOBAL_OFFSET_TABLE_-(.L53+8)
+.L63:
+	.word	_GLOBAL_OFFSET_TABLE_-(.L62+8)
 	.word	.LC40(GOTOFF)
 	.word	userTask61(GOT)
 	.word	.LC41(GOTOFF)
 	.word	userTask62(GOT)
 	.size	userTask60, .-userTask60
 	.align	2
+	.global	userTask11
+	.type	userTask11, %function
+userTask11:
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	stmfd	sp!, {sl, lr}
+	ldr	sl, .L68
+.L67:
+	add	sl, pc, sl
+	bl	MyTid(PLT)
+	ldr	r1, .L68+4
+	mov	r2, r0
+	add	r1, sl, r1
+	mov	r0, #1
+	bl	bwprintf(PLT)
+	ldmfd	sp!, {sl, lr}
+	b	Exit(PLT)
+.L69:
+	.align	2
+.L68:
+	.word	_GLOBAL_OFFSET_TABLE_-(.L67+8)
+	.word	.LC19(GOTOFF)
+	.size	userTask11, .-userTask11
+	.align	2
 	.global	main
 	.type	main, %function
 main:
-	@ args = 0, pretend = 0, frame = 4
-	@ frame_needed = 1, uses_anonymous_args = 0
-	mov	ip, sp
-	stmfd	sp!, {sl, fp, ip, lr, pc}
-	sub	fp, ip, #4
-	sub	sp, sp, #4
-	ldr	sl, .L59
-.L58:
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	stmfd	sp!, {sl, lr}
+	ldr	sl, .L73
+	ldr	r3, .L73+4
+.L72:
 	add	sl, pc, sl
-	ldr	r3, .L59+4
-	ldr	r3, [sl, r3]
-	str	r3, [fp, #-20]
 	mov	r0, #5
-	ldr	r1, [fp, #-20]
+	ldr	r1, [sl, r3]
 	bl	kernelRun(PLT)
-	mov	r3, #0
-	mov	r0, r3
-	ldmfd	sp, {r3, sl, fp, sp, pc}
-.L60:
+	mov	r0, #0
+	ldmfd	sp!, {sl, pc}
+.L74:
 	.align	2
-.L59:
-	.word	_GLOBAL_OFFSET_TABLE_-(.L58+8)
-	.word	userTask60(GOT)
+.L73:
+	.word	_GLOBAL_OFFSET_TABLE_-(.L72+8)
+	.word	userTask11(GOT)
 	.size	main, .-main
 	.ident	"GCC: (GNU) 4.0.2"
