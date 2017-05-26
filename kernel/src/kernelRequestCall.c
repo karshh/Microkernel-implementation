@@ -2,6 +2,7 @@
 #include "kernelHandler.h"
 #include "bwio.h"
 #include "td.h"
+#include "kernelMacros.h"
 
 
 int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
@@ -101,7 +102,7 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 	// Cases where we return a -2 to the user task:
 	// 		1. TID is out of bounds.
 	//		2. User task is sending to a task which is a zombie or is free.
-	if (tid > 31 || tid < 0 || 
+	if ((tid > MAX_TID - 1) || tid < 0 || 
 		(ks->TDList[tid]).state == ZOMBIE || 
 		 (ks->TDList[tid]).state == FREE) {
 		t->reqVal = -2;
