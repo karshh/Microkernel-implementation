@@ -2,7 +2,7 @@
 #define _MESSAGE_
 
 
-#define MESSAGE_CAPACITY 1024
+#define MESSAGE_CAPACITY 128
 
 typedef struct message {
 	int senderTID;

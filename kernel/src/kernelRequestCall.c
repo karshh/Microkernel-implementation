@@ -135,19 +135,6 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 		m->msg[i] = ((char *) r->arg2)[i];
 	}
 	
-    //bwprintf(COM2, "Kernel: Case 12[TID:%d, Msg:%s, Msglen:%d, reqVal:%d]\r\n",
-    //	m->receiverTID, m->msg, m->msglen, 0xdeadbeef);
-	//send mail.
-	if (!putMail(&(ks->TDList[tid]), m)) return 0;
-
-
-    //bwprintf(COM2, "Kernel: Case 13.\r\n");
-	if ((ks->TDList[tid]).state == RECEIVE_BLOCKED) {
-		// push into queue during this statement execution.
-		processMail(tid, ks, m, 1);
-		
-	}
-
 
     //bwprintf(COM2, "Kernel: Case 14.\r\n");
 	// empty out all garbage in the sender's composebox.
@@ -159,9 +146,24 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 	t->compose = (char *) r->arg4;
 	t->composelen = replylen;
 
+    //bwprintf(COM2, "Kernel: Case 12[TID:%d, Msg:%s, Msglen:%d, reqVal:%d]\r\n",
+    //	m->receiverTID, m->msg, m->msglen, 0xdeadbeef);
+	//send mail.
+	if (!putMail(&(ks->TDList[tid]), m)) return 0;
+
+
+    //bwprintf(COM2, "Kernel: Case 13.\r\n");
+	if ((ks->TDList[tid]).state == SEND_BLOCKED) {
+		// push into queue during this statement execution.
+		t->state = RECEIVE_BLOCKED;
+		processMail(tid, ks, m, 1);
+	} else {
+		t->state = REPLY_BLOCKED;
+	}
+
+
     //bwprintf(COM2, "Kernel: Case 15.\r\n");
 	// block task.
-	t->state = SEND_BLOCKED;
 	return 1;
 
 }
@@ -187,7 +189,7 @@ int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
 	TD * sender = &(ks->TDList[tid]);
 	int replylen = (int) r->arg3;
 	
-	if (sender->state != SEND_BLOCKED) {
+	if (sender->state != RECEIVE_BLOCKED && sender->state != REPLY_BLOCKED) {
 		t->reqVal = -3;
 		return 1;
 	}
@@ -223,7 +225,7 @@ int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue
    // bwprintf(COM2, "Kernel: Case 210.\r\n");
 	if (!checkMail(receiverTD, m)) {
 		// no mail, just block.
-		receiverTD->state = RECEIVE_BLOCKED;
+		receiverTD->state = SEND_BLOCKED;
 		return 1;
 	}
 	

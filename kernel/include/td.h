@@ -7,7 +7,7 @@
 #include "message.h"
 
 
-#define MAIL_CAPACITY 32
+#define MAIL_CAPACITY 8
 
 typedef struct Inbox {
 	message mail[MAIL_CAPACITY];

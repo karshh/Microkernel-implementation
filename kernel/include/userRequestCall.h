@@ -20,4 +20,9 @@ int Receive(int *tid, char *msg, int msglen);
 
 int Reply(int tid, char *reply, int rplen);
 
+int WhoIs( char *name );
+
+int RegisterAs( char *name );
+
+
 #endif

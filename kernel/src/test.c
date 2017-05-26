@@ -89,7 +89,7 @@ void userTask61() {
     int Tid = MyTid();
 
 
-    int _tid = 1;
+    int _tid = 2;
     char * _msg = "Hi!";
     int _msglen = 4;
     char _reply[7];
@@ -138,9 +138,9 @@ void userTask60() {
     int myTid = MyTid();
     int Tid = 0;
     bwprintf(COM2, "<%d>: Creating 2 children. \r\n", myTid);
-    Tid = Create(6, (void *) userTask62);
-    bwprintf(COM2, "<%d>: Created %d. \r\n", myTid, Tid);
     Tid = Create(6, (void *) userTask61);
+    bwprintf(COM2, "<%d>: Created %d. \r\n", myTid, Tid);
+    Tid = Create(6, (void *) userTask62);
     bwprintf(COM2, "<%d>: Created %d. \r\n", myTid, Tid);
     Exit();
 }
