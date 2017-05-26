@@ -473,6 +473,11 @@ kernel_Send:
 	sub	sp, fp, #12
 	ldmfd	sp, {fp, sp, pc}
 	.size	kernel_Send, .-kernel_Send
+	.section	.rodata
+	.align	2
+.LC0:
+	.ascii	"FUCK THIS SHIT.\000"
+	.text
 	.align	2
 	.global	kernel_Receive
 	.type	kernel_Receive, %function
@@ -480,39 +485,53 @@ kernel_Receive:
 	@ args = 0, pretend = 0, frame = 16
 	@ frame_needed = 1, uses_anonymous_args = 0
 	mov	ip, sp
-	stmfd	sp!, {fp, ip, lr, pc}
+	stmfd	sp!, {sl, fp, ip, lr, pc}
 	sub	fp, ip, #4
 	sub	sp, sp, #16
-	str	r0, [fp, #-16]
-	str	r1, [fp, #-20]
-	str	r2, [fp, #-24]
-	str	r3, [fp, #-28]
-	ldr	r3, [fp, #-20]
+	ldr	sl, .L56
+.L55:
+	add	sl, pc, sl
+	str	r0, [fp, #-20]
+	str	r1, [fp, #-24]
+	str	r2, [fp, #-28]
+	str	r3, [fp, #-32]
+	ldr	r3, [fp, #-24]
 	ldr	r3, [r3, #8]
 	mov	r2, r3
-	ldr	r3, [fp, #-16]
-	str	r2, [r3, #1204]
 	ldr	r3, [fp, #-20]
+	str	r2, [r3, #1204]
+	ldr	r3, [fp, #-24]
 	ldr	r3, [r3, #12]
 	mov	r2, r3
-	ldr	r3, [fp, #-16]
-	str	r2, [r3, #1208]
 	ldr	r3, [fp, #-20]
+	str	r2, [r3, #1208]
+	ldr	r3, [fp, #-24]
 	ldr	r3, [r3, #4]
 	mov	r2, r3
-	ldr	r3, [fp, #-16]
+	ldr	r3, [fp, #-20]
 	str	r2, [r3, #1212]
-	ldr	r3, [fp, #-16]
+	mov	r0, #0
+	mov	r1, #1
+	ldr	r3, .L56+4
+	add	r3, sl, r3
+	mov	r2, r3
+	bl	bwassert(PLT)
+	ldr	r3, [fp, #-20]
 	ldr	r3, [r3, #16]
 	mov	r0, r3
-	ldr	r1, [fp, #-24]
-	ldr	r2, [fp, #-28]
+	ldr	r1, [fp, #-28]
+	ldr	r2, [fp, #-32]
 	mov	r3, #0
 	bl	processMail(PLT)
 	mov	r3, r0
 	mov	r0, r3
-	sub	sp, fp, #12
-	ldmfd	sp, {fp, sp, pc}
+	sub	sp, fp, #16
+	ldmfd	sp, {sl, fp, sp, pc}
+.L57:
+	.align	2
+.L56:
+	.word	_GLOBAL_OFFSET_TABLE_-(.L55+8)
+	.word	.LC0(GOTOFF)
 	.size	kernel_Receive, .-kernel_Receive
 	.align	2
 	.global	kernel_Reply
@@ -547,24 +566,24 @@ kernel_Reply:
 	ldr	r3, [fp, #-20]
 	ldr	r3, [r3, #32]
 	cmp	r3, #5
-	beq	.L56
+	beq	.L59
 	ldr	r3, [fp, #-20]
 	ldr	r3, [r3, #32]
 	cmp	r3, #6
-	beq	.L56
+	beq	.L59
 	ldr	r2, [fp, #-32]
 	mvn	r3, #2
 	str	r3, [r2, #4]
 	mov	r3, #1
 	str	r3, [fp, #-48]
-	b	.L59
-.L56:
+	b	.L62
+.L59:
 	mov	r3, #0
 	str	r3, [fp, #-28]
 	mov	r3, #0
 	str	r3, [fp, #-28]
-	b	.L60
-.L61:
+	b	.L63
+.L64:
 	ldr	r3, [fp, #-20]
 	ldr	r2, [r3, #1204]
 	ldr	r3, [fp, #-28]
@@ -579,22 +598,22 @@ kernel_Reply:
 	ldr	r3, [fp, #-28]
 	add	r3, r3, #1
 	str	r3, [fp, #-28]
-.L60:
+.L63:
 	ldr	r2, [fp, #-28]
 	ldr	r3, [fp, #-16]
 	cmp	r2, r3
-	bge	.L62
+	bge	.L65
 	ldr	r3, [fp, #-20]
 	ldr	r2, [r3, #1208]
 	ldr	r3, [fp, #-28]
 	cmp	r2, r3
-	bgt	.L61
-.L62:
+	bgt	.L64
+.L65:
 	ldr	r3, [fp, #-20]
 	ldr	r2, [r3, #1208]
 	ldr	r3, [fp, #-16]
 	cmp	r2, r3
-	bge	.L64
+	bge	.L67
 	ldr	r3, [fp, #-20]
 	ldr	r2, [r3, #1204]
 	ldr	r3, [fp, #-20]
@@ -609,15 +628,15 @@ kernel_Reply:
 	ldr	r2, [fp, #-20]
 	mvn	r3, #0
 	str	r3, [r2, #4]
-	b	.L66
-.L64:
+	b	.L69
+.L67:
 	ldr	r2, [fp, #-32]
 	mov	r3, #0
 	str	r3, [r2, #4]
 	ldr	r2, [fp, #-20]
 	ldr	r3, [fp, #-16]
 	str	r3, [r2, #4]
-.L66:
+.L69:
 	ldr	r3, [fp, #-20]
 	mov	r2, #1
 	str	r2, [r3, #32]
@@ -627,7 +646,7 @@ kernel_Reply:
 	bl	kernel_queuePush(PLT)
 	mov	r3, #1
 	str	r3, [fp, #-48]
-.L59:
+.L62:
 	ldr	r3, [fp, #-48]
 	mov	r0, r3
 	sub	sp, fp, #12
@@ -662,20 +681,20 @@ processMail:
 	bl	checkMail(PLT)
 	mov	r3, r0
 	cmp	r3, #0
-	bne	.L69
+	bne	.L72
 	ldr	r2, [fp, #-16]
 	mov	r3, #4
 	str	r3, [r2, #32]
 	mov	r3, #1
 	str	r3, [fp, #-40]
-	b	.L71
-.L69:
+	b	.L74
+.L72:
 	mov	r3, #0
 	str	r3, [fp, #-20]
 	mov	r3, #0
 	str	r3, [fp, #-20]
-	b	.L72
-.L73:
+	b	.L75
+.L76:
 	ldr	r3, [fp, #-16]
 	ldr	r2, [r3, #1204]
 	ldr	r3, [fp, #-20]
@@ -690,24 +709,24 @@ processMail:
 	ldr	r3, [fp, #-20]
 	add	r3, r3, #1
 	str	r3, [fp, #-20]
-.L72:
+.L75:
 	ldr	r3, [fp, #-32]
 	ldr	r2, [r3, #136]
 	ldr	r3, [fp, #-20]
 	cmp	r2, r3
-	ble	.L74
+	ble	.L77
 	ldr	r3, [fp, #-16]
 	ldr	r2, [r3, #1208]
 	ldr	r3, [fp, #-20]
 	cmp	r2, r3
-	bgt	.L73
-.L74:
+	bgt	.L76
+.L77:
 	ldr	r3, [fp, #-32]
 	ldr	r2, [r3, #136]
 	ldr	r3, [fp, #-16]
 	ldr	r3, [r3, #1208]
 	cmp	r2, r3
-	ble	.L76
+	ble	.L79
 	ldr	r3, [fp, #-16]
 	ldr	r2, [r3, #1204]
 	ldr	r3, [fp, #-16]
@@ -719,13 +738,13 @@ processMail:
 	ldr	r2, [fp, #-16]
 	mvn	r3, #0
 	str	r3, [r2, #4]
-	b	.L78
-.L76:
+	b	.L81
+.L79:
 	ldr	r3, [fp, #-32]
 	ldr	r2, [r3, #136]
 	ldr	r3, [fp, #-16]
 	str	r2, [r3, #4]
-.L78:
+.L81:
 	ldr	r3, [fp, #-16]
 	ldr	r2, [r3, #1212]
 	ldr	r3, [fp, #-32]
@@ -736,15 +755,15 @@ processMail:
 	str	r3, [r2, #32]
 	ldr	r3, [fp, #-36]
 	cmp	r3, #0
-	beq	.L79
+	beq	.L82
 	ldr	r3, [fp, #-16]
 	ldr	r0, [fp, #-28]
 	mov	r1, r3
 	bl	kernel_queuePush(PLT)
-.L79:
+.L82:
 	mov	r3, #1
 	str	r3, [fp, #-40]
-.L71:
+.L74:
 	ldr	r3, [fp, #-40]
 	mov	r0, r3
 	sub	sp, fp, #12

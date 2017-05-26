@@ -255,3 +255,18 @@ void bwprintf( int channel, char *fmt, ... ) {
         va_end(va);
 }
 
+
+void bwassert( int condition, int channel, char *fmt, ... ) {
+        if (!condition) {
+	        va_list va;
+
+	        va_start(va,fmt);
+	        bwformat( channel, fmt, va );
+	        va_end(va);
+
+	        bwprintf(channel, "\r\nRestart required.\r\n");
+	        while(1) {}
+
+        }
+}
+

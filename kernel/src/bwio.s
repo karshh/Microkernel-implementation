@@ -979,4 +979,50 @@ bwprintf:
 	sub	sp, fp, #12
 	ldmfd	sp, {fp, sp, pc}
 	.size	bwprintf, .-bwprintf
+	.section	.rodata
+	.align	2
+.LC0:
+	.ascii	"\015\012Restart required.\015\012\000"
+	.text
+	.align	2
+	.global	bwassert
+	.type	bwassert, %function
+bwassert:
+	@ args = 4, pretend = 8, frame = 12
+	@ frame_needed = 1, uses_anonymous_args = 1
+	mov	ip, sp
+	stmfd	sp!, {r2, r3}
+	stmfd	sp!, {sl, fp, ip, lr, pc}
+	sub	fp, ip, #12
+	sub	sp, sp, #12
+	ldr	sl, .L142
+.L141:
+	add	sl, pc, sl
+	str	r0, [fp, #-24]
+	str	r1, [fp, #-28]
+	ldr	r3, [fp, #-24]
+	cmp	r3, #0
+	bne	.L140
+	add	r3, fp, #8
+	str	r3, [fp, #-20]
+	ldr	r0, [fp, #-28]
+	ldr	r1, [fp, #4]
+	ldr	r2, [fp, #-20]
+	bl	bwformat(PLT)
+	ldr	r0, [fp, #-28]
+	ldr	r3, .L142+4
+	add	r3, sl, r3
+	mov	r1, r3
+	bl	bwprintf(PLT)
+.L139:
+	b	.L139
+.L140:
+	sub	sp, fp, #16
+	ldmfd	sp, {sl, fp, sp, pc}
+.L143:
+	.align	2
+.L142:
+	.word	_GLOBAL_OFFSET_TABLE_-(.L141+8)
+	.word	.LC0(GOTOFF)
+	.size	bwassert, .-bwassert
 	.ident	"GCC: (GNU) 4.0.2"

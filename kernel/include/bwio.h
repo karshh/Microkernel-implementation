@@ -41,4 +41,7 @@ void bwputw( int channel, int n, char fc, char *bf );
 
 void bwprintf( int channel, char *format, ... );
 
+
+void bwassert( int condition, int channel, char *fmt, ... );
+
 #endif
