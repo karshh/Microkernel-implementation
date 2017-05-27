@@ -6,7 +6,7 @@
 
 
 #define BUFFER_CAPACITY 32
-#define BUFFER_TYPE TD*
+#define BUFFER_TYPE void*
 
 typedef struct circularBuffer {
 	BUFFER_TYPE buffer[BUFFER_CAPACITY];

@@ -44,8 +44,6 @@ void firstUserTask() {
 
 int main(void) {
 	
-
-	//kernelRun(MEDIUM, (int) firstUserTask);
 	kernelRun(MEDIUM, (int) firstUserTask);
 	
 	return 0;

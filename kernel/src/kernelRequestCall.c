@@ -119,11 +119,13 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 		return 1;
 	}
 
-    //bwprintf(COM2, "Kernel: Case 11.\r\n");
+    // bwprintf(COM2, "Kernel: Case 11.\r\n");
 	//empty out all garbage in the message pointer.
 	m->senderTID = 0;
-	int i = 0;
-	for (i = 0; i < m->msglen; i++) m->msg[i] = 0;
+	volatile int i = 0;
+    // bwprintf(COM2, "Kernel: Case 111.\r\n");
+	for (i = 0; i < MESSAGE_CAPACITY; i++) m->msg[i] = 0;
+    // bwprintf(COM2, "Kernel: Case 112.\r\n");
 	m->msglen = 0;
 	m->receiverTID = 0;
 	
@@ -136,7 +138,7 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 	}
 	
 
-    //bwprintf(COM2, "Kernel: Case 14.\r\n");
+    // bwprintf(COM2, "Kernel: Case 14.\r\n");
 	// empty out all garbage in the sender's composebox.
 	t->compose = 0;
 	t->composelen = 0;
@@ -148,17 +150,20 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 
     //bwprintf(COM2, "Kernel: Case 12[TID:%d, Msg:%s, Msglen:%d, reqVal:%d]\r\n",
     //	m->receiverTID, m->msg, m->msglen, 0xdeadbeef);
-	//send mail.
-	if (!putMail(&(ks->TDList[tid]), m)) return 0;
+	
+	//If the mail isn't sent, just return an error code that the transaction couldn't be completed.
+	if (!putMail(&(ks->TDList[tid]), m)) {
+		t->reqVal = -3;
+		return 1;
+	}
 
 
-    //bwprintf(COM2, "Kernel: Case 13.\r\n");
+    ////bwprintf(COM2, "Kernel: Case 13.\r\n");
 	if ((ks->TDList[tid]).state == SEND_BLOCKED) {
 		// push into queue during this statement execution.
-		t->state = RECEIVE_BLOCKED;
 		processMail(tid, ks, m, 1);
 	} else {
-		t->state = REPLY_BLOCKED;
+		t->state = RECEIVE_BLOCKED;
 	}
 
 
@@ -212,7 +217,7 @@ int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
     //	sender->TID, sender->compose, sender->composelen, sender->reqVal);
 	sender->state = ACTIVE;
 	kernel_queuePush(ks, sender);
-    //bwprintf(COM2, "Kernel: Case 33.\r\n");
+    ////bwprintf(COM2, "Kernel: Case 33.\r\n");
 	return 1;
 	
 	
@@ -228,9 +233,11 @@ int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue
 		receiverTD->state = SEND_BLOCKED;
 		return 1;
 	}
+
+	(ks->TDList[m->senderTID]).state = REPLY_BLOCKED;
 	
-    //bwprintf(COM2, "Kernel: Case 211.\r\n");
-	// if there was a mail, the m pointer would be assigned that within the if statement parameter. 
+    // bwprintf(COM2, "Kernel: Case 211.\r\n");
+	//if there was a mail, the m pointer would be assigned that within the if statement parameter. 
 	
 	volatile int i = 0;
 	for (i = 0; i < m->msglen && i < receiverTD->composelen; i++) {
@@ -247,8 +254,8 @@ int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue
 
 	*(receiverTD->tidBuffer) = m->senderTID;
 	
-    //bwprintf(COM2, "Kernel: Case 213[TID:%d, Msg:%s, Msglen:%d, reqVal:%d].\r\n", 
-    //	receiverTD->TID, receiverTD->compose, receiverTD->composelen, receiverTD->reqVal);
+    // bwprintf(COM2, "Kernel: Case 213[TID:%d, Msg:%s, Msglen:%d, reqVal:%d].\r\n", 
+    	// receiverTD->TID, receiverTD->compose, receiverTD->composelen, receiverTD->reqVal);
 	receiverTD->state = ACTIVE;
 	if (pushIntoQueue) kernel_queuePush(ks, receiverTD);
 	return 1;
