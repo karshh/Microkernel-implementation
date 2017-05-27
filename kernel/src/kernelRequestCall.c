@@ -189,8 +189,12 @@ int kernel_Receive(TD * t, request * r, kernelHandler * ks, message * m) {
 
 
 int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
-	// TODO: implement corner cases.
+	
 	int tid = (int) r->arg1;
+	if (tid > MAX_TID - 1 || tid < 0 || (ks->TDList[tid]).state == ZOMBIE || (ks->TDList[tid]).state == FREE ) {
+		t->reqVal = -2;
+		return 1;
+	}
 	TD * sender = &(ks->TDList[tid]);
 	int replylen = (int) r->arg3;
 	
