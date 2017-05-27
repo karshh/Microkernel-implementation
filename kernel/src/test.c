@@ -208,11 +208,7 @@ void userTask11(void) {
 
 int main(void) {
 
-<<<<<<< HEAD
 	int code  = ((int) userTaskName);
-=======
-	int code  = ((int) userTask11);
->>>>>>> ba2a420e08bb80eeeac9c3b30b6d0830f635ee9b
 	kernelRun(5, code);
 	return 0;
 }
