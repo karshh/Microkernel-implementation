@@ -20,7 +20,7 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 ARFLAGS = rcs
 LDFLAGS = -init main -Map m.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
-all: clean bwio.o pkstring.o buffer.o queue.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o test.o k1.o test.elf k1.elf install
+all: clean bwio.o pkstring.o dictionary.o buffer.o queue.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o test.o k1.o test.elf k1.elf install
 
 # new file preable
 #.s: .c
@@ -37,6 +37,12 @@ pkstring.s: pkstring.c
 	$(XCC) -S $(CFLAGS) pkstring.c
 pkstring.o: pkstring.s
 	$(AS) $(ASFLAGS) -o pkstring.o pkstring.s
+
+dictionary.s: dictionary.c
+	$(XCC) -S $(CFLAGS) dictionary.c
+dictionary.o: dictionary.s
+	$(AS) $(ASFLAGS) -o dictionary.o dictionary.s
+
 
 td.s: td.c
 	$(XCC) -S $(CFLAGS) td.c
@@ -94,10 +100,10 @@ k1.o: k1.s
 	$(AS) $(ASFLAGS) -o k1.o k1.s
 
 test.elf: test.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o pkstring.o buffer.o queue.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o test.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o pkstring.o dictionary.o buffer.o queue.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o test.o -lgcc
 
 k1.elf: k1.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o pkstring.o buffer.o queue.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o k1.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o pkstring.o dictionary.o buffer.o queue.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o k1.o -lgcc
 
 
 install: test.elf k1.elf
