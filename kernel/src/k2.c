@@ -286,7 +286,7 @@ void player2() {
 	}
 
 
-	for (game = 0; game < 5; game++) {
+	for (game = 0; game < 10; game++) {
 		for (i = 0; i < 16; i++) reply[i] = 0;
 		int t = getTime();
 		char * c = t % 3 == 0 ? "rock" : (t % 3 == 1 ? "paper" : "scissors"); 
@@ -385,7 +385,7 @@ void player4() {
 	}
 
 
-	for (game = 0; game < 20; game++) {
+	for (game = 0; game < 2; game++) {
 		for (i = 0; i < 16; i++) reply[i] = 0;
 		int t = getTime();
 		char * c = t % 3 == 0 ? "rock" : (t % 3 == 1 ? "paper" : "scissors"); 
