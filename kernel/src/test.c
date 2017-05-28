@@ -328,7 +328,8 @@ void testTaskGod64() {
 
 void testTaskSend4() {
     char _msg[4];
-    if (Send(1, "bbb", 4, _msg, 4) >=0) {
+    startTime();
+    if (Send(2, "bbb", 4, _msg, 4) >=0) {
         bwprintf(COM2, "%d\r\n", getTime());
     }
     Exit();
@@ -339,7 +340,6 @@ void testTaskSend4() {
 void testTaskReceive4() {
     int _tid = 0;
     char _msg[4];
-    startTime();
     if (Receive(&_tid, _msg, 4) >= 0) {
         Reply(_tid, "aaa", 4);
     }
@@ -347,20 +347,20 @@ void testTaskReceive4() {
 }
 
 void testTaskGod4() {
-    Create(6, (void*) testTaskReceive4);
     Create(6, (void*) testTaskSend4);
+    Create(6, (void*) testTaskReceive4);
     Exit( );
 }
 
 int main(void) {
     // turning on data and instruction cache.
-        
+     /*   
      asm volatile (
         "MRC p15, 0, r0, c1, c0, 0 \n"
         "ORR r0, r0, #0x1 <<12 \n"
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
-
+*/
 	kernelRun(5,(int) testTaskGod4);
 	return 0;
 }

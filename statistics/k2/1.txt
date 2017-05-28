@@ -1,0 +1,17 @@
+Group	Length	Caches	SB4R	Opt	Time
+PK	4	off	yes	off	884
+PK	64	off	yes	off	2594
+PK	4	on	yes	off	95
+PK	64	on	yes	off	201
+PK	4	off	no	off	899
+PK	64	off	no	off	
+PK	4	on	no	off	
+PK	64	on	no	off	
+PK	4	off	yes	on	
+PK	64	off	yes	on	
+PK	4	on	yes	on	
+PK	64	on	yes	on	
+PK	4	off	no	on	
+PK	64	off	no	on	
+PK	4	on	no	on	
+PK	64	on	no	on	
