@@ -9,4 +9,6 @@ void pkstrlen(void * buffer, int * size);
 
 void pkstrcpy(void *dest, const void *source);
 
+int pkstreql(const void *str1, const void *str2);
+
 #endif

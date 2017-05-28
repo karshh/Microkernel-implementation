@@ -1,5 +1,5 @@
 #include "ts7200.h"
-
+#include "debugtime.h"
 #include "bwio.h"
 #include "userRequestCall.h"
 #include "kernelHandler.h"
@@ -159,9 +159,68 @@ void userTask11(void) {
      Exit();
 }
 
-int main(void) {
 
-	int code  = ((int) userTask11);
-	kernelRun(5, code);
+// MAKE SURE TO PLACE SENDTIMER IN RECEIVE TASK WHEN YOU TEST RSR.
+void testTaskSend64() {
+    char _msg[64];
+    if (Send(1, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 64, _msg, 64) >= 0) {
+        bwprintf(COM2, "Time: %d\r\n", getTime());
+    }
+    Exit();
+}
+
+void testTaskReceive64() {
+    int _tid = 0;
+    char _msg[64];
+    startTime();
+    if (Receive(&_tid, _msg, 64) >= 0) {
+        Reply(_tid, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 64);
+    }
+    Exit();
+}
+
+void testTaskGod64() {
+    Create(6, (void*) testTaskReceive64);
+    Create(6, (void*) testTaskSend64);
+    Exit( );
+}
+
+
+void testTaskSend4() {
+    char _msg[4];
+    if (Send(1, "bbb", 4, _msg, 4) >=0) {
+        bwprintf(COM2, "%d\r\n", getTime());
+    }
+    Exit();
+
+
+}
+
+void testTaskReceive4() {
+    int _tid = 0;
+    char _msg[4];
+    startTime();
+    if (Receive(&_tid, _msg, 4) >= 0) {
+        Reply(_tid, "aaa", 4);
+    }
+    Exit();
+}
+
+void testTaskGod4() {
+    Create(6, (void*) testTaskReceive4);
+    Create(6, (void*) testTaskSend4);
+    Exit( );
+}
+
+int main(void) {
+    // turning on data and instruction cache.
+        
+     asm volatile (
+        "MRC p15, 0, r0, c1, c0, 0 \n"
+        "ORR r0, r0, #0x1 <<12 \n"
+        "ORR r0, r0, #0x1 <<2 \n"
+        "MCR p15, 0, r0, c1, c0, 0 \n");
+
+	kernelRun(5,(int) testTaskGod4);
 	return 0;
 }

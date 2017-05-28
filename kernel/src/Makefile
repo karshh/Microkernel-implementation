@@ -19,13 +19,19 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 ARFLAGS = rcs
 LDFLAGS = -init main -Map m.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
-all: clean bwio.o pkstring.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o test.o k1.o test.elf k1.elf install
+all: clean bwio.o debugtime.o pkstring.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o test.o k1.o k2.o test.elf k1.elf k2.elf install
 
 # new file preable
 #.s: .c
 #	$(XCC) -S $(CFLAGS) .c
 #.o: .s
 #	$(AS) $(ASFLAGS) -o .o .s
+debugtime.s: debugtime.c
+	$(XCC) -S $(CFLAGS) debugtime.c
+
+debugtime.o: debugtime.s
+	$(AS) $(ASFLAGS) -o debugtime.o debugtime.s
+
 kernelHandler.s: kernelHandler.c
 	$(XCC) -S $(CFLAGS) kernelHandler.c
 
@@ -92,16 +98,26 @@ k1.s: k1.c
 k1.o: k1.s
 	$(AS) $(ASFLAGS) -o k1.o k1.s
 
+k2.s: k2.c
+	$(XCC) -S $(CFLAGS) k2.c
+
+k2.o: k2.s
+	$(AS) $(ASFLAGS) -o k2.o k2.s
+
 test.elf: test.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o pkstring.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o test.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o debugtime.o pkstring.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o test.o -lgcc
 
 k1.elf: k1.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o pkstring.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o k1.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o debugtime.o pkstring.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o k1.o -lgcc
+
+k2.elf: k1.o
+	$(LD) $(LDFLAGS) -o $@ bwio.o debugtime.o pkstring.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o k2.o -lgcc
 
 
 install: test.elf k1.elf
 	cp test.elf /u/cs452/tftp/ARM/`whoami`/
 	cp k1.elf /u/cs452/tftp/ARM/`whoami`/
+	cp k2.elf /u/cs452/tftp/ARM/`whoami`/
 
 clean:
 	-rm -f *.s *.a *.o *.map *.elf

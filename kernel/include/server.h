@@ -3,28 +3,28 @@
 #ifndef _SERVER_H_
 #define _SERVER_H_
 
-// #include "kernelMacros.h"
-// // defining all the servers here. 
+//
+// NAMESERVER
+//
+typedef struct nameServer {
+	volatile int serverTID; // upon initialization.
+	// add data structure here.
+
+} nameServer;
 
 
-// //
-// // NAMESERVER
-// //
-// typedef struct nameRecord {
-// 	volatile int tid;
-// 	volatile char name[MAX_NAME + 1];
-// 	volatile int namelen;
+int nameServerInit(nameServer * ns);
 
-// } nameRecord;
-
-
-// typedef struct nameServer {
-// 	volatile nameRecord record[MAX_TID + 1];
-// } nameServer;
+int nameServerRun();
 
 
 
+//
+// CLOCKSERVER
+//
 
+
+	// TODO //
 #endif
 
 
