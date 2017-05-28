@@ -38,7 +38,7 @@ int insertHashMap(volatile hashMap * hmp, volatile char key[],const int TID) ;
  
 int deleteHashMap(volatile hashMap * hmp, volatile char key[]) ;
 
-int searchDictionary(dictionary *d, volatile char key[], int * TID);
+int searchDictionary(dictionary *d, volatile char key[], volatile int * TID);
 
 int addDictionary(dictionary *d, volatile char key[], int  TID);
 
