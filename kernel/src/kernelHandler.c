@@ -33,7 +33,7 @@ int initKernel(kernelHandler * ks, int priority, int code){
 
 	ks->freeHead = 0;
 	ks->freeTail = 0;
-
+	ks->nameServer = -1;
 	int memOffset = (int) &(ks->taskSpace[MAX_STACKSIZE-1]);
 	memOffset = memOffset - (memOffset%16);
 	ks->memOffset = memOffset;

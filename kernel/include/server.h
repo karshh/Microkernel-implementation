@@ -25,6 +25,7 @@
 
 
 
+void NameServerTask();
 #endif
 
 

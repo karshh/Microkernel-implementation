@@ -14,6 +14,7 @@
 // sw code. 
 
 int kernel_Create(TD * t, request * r, kernelHandler * ks);
+int kernel_CreateNameServer(TD * t, request * r, kernelHandler * ks);
 
 int kernel_MyTid(TD * t);
 
@@ -24,6 +25,9 @@ int kernel_Pass(TD * t);
 int kernel_Exit(TD * t); 
 
 int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m);
+
+int kernel_WhoIs(TD * t, request * r, kernelHandler * ks, message * m);
+int kernel_RegisterAs(TD * t, request * r, kernelHandler * ks, message * m);
 
 int kernel_Receive(TD * t, request * r, kernelHandler * ks, message * m);
 

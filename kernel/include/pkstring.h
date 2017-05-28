@@ -15,5 +15,28 @@ int pkstrcmp_volatile(volatile char string1[], volatile char string2[] );
 
 
 int pkstreq(const char string1[], const char string2[] );
+int pkstreq_volatile(volatile char string1[], volatile char string2[] );
+
+
+void pkstrcpy_firstn(volatile char * string1, volatile char *string2 , const int n);
+//copies the first n characters or until it hits null terminator
+//eg
+// pkstring_firstn(A, "01ABCDE",2)
+// A = "01"
+
+void pkstrcpy_aftern(volatile char *string1, volatile char string2[] ,const int n);
+//copies the characters after character n, coppies null terminator if string2 is shorter than n
+//eg
+// pkstring_afternn(A, "01ABCDE",2)
+// A = "ABCDE"
+
+
+
+void pkstrcpy_aftern_append(volatile char *string1, volatile char string2[] ,const int n,const int len);
+//appends string2 at pos n on string 1
+//eg A= "TTTTTTTTTTTTTTT"
+// pkstring_afternn_padd(A, "01ABCDE",2)
+// A =  "TT01ABCDE"
+
 
 #endif

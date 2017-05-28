@@ -16,14 +16,25 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 	case(CREATE):
 		return kernel_Create(t,r,ks);
 		break;
+	case(CREATENAMESERVER):
+		return kernel_CreateNameServer(t,r,ks);
+		break;
 	case(PASS):
 		return kernel_Pass(t);
 		break;
 	case(EXIT):
+	
+		if( t->TID == ks->nameServer) ks->nameServer = -1;
 		return kernel_Exit(t);
 		break;
 	case(SEND):
 		return kernel_Send(t, r, ks, m);
+		break;
+	case(WHOIS):
+		return kernel_WhoIs(t, r, ks, m);
+		break;
+	case(REGISTER):
+		return kernel_RegisterAs(t, r, ks, m);
 		break;
 	case(RECEIVE):
 		return kernel_Receive(t, r, ks, m);
@@ -68,6 +79,40 @@ int kernel_Exit(TD * t) {
 }
 
 
+int kernel_CreateNameServer(TD * t, request * r, kernelHandler * ks){
+	int priority =(int) r->arg1;
+	if (priority <0 || priority >31){
+		 //change to 
+		t->reqVal = -1;
+	}else if(ks->nameServer != -1 && ks->TDList[ks->nameServer].state != ZOMBIE){
+		t->reqVal = -3; //-3 if name servre exists
+		//check if there exists a living nameserver;
+	}else{
+	
+		int TID  =0;
+		//int err = getNextTID(ks, &(t->reqVal));
+		int err = getNextTID(ks, &(TID));
+		//got a live child
+		if (err) 
+		{ t->reqVal  = -2;}
+		else{
+		t->reqVal= TID;
+		int code =(int) r->arg2;
+			
+		int PTID = t->TID;
+		TD * childTD = setTask(ks,TID, PTID,priority,code);   //if TID == , it is created by kernel
+	//	kernel_queuePush(ks, childTD);
+		 kernel_queuePush(ks, childTD);
+		//set name sever;
+		ks->nameServer = TID;
+		}
+	}
+	return 1;
+
+
+}
+
+
 int kernel_Create(TD * t, request * r, kernelHandler * ks) {
 	int priority =(int) r->arg1;
 	if (priority <0 || priority >31){
@@ -94,6 +139,32 @@ int kernel_Create(TD * t, request * r, kernelHandler * ks) {
 	return 1;
 }
 
+int kernel_WhoIs(TD * t, request * r, kernelHandler * ks, message * m){
+	int nameServer = ks->nameServer;
+	if (nameServer != -1 && ks->TDList[nameServer].state != ZOMBIE && ks->TDList[nameServer].state != FREE){
+		//set name server
+		r->arg1 = (void *) nameServer;
+
+		return kernel_Send(t,r,ks,m);
+	}else{
+		t->reqVal = -1;
+		//nameserver does not exist;
+	}
+	return 1;
+}
+
+int kernel_RegisterAs(TD * t, request * r, kernelHandler * ks, message * m){
+	int nameServer = ks->nameServer;
+	if (nameServer != -1 && ks->TDList[nameServer].state != ZOMBIE && ks->TDList[nameServer].state != FREE){
+		//set name server
+		r->arg1 = (void *) nameServer;
+		return kernel_Send(t,r,ks,m);
+	}else{
+		t->reqVal = -1;
+		//nameserver does not exist;
+	}
+	return 1;
+}
 int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 	int tid = (int) r->arg1;
 	int msglen = (int) r->arg3;
