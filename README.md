@@ -61,3 +61,4 @@ Redboot> go
 ```
 
 Here, `whoami` is the username of the user.
+
