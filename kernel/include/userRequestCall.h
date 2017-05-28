@@ -5,6 +5,7 @@
 #define _USER_REQUEST_CALL
 
 int Create( int priority, void (*code));
+int CreateNameServer( int priority, void (*code));
 
 int MyTid( );
 

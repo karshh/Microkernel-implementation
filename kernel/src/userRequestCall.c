@@ -1,5 +1,6 @@
 #include "userRequestCall.h"
 #include "request.h"
+#include "pkstring.h"
 #include "bwio.h"
 
 int user_contextswitch(int dummy, request * r) {
@@ -17,6 +18,15 @@ int Create( int priority, void (*code)){
 	myRequest.arg2 = code;
 	return user_contextswitch(0xdeadbeef, &myRequest);
 }
+
+int CreateNameServer( int priority, void (*code)){
+	request myRequest;
+	myRequest.reqType = CREATENAMESERVER;
+	myRequest.arg1 = (void *) priority;
+	myRequest.arg2 = code;
+	return user_contextswitch(0xdeadbeef, &myRequest);
+}
+
 int MyTid(){
 	
 	request myRequest;
@@ -83,6 +93,63 @@ int Send(int tid, char *msg, int msglen, char *reply, int rplen){
 	
 	return user_contextswitch(0xdeadbeef, &myRequest);
 }
+
+int WhoIs(char *name){
+	volatile char * name2 = (volatile char *) name;
+	volatile char name1[18];
+	name1[0] ='0';
+	name1[1] ='1';
+	pkstrcpy_aftern_append(name1,name2,2,17);
+	//name 1 is the truncated name with 
+
+	request myRequest;
+
+	myRequest.reqType = WHOIS;
+    	char _reply[2];
+	_reply[0] = 0;
+	_reply[1] = 0;
+    	int _rplen = 2;
+	myRequest.arg1 = (void *) 0;
+	myRequest.arg2 = (void *) name1;
+	myRequest.arg3 = (void *) 18;
+	myRequest.arg4 = (void *) _reply;
+	myRequest.arg5 = (void *) _rplen;
+	volatile int result =  user_contextswitch(0xdeadbeef, &myRequest);
+	
+	if(result < 0) return result;
+
+	if(_reply[0] > 127) return _reply[0] -256;
+	return _reply[0];
+}
+
+int RegisterAs(char *name){
+	volatile char * name2 = (volatile char *) name;
+	volatile char name1[18];
+	name1[0] ='1';
+	name1[1] ='0';
+	pkstrcpy_aftern_append(name1,name2,2,17);
+	//name 1 is the truncated name with 
+
+	request myRequest;
+
+	myRequest.reqType = REGISTER;
+    	char _reply[2];
+	_reply[0] = 0;
+	_reply[1] = 0;
+    	int _rplen = 2;
+	myRequest.arg1 = (void *) 0;
+	myRequest.arg2 = (void *) name1;
+	myRequest.arg3 = (void *) 18;
+	myRequest.arg4 = (void *) _reply;
+	myRequest.arg5 = (void *) _rplen;
+	volatile int result =  user_contextswitch(0xdeadbeef, &myRequest);
+	
+	if(result < 0) return result;
+
+	if(_reply[0] > 127) return _reply[0] -256;
+	return _reply[0];
+}
+
 
 int Receive(int *tid, char *msg, int msglen){
 	

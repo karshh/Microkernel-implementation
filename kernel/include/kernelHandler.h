@@ -24,6 +24,7 @@ typedef struct kernelHandler{
 	volatile TD * freeTail;
 
 	volatile TD * activeTask;
+	volatile int nameServer;
 	//memm offset for user task space
 	int memOffset;
 	//an idea from ben to safely allocate space is to have 

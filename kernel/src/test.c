@@ -4,6 +4,7 @@
 #include "userRequestCall.h"
 #include "kernelHandler.h"
 #include "kernelMacros.h"
+#include "server.h"
 #include "dictionary.h"
 
 
@@ -146,63 +147,155 @@ void userTask60() {
     Exit();
 }
 
-void userTaskName(){
-
-    int myTid = MyTid();
-    int Tid = 0;
-    dictionary d;
-    initDictionary(&d);
-    bwprintf(COM2, "init dictionary", myTid, Tid);
-
-    int TID ;
-    TID = -1;
-    bwprintf(COM2,"search for DOGOMYTE %d \n\r",searchDictionary(&d,"DOGOMYTE",&TID));
-    bwprintf(COM2,"TID result %d \n\r",TID);
-    bwprintf(COM2,"add DOGOMYTE for 100 %d \n\r",addDictionary(&d,"DOGOMYTE",100));
-    bwprintf(COM2,"add DOGOMYTE for 100 (again) %d \n\r",addDictionary(&d,"DOGOMYTE",100));
-    bwprintf(COM2,"add DOGOMYTE for 101 %d \n\r",addDictionary(&d,"DOGOMYTE",101));
-    bwprintf(COM2,"add FIRE for 102 %d \n\r",addDictionary(&d,"FIRE",102));
-    bwprintf(COM2,"add TRAIN for 103 %d \n\r",addDictionary(&d,"TRAIN",103));
-    TID = -1;
-    bwprintf(COM2,"search for DOGOMYTE %d \n\r",searchDictionary(&d,"DOGOMYTE",&TID));
-   bwprintf(COM2,"TID result %d \n\r",TID);
-    TID = -1;
-    bwprintf(COM2,"search for FIRE %d \n\r",searchDictionary(&d,"FIRE",&TID));
-    bwprintf(COM2,"TID result %d \n\r",TID);
-    TID = -1;
-    bwprintf(COM2,"search for TRAIN%d \n\r",searchDictionary(&d,"TRAIN",&TID));
-    bwprintf(COM2,"TID result %d \n\r",TID);
-    bwprintf(COM2,"add DRAGON (replace name) for 103 %d \n\r",addDictionary(&d,"DRAGON",103));
-TID = -1;
-    bwprintf(COM2,"search for TRAIN%d \n\r",searchDictionary(&d,"TRAIN",&TID));
-    bwprintf(COM2,"TID result %d \n\r",TID);
-    TID = -1;
-    bwprintf(COM2,"search for DRAGON%d \n\r",searchDictionary(&d,"DRAGON",&TID));
-    bwprintf(COM2,"TID result %d \n\r",TID);
-    TID = -1;
-    bwprintf(COM2,"search for FIRE %d \n\r",searchDictionary(&d,"FIRE",&TID));
-    bwprintf(COM2,"TID result %d \n\r",TID);
-    deleteDictionary(&d,102);
-    bwprintf(COM2,"unregistered TID 102  \n\r");
-    TID = -1;
-    bwprintf(COM2,"search for FIRE %d \n\r",searchDictionary(&d,"FIRE",&TID));
-    bwprintf(COM2,"TID result %d \n\r",TID);
-
- 
 
 
-    Exit();
+void userTaskClient(){
+
+	
+	int myTID = MyTid();
+	int tid_search = 0;
+	bwprintf(COM2, "<%d> got tid, now passing passing \n\r",myTID);
+Pass();
+	bwprintf(COM2, "<%d> finished passing Going to register name as TASK1 \n\r",myTID);
+ 	int err = RegisterAs("TASK1");
+	bwprintf(COM2, "<%d> returned for register command. result:%d  \n\r",myTID,err);
+	bwprintf(COM2, "<%d> searching for THE MAN \n\r",myTID);
+	tid_search = WhoIs("THE MAN");
+	bwprintf(COM2, "<%d>searched for THE MAN:%d \n\r",myTID, tid_search);
+
+	bwprintf(COM2, "<%d> searching for TASK2 \n\r",myTID);
+	tid_search = WhoIs("TASK2");
+	bwprintf(COM2, "<%d>searched for TASK2:%d \n\r",myTID, tid_search);
+
+/*
+Pass();
+ 	tid_search = RegisterAs("JOHN");
+Pass();
+
+	tid_search = WhoIs("THE MAN");
+	bwprintf(COM2, "<%d>searched for THE MAN:%d \n\r",myTID, tid_search);
+	tid_search = WhoIs("THE MAN");
+	bwprintf(COM2, "<%d>searched for THE MAN:%d \n\r", myTID,tid_search);*/
+	bwprintf(COM2, "<%d> exiting  \n\r",myTID);
+	Exit();}
+
+void userTaskClient1(){
+
+	int myTID = MyTid();
+	int tid_search = 0;
+	bwprintf(COM2, "<%d> got tid, now passing \n\r",myTID);
+Pass();
+	bwprintf(COM2, "<%d> finished passing Going to register name as TASK2 \n\r",myTID);
+ 	int err = RegisterAs("TASK2");
+	bwprintf(COM2, "<%d> returned for register command. result: %d \n\r",myTID,err);
+	bwprintf(COM2, "<%d> searching for THE MAN \n\r",myTID);
+	tid_search = WhoIs("THE MAN");
+	bwprintf(COM2, "<%d>searched for THE MAN:%d \n\r",myTID, tid_search);
+
+
+	bwprintf(COM2, "<%d> searching for TASK3 \n\r",myTID);
+	tid_search = WhoIs("TASK3");
+	bwprintf(COM2, "<%d>searched for TASK3:%d \n\r",myTID, tid_search);
+/*
+ 	int tid_search = RegisterAs("THE OTHER MAN");
+Pass();
+ 	tid_search = RegisterAs("JOHN");
+Pass();
+
+	tid_search = WhoIs("THE MAN");
+	bwprintf(COM2, "<%d>searched for THE MAN:%d \n\r",myTID, tid_search);
+	tid_search = WhoIs("THE MAN");
+	bwprintf(COM2, "<%d>searched for THE MAN:%d \n\r", myTID,tid_search);*/
+	bwprintf(COM2, "<%d> exiting  \n\r",myTID);
+	Exit();
+}
+
+void userTaskClient2(){
+
+	int myTID = MyTid();
+	int tid_search = 0;
+	bwprintf(COM2, "<%d> got tid, now passing \n\r",myTID);
+Pass();
+	bwprintf(COM2, "<%d> finished passing Going to register name as TASK3 \n\r",myTID);
+ 	int err = RegisterAs("TASK3");
+	bwprintf(COM2, "<%d> returned for register command. result: %d \n\r",myTID,err);
+	bwprintf(COM2, "<%d> searching for THE MAN \n\r",myTID);
+	tid_search = WhoIs("THE MAN");
+	bwprintf(COM2, "<%d>searched for THE MAN:%d \n\r",myTID, tid_search);
+
+	bwprintf(COM2, "<%d> searching for TASK1 \n\r",myTID);
+	tid_search = WhoIs("TASK1");
+	bwprintf(COM2, "<%d>searched for TASK1:%d \n\r",myTID, tid_search);
+
+	bwprintf(COM2, "<%d> exiting  \n\r",myTID);
+	Exit();
+}
+
+
+void userinfinitiPass(){
+	bwprintf(COM2, "infini task running \r\n");
+	while(1) Pass();
+}
+
+void userTask01(){
+	int myTid = MyTid();
+	int childTID =-1;
+	childTID = CreateNameServer(1,(void *) NameServerTask);
+	bwprintf(COM2, "<%d>: Creating name server 1:%d. \r\n", myTid,childTID);
+
+	childTID =-1;
+	childTID = Create(2,(void *) userTaskClient);
+	bwprintf(COM2, "<%d>: Creating child process that will request name server <%d>. \r\n", myTid,childTID);
+	childTID =-1;
+	childTID = Create(2,(void *) userTaskClient1);
+	bwprintf(COM2, "<%d>: Creating child process that will request name server <%d>. \r\n", myTid,childTID);
+	childTID =-1;
+	childTID = Create(2,(void *) userTaskClient2);
+	bwprintf(COM2, "<%d>: Creating child process that will request name server <%d>. \r\n", myTid,childTID);
+
+
+	Exit();
 }
 
 void userTask11(void) {    
-    //bwprintf(COM2, "HERE\r\n");    
-    //bwprintf(COM2, "USER TASK 1 MIDDLE \r\n");    
-    // bwprintf(COM2, "USER TASK 1 EXIT, REQUESTING TID.\r\n");     
      int tid = MyTid();     
      bwprintf(COM2, "USER TASK 1 GOT TID = %d.\r\n", tid);     
-   //  bwprintf(COM2, "USER TASK 1 EXIT, REQUESTING Parent TID.\r\n");    
-   // int parentTid = MyParentTid();     
-   // bwprintf(COM2, "USER TASK 1 GOT Parent TID = %d.\r\n", parentTid); 
+
+
+    dictionary d;
+    initDictionary(&d);
+	int TID = -1;
+     bwprintf(COM2, "Seaching empty dictionary for [BOOK]  %d.\r\n", searchDictionary(&d, "BOOK", &TID));     
+     bwprintf(COM2, "Search results %d.\r\n", TID);     
+     bwprintf(COM2, "USER TASK 1 GOT TID = %d.\r\n", tid);     
+     bwprintf(COM2, "ADDING  [BOOK] for tid 1 %d.\r\n", addDictionary(&d, "BOOK",1));     
+     bwprintf(COM2, "ADDING  [BOOK1] for tid 1 %d.\r\n",addDictionary(&d, "BOOK1",1));     
+     bwprintf(COM2, "ADDING  [BOOKW] for tid 1 %d.\r\n", addDictionary(&d, "BOOKW",1));     
+     bwprintf(COM2, "ADDING  [BOOK2] for tid 2 %d.\r\n", addDictionary(&d, "BOOK2",2));     
+	TID = -1;
+     bwprintf(COM2, "Seaching empty dictionary for [BOOK]  %d.\r\n", searchDictionary(&d, "BOOK", &TID));     
+     bwprintf(COM2, "Search results %d.\r\n", TID);     
+	TID = -1;
+     bwprintf(COM2, "Seaching dictionary for [BOOK1]  %d.\r\n", searchDictionary(&d, "BOOK1", &TID));     
+     bwprintf(COM2, "Search results %d.\r\n", TID);     
+	 TID = -1;
+     bwprintf(COM2, "Seaching dictionary for [BOOKW]  %d.\r\n", searchDictionary(&d, "BOOKW", &TID));     
+     bwprintf(COM2, "Search results %d.\r\n", TID);     
+	 TID = -1;
+     bwprintf(COM2, "Seaching dictionary for [BOOK2]  %d.\r\n", searchDictionary(&d, "BOOK2", &TID));     
+     bwprintf(COM2, "Search results %d.\r\n", TID);     
+
+     bwprintf(COM2, "ADDING  [BOOKW] for tid 2 %d.\r\n", addDictionary(&d, "BOOKW",2));     
+	 TID = -1;
+     bwprintf(COM2, "Seaching dictionary for [BOOK2]  %d.\r\n", searchDictionary(&d, "BOOK2", &TID));     
+     bwprintf(COM2, "Search results %d.\r\n", TID);     
+
+	char c = 'C';
+     bwprintf(COM2, "testing errors in C %d.\r\n", c);     
+	c = 3;
+     bwprintf(COM2, "testing errors in C %d.\r\n", c);     
+	c = -10;
+     bwprintf(COM2, "testing errors in C %d.\r\n", c);     
      Exit();
 }
 

@@ -24,7 +24,7 @@ int nameServerRun();
 //
 
 
-	// TODO //
+void NameServerTask();
 #endif
 
 

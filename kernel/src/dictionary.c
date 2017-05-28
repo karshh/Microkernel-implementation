@@ -1,6 +1,7 @@
 #include "kernelMacros.h"
 #include "dictionary.h"
 #include "pkstring.h"
+#include "bwio.h"
 
 
 void initHashEntry(volatile hashEntry * he){
@@ -44,26 +45,32 @@ int hashCode(volatile char key[]){
 
 int searchHashMap(volatile hashMap * hmp, volatile char key[]) {
    //get the hash 
+
    volatile int hashIndex = hashCode(key);
    volatile int firstIndex = hashIndex;
    //move in array until an empty 
    while(1) {
 	
-      if(!pkstrcmp_volatile(hmp->hte[hashIndex].key,key))
+      if(!pkstrcmp_volatile(hmp->hte[hashIndex].key,key)){
          return hmp->hte[hashIndex].TID;
+	}
 			
       //go to next cell
       ++hashIndex;
 		
       //wrap around the table
       hashIndex %= MAX_HASH;
-      if( firstIndex == hashIndex) return -1; //full
+      if( firstIndex == hashIndex){ 
+	return -1; //could not find
+      }
    }
  
 }
 
 
 int insertHashMap(volatile hashMap * hmp, volatile char key[],const int TID) {
+	//multiple names possible for hash
+	//iif name exists, overide it
   volatile int exist = searchHashMap(hmp,key);
    if (exist == TID) return 0; //this TID is already named key. NOP
    if (exist >= 0) return -2; //already exists for another TID
@@ -110,11 +117,12 @@ int deleteHashMap(volatile hashMap * hmp, volatile char key[]) {
    
 }
 
-int searchDictionary(dictionary *d, volatile char key[], int * TID){
+int searchDictionary(dictionary *d, volatile char key[], volatile int * TID){
     
     //retruns negative number if not found
     // 0...128 if TID found
     volatile int err = searchHashMap(&d->hmp, key); 
+
     if (err < 0) return 0;
     else *TID = err;
     return 1;
@@ -123,7 +131,20 @@ int searchDictionary(dictionary *d, volatile char key[], int * TID){
 
 int addDictionary(dictionary *d, volatile  char key[], int  TID){
     //first check if it exists
+    //first check if key exists it exists
+	int tmp;
+	if(searchDictionary(d,key,&tmp)){
+        	deleteHashMap(&d->hmp,key); //delete it if its there
+	}
 
+        volatile int err =insertHashMap(&d->hmp, key,TID);
+
+	if(!err){ 
+            return 1;
+        }
+        return 0; //failed to add
+
+/*
     if(d->td[TID].registered == 0 ){
        volatile int err =insertHashMap(&d->hmp, key,TID);
         if(!err){ 
@@ -150,6 +171,7 @@ int addDictionary(dictionary *d, volatile  char key[], int  TID){
         
         
     }
+*/
 }
 
 void deleteDictionary(dictionary *d, int  TID){

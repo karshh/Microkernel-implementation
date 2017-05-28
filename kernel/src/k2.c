@@ -6,6 +6,7 @@
 #include "kernelMacros.h"
 #include "buffer.h"
 #include "pkstring.h"
+#include "server.h"
 
 
 
@@ -36,7 +37,13 @@ int strequal(char * c1, char * c2) {
 
 
 void referee() {
+<<<<<<< HEAD
 	bwprintf(COM2, "\r\n\r\n\r\n\r\nROCK, PAPER & SCISSORS\r\nBy: Paily & Karsh\r\n\r\n");
+=======
+	bwprintf(COM2, "ROCK, PAPER & SCISSORS\r\nBy: Paily & Karsh\r\n\r\n");
+	while(RegisterAs("REFEREE")){Pass();}
+
+>>>>>>> 95ce1d39d601a63a405b538a7d983e54975fd9aa
 	circularBuffer cb;
 	circularBufferInit(&cb);
 	int player1TID = -1;
@@ -205,8 +212,18 @@ void referee() {
 }
 
 void player1() {
+<<<<<<< HEAD
 	int myTid = MyTid();
 	int refereeTID = 1;
+=======
+	
+	//int myTID = MyTid();
+	int refereeTID = -1;
+	while( refereeTID <0){
+		Pass();
+		refereeTID =  WhoIs("REFEREE");
+	}
+>>>>>>> 95ce1d39d601a63a405b538a7d983e54975fd9aa
 	char reply[16];
 	int replycap = 16;
 	int replylen = 0;
@@ -252,8 +269,17 @@ void player1() {
 }
 
 void player2() {
+<<<<<<< HEAD
 	int myTid = MyTid();
 	int refereeTID = 1;
+=======
+	//int myTID = MyTid();
+	int refereeTID = -1;
+	while( refereeTID <0){
+		Pass();
+		refereeTID =  WhoIs("REFEREE");
+	}
+>>>>>>> 95ce1d39d601a63a405b538a7d983e54975fd9aa
 	char reply[16];
 	int replycap = 16;
 	int replylen = 0;
@@ -297,8 +323,16 @@ void player2() {
 
 
 void player3() {
+<<<<<<< HEAD
 	int myTid = MyTid();
 	int refereeTID = 1;
+=======
+	int refereeTID = -1;
+	while( refereeTID <0){
+		Pass();
+		refereeTID =  WhoIs("REFEREE");
+	}
+>>>>>>> 95ce1d39d601a63a405b538a7d983e54975fd9aa
 	char reply[16];
 	int replycap = 16;
 	int replylen = 0;
@@ -343,8 +377,16 @@ void player3() {
 
 
 void player4() {
+<<<<<<< HEAD
 	int myTid = MyTid();
 	int refereeTID = 1;
+=======
+	int refereeTID = -1;
+	while( refereeTID <0){
+		Pass();
+		refereeTID =  WhoIs("REFEREE");
+	}
+>>>>>>> 95ce1d39d601a63a405b538a7d983e54975fd9aa
 	char reply[16];
 	int replycap = 16;
 	int replylen = 0;
@@ -390,7 +432,12 @@ void player4() {
 
 
 void God() {
+<<<<<<< HEAD
 	Create(6, (void *)referee);
+=======
+	CreateNameServer(1,(void *) NameServerTask);
+	Create(5, (void *)referee);
+>>>>>>> 95ce1d39d601a63a405b538a7d983e54975fd9aa
 	Create(6, (void *)player1);
 	Create(6, (void *)player2);
 	Create(6, (void *)player3);
