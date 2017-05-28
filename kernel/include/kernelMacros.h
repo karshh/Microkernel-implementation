@@ -14,4 +14,6 @@
 #define KERNAL_CHILD -1 
 //set PTID in setTask fuction to Kernal Child if task is created by kernal instead of another task
 #define MAX_TID 128  //max number of TIDS
+#define MAX_HASH 347
+#define MAX_NAME_LENGTH 16
 #define MAX_STACKSIZE  1024*1024*16  // 16MBytes (space allocated for tasks

@@ -4,6 +4,7 @@
 #include "userRequestCall.h"
 #include "kernelHandler.h"
 #include "kernelMacros.h"
+#include "dictionary.h"
 
 
 void userTask3() {
@@ -145,7 +146,53 @@ void userTask60() {
     Exit();
 }
 
+void userTaskName(){
 
+    int myTid = MyTid();
+    int Tid = 0;
+    dictionary d;
+    initDictionary(&d);
+    bwprintf(COM2, "init dictionary", myTid, Tid);
+
+    int TID ;
+    TID = -1;
+    bwprintf(COM2,"search for DOGOMYTE %d \n\r",searchDictionary(&d,"DOGOMYTE",&TID));
+    bwprintf(COM2,"TID result %d \n\r",TID);
+    bwprintf(COM2,"add DOGOMYTE for 100 %d \n\r",addDictionary(&d,"DOGOMYTE",100));
+    bwprintf(COM2,"add DOGOMYTE for 100 (again) %d \n\r",addDictionary(&d,"DOGOMYTE",100));
+    bwprintf(COM2,"add DOGOMYTE for 101 %d \n\r",addDictionary(&d,"DOGOMYTE",101));
+    bwprintf(COM2,"add FIRE for 102 %d \n\r",addDictionary(&d,"FIRE",102));
+    bwprintf(COM2,"add TRAIN for 103 %d \n\r",addDictionary(&d,"TRAIN",103));
+    TID = -1;
+    bwprintf(COM2,"search for DOGOMYTE %d \n\r",searchDictionary(&d,"DOGOMYTE",&TID));
+   bwprintf(COM2,"TID result %d \n\r",TID);
+    TID = -1;
+    bwprintf(COM2,"search for FIRE %d \n\r",searchDictionary(&d,"FIRE",&TID));
+    bwprintf(COM2,"TID result %d \n\r",TID);
+    TID = -1;
+    bwprintf(COM2,"search for TRAIN%d \n\r",searchDictionary(&d,"TRAIN",&TID));
+    bwprintf(COM2,"TID result %d \n\r",TID);
+    bwprintf(COM2,"add DRAGON (replace name) for 103 %d \n\r",addDictionary(&d,"DRAGON",103));
+TID = -1;
+    bwprintf(COM2,"search for TRAIN%d \n\r",searchDictionary(&d,"TRAIN",&TID));
+    bwprintf(COM2,"TID result %d \n\r",TID);
+    TID = -1;
+    bwprintf(COM2,"search for DRAGON%d \n\r",searchDictionary(&d,"DRAGON",&TID));
+    bwprintf(COM2,"TID result %d \n\r",TID);
+    TID = -1;
+    bwprintf(COM2,"search for FIRE %d \n\r",searchDictionary(&d,"FIRE",&TID));
+    bwprintf(COM2,"TID result %d \n\r",TID);
+    deleteDictionary(&d,102);
+    bwprintf(COM2,"unregistered TID 102  \n\r");
+    TID = -1;
+    bwprintf(COM2,"search for FIRE %d \n\r",searchDictionary(&d,"FIRE",&TID));
+    bwprintf(COM2,"TID result %d \n\r",TID);
+
+ 
+
+
+    Exit();
+}
 
 void userTask11(void) {    
     //bwprintf(COM2, "HERE\r\n");    
