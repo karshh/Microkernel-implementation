@@ -125,7 +125,7 @@ k1.elf: k1.o
 
 
 k2.elf: k2.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o debugtime.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o k2.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o debugtime.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o k2.o -lgcc
 
 install: test.elf k1.elf k2.elf
 	cp test.elf /u/cs452/tftp/ARM/`whoami`/

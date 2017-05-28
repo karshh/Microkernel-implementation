@@ -6,6 +6,7 @@
 #include "kernelMacros.h"
 #include "buffer.h"
 #include "pkstring.h"
+#include "server.h"
 
 
 
@@ -37,6 +38,8 @@ int strequal(char * c1, char * c2) {
 
 void referee() {
 	bwprintf(COM2, "ROCK, PAPER & SCISSORS\r\nBy: Paily & Karsh\r\n\r\n");
+	while(RegisterAs("REFEREE")){Pass();}
+
 	circularBuffer cb;
 	circularBufferInit(&cb);
 	int player1TID = -1;
@@ -194,8 +197,13 @@ void referee() {
 }
 
 void player1() {
+	
 	//int myTID = MyTid();
-	int refereeTID = 1;
+	int refereeTID = -1;
+	while( refereeTID <0){
+		Pass();
+		refereeTID =  WhoIs("REFEREE");
+	}
 	char reply[16];
 	int replycap = 16;
 	int replylen = 0;
@@ -229,7 +237,11 @@ void player1() {
 
 void player2() {
 	//int myTID = MyTid();
-	int refereeTID = 1;
+	int refereeTID = -1;
+	while( refereeTID <0){
+		Pass();
+		refereeTID =  WhoIs("REFEREE");
+	}
 	char reply[16];
 	int replycap = 16;
 	int replylen = 0;
@@ -261,7 +273,11 @@ void player2() {
 
 
 void player3() {
-	int refereeTID = 1;
+	int refereeTID = -1;
+	while( refereeTID <0){
+		Pass();
+		refereeTID =  WhoIs("REFEREE");
+	}
 	char reply[16];
 	int replycap = 16;
 	int replylen = 0;
@@ -294,7 +310,11 @@ void player3() {
 
 
 void player4() {
-	int refereeTID = 1;
+	int refereeTID = -1;
+	while( refereeTID <0){
+		Pass();
+		refereeTID =  WhoIs("REFEREE");
+	}
 	char reply[16];
 	int replycap = 16;
 	int replylen = 0;
@@ -328,6 +348,7 @@ void player4() {
 
 
 void God() {
+	CreateNameServer(1,(void *) NameServerTask);
 	Create(5, (void *)referee);
 	Create(6, (void *)player1);
 	Create(6, (void *)player2);
