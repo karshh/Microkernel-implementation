@@ -31,8 +31,8 @@ free_Pop:
 .L11:
 	.align	2
 .L10:
-	.word	155912
-	.word	155908
+	.word	303368
+	.word	303364
 	.size	free_Pop, .-free_Pop
 	.align	2
 	.global	getNextTID
@@ -89,8 +89,8 @@ free_Push:
 .L24:
 	.align	2
 .L23:
-	.word	155908
-	.word	155912
+	.word	303364
+	.word	303368
 	.size	free_Push, .-free_Push
 	.align	2
 	.global	setTask
@@ -101,12 +101,12 @@ setTask:
 	str	lr, [sp, #-4]!
 	add	ip, r1, r1, asl #3
 	mov	lr, r1
-	add	ip, lr, ip, asl #1
+	add	ip, lr, ip, asl #2
 	add	ip, r0, ip, asl #6
 	cmn	r2, #1
 	add	r1, r2, r2, asl #3
 	str	r3, [ip, #28]
-	add	r1, r2, r1, asl #1
+	add	r1, r2, r1, asl #2
 	moveq	r3, #0
 	str	r2, [ip, #20]
 	add	r1, r0, r1, asl #6
@@ -137,7 +137,7 @@ setTask:
 .L31:
 	.align	2
 .L30:
-	.word	155920
+	.word	303376
 	.size	setTask, .-setTask
 	.align	2
 	.global	kernel_queuePush
@@ -149,7 +149,7 @@ kernel_queuePush:
 	ldr	r5, [r1, #28]
 	mov	r4, r0
 	add	r2, r0, r5, asl #2
-	add	r0, r2, #155648
+	add	r0, r2, #303104
 	ldr	lr, [r0, #0]
 	ldr	r6, .L38
 	cmp	lr, #0
@@ -183,8 +183,8 @@ kernel_queuePush:
 .L39:
 	.align	2
 .L38:
-	.word	155904
-	.word	155776
+	.word	303360
+	.word	303232
 	.size	kernel_queuePush, .-kernel_queuePush
 	.section	.rodata.str1.4,"aMS",%progbits,1
 	.align	2
@@ -232,14 +232,14 @@ initKernel:
 	mov	r1, r0
 .L41:
 	add	r0, r1, r1, asl #3
-	add	r0, r1, r0, asl #1
+	add	r0, r1, r0, asl #2
 	mov	r2, r5
 	add	r0, r4, r0, asl #6
 	bl	initTD(PLT)
 	ldr	r1, [sp, #4]
 	mov	r0, r4
 	add	r3, r1, r1, asl #3
-	add	r1, r1, r3, asl #1
+	add	r1, r1, r3, asl #2
 	add	r1, r4, r1, asl #6
 	bl	free_Push(PLT)
 	ldr	r3, [sp, #4]
@@ -248,7 +248,7 @@ initKernel:
 	str	r1, [sp, #4]
 	ble	.L41
 	mov	r0, #0
-	add	r3, r4, #155648
+	add	r3, r4, #303104
 	mov	r2, r0
 .L43:
 	add	r2, r2, #1
@@ -300,10 +300,10 @@ initKernel:
 	.align	2
 .L58:
 	.word	_GLOBAL_OFFSET_TABLE_-(.L55+8)
-	.word	16933139
-	.word	155908
-	.word	155916
-	.word	155904
+	.word	17080595
+	.word	303364
+	.word	303372
+	.word	303360
 	.word	.LC0(GOTOFF)
 	.word	.LC1(GOTOFF)
 	.size	initKernel, .-initKernel
@@ -356,7 +356,7 @@ kernel_queuePop_priority:
 	eor	r1, r1, r3
 	add	r2, lr, r2, asl #2
 	add	r0, lr, r0, asl #2
-	add	r2, r2, #155648
+	add	r2, r2, #303104
 	str	r1, [lr, r8]
 	str	r4, [r0, r6]
 	str	r4, [r2, #0]
@@ -364,8 +364,8 @@ kernel_queuePop_priority:
 .L70:
 	.align	2
 .L69:
-	.word	155776
-	.word	155904
+	.word	303232
+	.word	303360
 	.size	kernel_queuePop_priority, .-kernel_queuePop_priority
 	.align	2
 	.global	kernel_queuePop
@@ -411,19 +411,19 @@ kernel_queuePop:
 .L90:
 	.align	2
 .L89:
-	.word	155904
+	.word	303360
 	.size	kernel_queuePop, .-kernel_queuePop
 	.align	2
 	.global	kernelRun
 	.type	kernelRun, %function
 kernelRun:
-	@ args = 0, pretend = 0, frame = 16933328
+	@ args = 0, pretend = 0, frame = 17080784
 	@ frame_needed = 0, uses_anonymous_args = 0
 	stmfd	sp!, {r4, r5, r6, r7, lr}
-	add	sp, sp, #-16777216
-	sub	sp, sp, #155648
+	sub	sp, sp, #17039360
+	sub	sp, sp, #41216
 	ldr	r3, .L99
-	sub	sp, sp, #464
+	sub	sp, sp, #208
 	ldr	r5, .L99+4
 	mov	r2, r1
 	add	r3, sp, r3
@@ -447,8 +447,8 @@ kernelRun:
 	cmp	r0, #0
 	ldr	r6, .L99+8
 	beq	.L98
-	add	r3, sp, #16777216
-	add	r3, r3, #155648
+	add	r3, sp, #17039360
+	add	r3, r3, #40960
 	ldr	r4, [r3, #460]
 	mov	r3, #1
 	str	r3, [r4, #32]
@@ -470,8 +470,8 @@ kernelRun:
 	mov	r1, r4
 	mov	r0, r5
 	bl	processRequest(PLT)
-	add	r3, sp, #16777216
-	add	r3, r3, #155648
+	add	r3, sp, #17039360
+	add	r3, r3, #40960
 	ldr	r1, [r3, #460]
 	mov	r0, r5
 	ldr	r3, [r1, #32]
@@ -481,16 +481,16 @@ kernelRun:
 	b	.L96
 .L98:
 	add	sp, sp, #464
-	add	sp, sp, #155648
+	add	sp, sp, #303104
 	add	sp, sp, #16777216
 	ldmfd	sp!, {r4, r5, r6, r7, pc}
 .L100:
 	.align	2
 .L99:
-	.word	16933328
-	.word	-16933328
-	.word	155916
-	.word	16933300
-	.word	16933156
+	.word	17080784
+	.word	-17080784
+	.word	303372
+	.word	17080756
+	.word	17080612
 	.size	kernelRun, .-kernelRun
 	.ident	"GCC: (GNU) 4.0.2"

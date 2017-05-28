@@ -36,16 +36,16 @@ int strequal(char * c1, char * c2) {
 
 
 void referee() {
-	bwprintf(COM2, "ROCK, PAPER & SCISSORS\r\nBy: Paily & Karsh\r\n\r\n");
+	bwprintf(COM2, "\r\n\r\n\r\n\r\nROCK, PAPER & SCISSORS\r\nBy: Paily & Karsh\r\n\r\n");
 	circularBuffer cb;
 	circularBufferInit(&cb);
 	int player1TID = -1;
 	int player2TID = -1;
 	int rtid = -1;
 	char msg[MSG_CAPACITY];
-	int msglen = 0;
 	int msgcap = MSG_CAPACITY;
 	volatile int i = 0;
+	volatile int msglen = 0;
 	// request types.
 	 char *signup = "signup";
 	 char *rock = "rock";
@@ -68,12 +68,12 @@ void referee() {
 	while(1) {
 		// clear out the message and message length.
 		for (i = 0; i < MSG_CAPACITY; i++) msg[i] = 0;
-		msglen = 0;
 		// recieve a message.
 		msglen = Receive(&rtid, msg, msgcap);
-
 		// Here we make sure the recieve went through.
-		bwassert(msglen >= 0, COM2, "ERROR: Task %d returned the following code: %d\r\n", rtid, msglen);
+		bwassert(msglen >= 0, COM2, "ERROR: Task %d returned the following code: %d\r\n", rtid);
+
+
 
 		// Continue with the process of meeting player requests.
 		if (strequal(msg, signup))  {
@@ -81,7 +81,9 @@ void referee() {
 			if (rtid == player1TID || rtid == player2TID) {
 				Reply(rtid, fail, strlength(fail)); // you're already in the game. Don't sign up again!
 			} else {
+
 				bwassert(addToBuffer((void *) rtid, &cb), COM2, "COULD NOT ADD %d, BUFFER IS FULL.", rtid);
+				bwprintf(COM2, "Referee: TID <%d> has been added to the game waitlist.\r\n", rtid);
 			}
 
 		} else if (strequal( msg, rock)) {
@@ -123,21 +125,23 @@ void referee() {
 			// as a zombie.
 			if (rtid == player1TID) {
 				player1Choice = 0;
-				bwprintf(COM2, "\r\nTID <%d> quits.\r\n", player1TID);
+				bwprintf(COM2, "\r\nReferee: Referee: TID <%d> quits.\r\n", player1TID);
 				player1TID = -1;
 				Reply(rtid, success, strlength(success));
-				if (player2TID == -1) {
-					bwprintf(COM2, "\r\nNo more players left. Quitting...\r\n");
-					Exit( );
+				if (player2TID != -1) {
+					bwprintf(COM2, "Referee: Informing TID <%d> that his/her/it's partner quit and kick them out.\r\n", player2TID);
+					Reply(player2TID, quit, strlength(quit));
+					player2TID = -1;
 				}
 			} else if (rtid == player2TID) {
 				player2Choice = 0;
-				bwprintf(COM2, "\r\nTID <%d> quits.\r\n", player2TID);
+				bwprintf(COM2, "\r\nReferee: TID <%d> quits.\r\n", player2TID);
 				player2TID = -1;
 				Reply(rtid, success, strlength(success));
-				if (player1TID == -1) {
-					bwprintf(COM2, "\r\nNo more players left. Quitting...\r\n");
-					Exit( );
+				if (player1TID != -1) {
+					bwprintf(COM2, "Referee: Informing TID <%d> that his/her/it's partner quit and kick them out.\r\n", player1TID);
+					Reply(player1TID, quit, strlength(quit));
+					player1TID = -1;
 				}
 			} else {
 				// some waste yute replied quit when he ain't even playin. A high-ego task, but nevertheless, send a fail.
@@ -149,18 +153,25 @@ void referee() {
 				Reply(rtid, fail, strlength(fail));
 		}
 
+
+
 		// see if we need to get a player.
 		if (player1TID == -1 && getFromBuffer((void **) (&player1TID),&cb)) {
 			Reply(player1TID, success, strlength(success));
 			player1Choice = 0;
-			bwprintf(COM2, "TID <%d> enters the game.\r\n", player1TID);
+			bwprintf(COM2, "Referee: TID <%d> enters the game.\r\n", player1TID);
 		}
 		if (player2TID == -1 && getFromBuffer((void **) (&player2TID),&cb)) {
 			Reply(player2TID, success, strlength(success));
 			player2Choice = 0;
-			bwprintf(COM2, "TID <%d> enters the game.\r\n", player2TID);
+			bwprintf(COM2, "Referee: TID <%d> enters the game.\r\n", player2TID);
 		}
 
+		if (player1TID == -1 && player2TID == -1) {
+			bwprintf(COM2, "Referee: No more players in the game. Quitting...\r\n");
+			Exit( );
+
+		}
 
 		// Play a round!
 
@@ -180,21 +191,21 @@ void referee() {
 				bwprintf(COM2, "    TID <%d> chooses %s.\r\n", player1TID, ((player1Choice == 1) ? rock : (player1Choice == 2 ? paper : scissors)));
 				bwprintf(COM2, "    TID <%d> chooses %s.\r\n", player2TID, ((player2Choice == 1) ? rock : (player2Choice == 2 ? paper : scissors)));
 				bwprintf(COM2, "RESULT: TID <%d> wins!.\r\n", (winner == 1 ? player1TID : player2TID));
-				Reply((winner == 1 ? player1TID : player2TID), win, strlength(win));
-				Reply((winner == 1 ? player2TID : player1TID), lose, strlength(lose));
+				Reply(player1TID, winner == 1 ? win : lose, strlength(winner == 1 ? win : lose));
+				Reply(player2TID, winner == 1 ? lose : win, strlength(winner == 1 ? lose : win));
 			}
 			// reset all values.
 			winner = 0;
 			player1Choice = 0;
 			player2Choice = 0;
-			bwprintf(COM2, "Press any key to continue...\r\n");
+			bwprintf(COM2, "Referee: Press any key to continue...\r\n");
 			bwgetc(COM2);
 		}
 	}
 }
 
 void player1() {
-	//int myTID = MyTid();
+	int myTid = MyTid();
 	int refereeTID = 1;
 	char reply[16];
 	int replycap = 16;
@@ -205,21 +216,34 @@ void player1() {
 
 	while(1) {
 		for (i = 0; i < 16; i++) reply[i] = 0;
+		bwprintf(COM2, "TID<%d>: Sending a signup request.\r\n", myTid);
 		bwassert(Send(refereeTID, "signup", strlength("signup"), reply, replycap) >= 0, 
-			COM2, "Player 1 Error sending signup to referee.\r\n");
-		if (strequal(reply, "success")) break;
+			COM2, "TID<%d>: Error sending signup to referee.\r\n", myTid);
+		if (strequal(reply, "success")) {
+			bwprintf(COM2, "TID<%d>: Referee has given me a heads up that it's my turn to play. Getting my first move ready.\r\n", myTid);
+			break;
+		}
 	}
 
 
-	for (game = 0; game < 30; game++) {
+	for (game = 0; game < 20; game++) {
 		for (i = 0; i < 16; i++) reply[i] = 0;
 		int t = getTime();
 		char * c = t % 3 == 0 ? "rock" : (t % 3 == 1 ? "paper" : "scissors"); 
+		bwprintf(COM2, "TID<%d>: Sending the following request to referee: %s.\r\n", myTid, c);
 		bwassert(Send(refereeTID, c, strlength(c), reply, replycap) >= 0, 
-			COM2, "Player 1 Error sending %s to referee on game %d.\r\n", c, t);
+			COM2, "TID<%d>: Error sending %s to referee on game %d.\r\n", c, t);
+		if (strequal(reply, "quit")) {
+			bwprintf(COM2, "TID<%d>: Alas, my partner has quit and I have consequently been kicked out...\r\n", myTid);
+			Exit( );
+		} else {
+			bwprintf(COM2, "TID<%d>: Got the following reply from referee: %s.\r\n", myTid, reply);
+		}
 	}
 
 	for (i = 0; i < 16; i++) reply[i] = 0;
+	bwprintf(COM2, "TID<%d>: calling quits.\r\n", myTid);
+
 	replylen = Send(refereeTID, "quit", strlength("quit"), reply, replycap);
 
 
@@ -228,7 +252,7 @@ void player1() {
 }
 
 void player2() {
-	//int myTID = MyTid();
+	int myTid = MyTid();
 	int refereeTID = 1;
 	char reply[16];
 	int replycap = 16;
@@ -238,21 +262,33 @@ void player2() {
 
 	while(1) {
 		for (i = 0; i < 16; i++) reply[i] = 0;
+		bwprintf(COM2, "TID<%d>: Sending a signup request.\r\n", myTid);
 		bwassert(Send(refereeTID, "signup", strlength("signup"), reply, replycap) >= 0, 
-			COM2, "Player 1 Error sending signup to referee.\r\n");
-		if (strequal(reply, "success")) break;
+			COM2, "TID<%d>: Error sending signup to referee.\r\n", myTid);
+		if (strequal(reply, "success")) {
+			bwprintf(COM2, "TID<%d>: Referee has given me a heads up that it's my turn to play. Getting my first move ready.\r\n", myTid);
+			break;
+		}
 	}
 
 
-	for (game = 0; game < 20; game++) {
+	for (game = 0; game < 5; game++) {
 		for (i = 0; i < 16; i++) reply[i] = 0;
 		int t = getTime();
 		char * c = t % 3 == 0 ? "rock" : (t % 3 == 1 ? "paper" : "scissors"); 
+		bwprintf(COM2, "TID<%d>: Sending the following request to referee: %s.\r\n", myTid, c);
 		bwassert(Send(refereeTID, c, strlength(c), reply, replycap) >= 0, 
-			COM2, "Player 1 Error sending %s to referee on game %d.\r\n", c, t);
+			COM2, "TID<%d>: Error sending %s to referee on game %d.\r\n", c, t);
+		if (strequal(reply, "quit")) {
+			bwprintf(COM2, "TID<%d>: Alas, my partner has quit and I have consequently been kicked out...\r\n", myTid);
+			Exit( );
+		} else {
+			bwprintf(COM2, "TID<%d>: Got the following reply from referee: %s.\r\n", myTid, reply);
+		}
 	}
 
 	for (i = 0; i < 16; i++) reply[i] = 0;
+	bwprintf(COM2, "TID<%d>: calling quits.\r\n", myTid);
 
 	replylen = Send(refereeTID, "quit", strlength("quit"), reply, replycap);
 
@@ -261,6 +297,7 @@ void player2() {
 
 
 void player3() {
+	int myTid = MyTid();
 	int refereeTID = 1;
 	char reply[16];
 	int replycap = 16;
@@ -270,21 +307,33 @@ void player3() {
 
 	while(1) {
 		for (i = 0; i < 16; i++) reply[i] = 0;
+		bwprintf(COM2, "TID<%d>: Sending a signup request.\r\n", myTid);
 		bwassert(Send(refereeTID, "signup", strlength("signup"), reply, replycap) >= 0, 
-			COM2, "Player 1 Error sending signup to referee.\r\n");
-		if (strequal(reply, "success")) break;
+			COM2, "TID<%d>: Error sending signup to referee.\r\n", myTid);
+		if (strequal(reply, "success")) {
+			bwprintf(COM2, "TID<%d>: Referee has given me a heads up that it's my turn to play. Getting my first move ready.\r\n", myTid);
+			break;
+		}
 	}
 
 
-	for (game = 0; game < 20; game++) {
+	for (game = 0; game < 5; game++) {
 		for (i = 0; i < 16; i++) reply[i] = 0;
 		int t = getTime();
 		char * c = t % 3 == 0 ? "rock" : (t % 3 == 1 ? "paper" : "scissors"); 
+		bwprintf(COM2, "TID<%d>: Sending the following request to referee: %s.\r\n", myTid, c);
 		bwassert(Send(refereeTID, c, strlength(c), reply, replycap) >= 0, 
-			COM2, "Player 1 Error sending %s to referee on game %d.\r\n", c, t);
+			COM2, "TID<%d>: Error sending %s to referee on game %d.\r\n", c, t);
+		if (strequal(reply, "quit")) {
+			bwprintf(COM2, "TID<%d>: Alas, my partner has quit and I have consequently been kicked out...\r\n", myTid);
+			Exit( );
+		} else {
+			bwprintf(COM2, "TID<%d>: Got the following reply from referee: %s.\r\n", myTid, reply);
+		}
 	}
 
 	for (i = 0; i < 16; i++) reply[i] = 0;
+	bwprintf(COM2, "TID<%d>: calling quits.\r\n", myTid);
 
 	replylen = Send(refereeTID, "quit", strlength("quit"), reply, replycap);
 
@@ -294,6 +343,7 @@ void player3() {
 
 
 void player4() {
+	int myTid = MyTid();
 	int refereeTID = 1;
 	char reply[16];
 	int replycap = 16;
@@ -303,21 +353,33 @@ void player4() {
 
 	while(1) {
 		for (i = 0; i < 16; i++) reply[i] = 0;
+		bwprintf(COM2, "TID<%d>: Sending a signup request.\r\n", myTid);
 		bwassert(Send(refereeTID, "signup", strlength("signup"), reply, replycap) >= 0, 
-			COM2, "Player 1 Error sending signup to referee.\r\n");
-		if (strequal(reply, "success")) break;
+			COM2, "TID<%d>: Error sending signup to referee.\r\n", myTid);
+		if (strequal(reply, "success")) {
+			bwprintf(COM2, "TID<%d>: Referee has given me a heads up that it's my turn to play. Getting my first move ready.\r\n", myTid);
+			break;
+		}
 	}
 
 
-	for (game = 0; game < 10; game++) {
+	for (game = 0; game < 20; game++) {
 		for (i = 0; i < 16; i++) reply[i] = 0;
 		int t = getTime();
 		char * c = t % 3 == 0 ? "rock" : (t % 3 == 1 ? "paper" : "scissors"); 
+		bwprintf(COM2, "TID<%d>: Sending the following request to referee: %s.\r\n", myTid, c);
 		bwassert(Send(refereeTID, c, strlength(c), reply, replycap) >= 0, 
-			COM2, "Player 1 Error sending %s to referee on game %d.\r\n", c, t);
+			COM2, "TID<%d>: Error sending %s to referee on game %d.\r\n", c, t);
+		if (strequal(reply, "quit")) {
+			bwprintf(COM2, "TID<%d>: Alas, my partner has quit and I have consequently been kicked out...\r\n", myTid);
+			Exit( );
+		} else {
+			bwprintf(COM2, "TID<%d>: Got the following reply from referee: %s.\r\n", myTid, reply);
+		}
 	}
 
 	for (i = 0; i < 16; i++) reply[i] = 0;
+	bwprintf(COM2, "TID<%d>: calling quits.\r\n", myTid);
 
 	replylen = Send(refereeTID, "quit", strlength("quit"), reply, replycap);
 
@@ -328,7 +390,7 @@ void player4() {
 
 
 void God() {
-	Create(5, (void *)referee);
+	Create(6, (void *)referee);
 	Create(6, (void *)player1);
 	Create(6, (void *)player2);
 	Create(6, (void *)player3);

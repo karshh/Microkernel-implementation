@@ -77,7 +77,7 @@ kernel_Reply:
 	mov	r7, r2
 	bhi	.L10
 	add	r3, r1, r1, asl #3
-	add	r3, r1, r3, asl #1
+	add	r3, r1, r3, asl #2
 	add	lr, r2, r3, asl #6
 	ldr	r2, [lr, #32]
 	cmp	r2, #3
@@ -101,7 +101,7 @@ kernel_Reply:
 	ldr	r3, [sp, #0]
 	cmp	r6, r3
 	ble	.L18
-	ldr	r2, [lr, #1208]
+	ldr	r2, [lr, #2360]
 	ldr	r3, [sp, #0]
 	cmp	r2, r3
 	ble	.L18
@@ -109,7 +109,7 @@ kernel_Reply:
 	ldr	ip, [sp, #0]
 	ldr	r0, [r4, #8]
 	ldr	r3, [sp, #0]
-	ldr	r1, [lr, #1204]
+	ldr	r1, [lr, #2356]
 	ldrb	r2, [r0, r3]	@ zero_extendqisi2
 	strb	r2, [r1, ip]
 	ldr	r3, [sp, #0]
@@ -118,12 +118,12 @@ kernel_Reply:
 	ldr	r2, [sp, #0]
 	cmp	r2, r6
 	bge	.L18
-	ldr	r2, [lr, #1208]
+	ldr	r2, [lr, #2360]
 	ldr	r3, [sp, #0]
 	cmp	r3, r2
 	blt	.L26
 .L18:
-	ldr	r3, [lr, #1208]
+	ldr	r3, [lr, #2360]
 	cmp	r6, r3
 	movle	r3, #0
 	strle	r3, [r5, #4]
@@ -144,8 +144,8 @@ kernel_Reply:
 	add	sp, sp, #4
 	ldmfd	sp!, {r4, r5, r6, r7, pc}
 .L30:
-	ldr	r1, [lr, #1208]
-	ldr	r3, [lr, #1204]
+	ldr	r1, [lr, #2360]
+	ldr	r3, [lr, #2356]
 	mvn	r0, #0
 	add	r3, r3, r1
 	mov	r2, #0
@@ -206,7 +206,7 @@ processMail:
 	@ frame_needed = 0, uses_anonymous_args = 0
 	stmfd	sp!, {r4, r5, r6, r7, lr}
 	add	ip, r0, r0, asl #3
-	add	r0, r0, ip, asl #1
+	add	r0, r0, ip, asl #2
 	add	r4, r1, r0, asl #6
 	sub	sp, sp, #4
 	mov	r6, r1
@@ -222,7 +222,7 @@ processMail:
 	ldr	r3, [r5, #0]
 	mov	r1, #0
 	add	r2, r3, r3, asl #3
-	add	r3, r3, r2, asl #1
+	add	r3, r3, r2, asl #2
 	add	r3, r6, r3, asl #6
 	mov	r2, #6
 	str	r2, [r3, #32]
@@ -233,13 +233,13 @@ processMail:
 	cmp	r3, r1
 	bge	.L43
 .L54:
-	ldr	r2, [r4, #1208]
+	ldr	r2, [r4, #2360]
 	ldr	r3, [sp, #0]
 	cmp	r2, r3
 	ble	.L43
 	ldr	r0, [sp, #0]
 	ldr	r3, [sp, #0]
-	ldr	r1, [r4, #1204]
+	ldr	r1, [r4, #2356]
 	add	r3, r3, r5
 	ldrb	r2, [r3, #4]	@ zero_extendqisi2
 	strb	r2, [r1, r0]
@@ -251,10 +251,10 @@ processMail:
 	cmp	r1, r2
 	bgt	.L54
 .L43:
-	ldr	r3, [r4, #1208]
+	ldr	r3, [r4, #2360]
 	cmp	r3, r1
-	ldrlt	r1, [r4, #1208]
-	ldrlt	r3, [r4, #1204]
+	ldrlt	r1, [r4, #2360]
+	ldrlt	r3, [r4, #2356]
 	movlt	r2, #0
 	addlt	r3, r3, r1
 	mvnlt	r1, #0
@@ -262,7 +262,7 @@ processMail:
 	strge	r1, [r4, #4]
 	strlt	r1, [r4, #4]
 	ldr	r1, [r5, #0]
-	ldr	r2, [r4, #1212]
+	ldr	r2, [r4, #2364]
 	mov	r3, #1
 	cmp	r7, #0
 	str	r1, [r2, #0]
@@ -287,11 +287,11 @@ kernel_Receive:
 	stmfd	sp!, {r4, lr}
 	ldr	ip, [r1, #12]
 	ldr	lr, [r1, #4]
-	str	ip, [r0, #1208]
+	str	ip, [r0, #2360]
 	ldr	r4, [r0, #16]
 	ldr	ip, [r1, #8]
-	str	lr, [r0, #1212]
-	str	ip, [r0, #1204]
+	str	lr, [r0, #2364]
+	str	ip, [r0, #2356]
 	mov	r1, r2
 	mov	r0, r4
 	mov	r2, r3
@@ -318,7 +318,7 @@ kernel_Send:
 	bhi	.L59
 	mov	r9, r4, asl #3
 	add	r3, r9, r4
-	add	r3, r4, r3, asl #1
+	add	r3, r4, r3, asl #2
 	add	r3, r2, r3, asl #6
 	ldr	r2, [r3, #32]
 	cmp	r2, #3
@@ -366,12 +366,12 @@ kernel_Send:
 .L69:
 	add	r3, r9, r4
 	ldr	r1, [ip, #16]
-	add	r3, r4, r3, asl #1
+	add	r3, r4, r3, asl #2
 	add	r9, r8, r3, asl #6
 	mov	r2, #0
-	str	r2, [r5, #1208]
-	str	r1, [r5, #1204]
-	str	r7, [r5, #1208]
+	str	r2, [r5, #2360]
+	str	r1, [r5, #2356]
+	str	r7, [r5, #2360]
 	mov	r0, r9
 	mov	r1, r6
 	bl	putMail(PLT)

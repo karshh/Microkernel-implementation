@@ -31,8 +31,8 @@ initInbox:
 	@ frame_needed = 0, uses_anonymous_args = 0
 	@ link register save eliminated.
 	mov	r3, #0
-	str	r3, [r0, #1152]
-	str	r3, [r0, #1156]
+	str	r3, [r0, #2304]
+	str	r3, [r0, #2308]
 	mov	r0, #1
 	@ lr needed for prologue
 	bx	lr
@@ -45,28 +45,28 @@ checkMail:
 	@ frame_needed = 0, uses_anonymous_args = 0
 	stmfd	sp!, {r4, r5, lr}
 	add	r0, r0, #44
-	ldr	r3, [r0, #1156]
+	ldr	r3, [r0, #2308]
 	mov	r4, r1
 	add	r3, r3, #1
-	cmp	r3, #7
-	ldrle	r3, [r0, #1156]
-	ldr	r2, [r0, #1152]
+	cmp	r3, #15
+	ldrle	r3, [r0, #2308]
+	ldr	r2, [r0, #2304]
 	addle	r5, r3, #1
-	ldr	r3, [r0, #1156]
+	ldr	r3, [r0, #2308]
 	movgt	r5, #0
 	cmp	r2, r3
 	moveq	r0, #0
 	ldmeqfd	sp!, {r4, r5, pc}
-	ldr	r3, [r0, #1156]
+	ldr	r3, [r0, #2308]
 	add	r3, r3, r3, asl #3
 	add	r3, r0, r3, asl #4
 	ldr	r2, [r3, #140]
 	str	r2, [r1, #140]
-	ldr	r3, [r0, #1156]
+	ldr	r3, [r0, #2308]
 	add	r3, r3, r3, asl #3
 	ldr	r2, [r0, r3, asl #4]
 	str	r2, [r1, #0]
-	ldr	r3, [r0, #1156]
+	ldr	r3, [r0, #2308]
 	add	r3, r3, r3, asl #3
 	add	r3, r0, r3, asl #4
 	ldr	lr, [r3, #136]
@@ -75,7 +75,7 @@ checkMail:
 	ble	.L17
 	mov	ip, #0
 .L19:
-	ldr	r3, [r0, #1156]
+	ldr	r3, [r0, #2308]
 	add	r1, r4, ip
 	add	r3, r3, r3, asl #3
 	add	r3, r0, r3, asl #4
@@ -86,7 +86,7 @@ checkMail:
 	strb	r2, [r1, #4]
 	bgt	.L19
 .L17:
-	str	r5, [r0, #1156]
+	str	r5, [r0, #2308]
 	mov	r0, #1
 	ldmfd	sp!, {r4, r5, pc}
 	.size	checkMail, .-checkMail
@@ -97,28 +97,28 @@ putMail:
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
 	stmfd	sp!, {r4, r5, lr}
-	ldr	r3, [r0, #1196]
+	ldr	r3, [r0, #2348]
 	add	lr, r0, #44
 	add	r3, r3, #1
-	cmp	r3, #7
-	ldrle	r3, [r0, #1196]
+	cmp	r3, #15
+	ldrle	r3, [r0, #2348]
 	movgt	r5, #0
 	addle	r5, r3, #1
-	ldr	r3, [lr, #1156]
+	ldr	r3, [lr, #2308]
 	mov	r4, r1
 	cmp	r5, r3
 	moveq	r0, #0
 	ldmeqfd	sp!, {r4, r5, pc}
-	ldr	r3, [lr, #1152]
+	ldr	r3, [lr, #2304]
 	ldr	r1, [r1, #140]
 	add	r3, r3, r3, asl #3
 	add	r3, lr, r3, asl #4
 	str	r1, [r3, #140]
-	ldr	r2, [lr, #1152]
+	ldr	r2, [lr, #2304]
 	ldr	r1, [r4, #0]
 	add	r2, r2, r2, asl #3
 	str	r1, [lr, r2, asl #4]
-	ldr	r3, [lr, #1152]
+	ldr	r3, [lr, #2304]
 	ldr	r2, [r4, #136]
 	add	r3, r3, r3, asl #3
 	add	r3, lr, r3, asl #4
@@ -128,7 +128,7 @@ putMail:
 	ble	.L29
 	mov	ip, #0
 .L31:
-	ldr	r3, [lr, #1152]
+	ldr	r3, [lr, #2304]
 	add	r1, r4, ip
 	add	r3, r3, r3, asl #3
 	add	r3, lr, r3, asl #4
@@ -140,7 +140,7 @@ putMail:
 	blt	.L31
 .L29:
 	mov	r0, #1
-	str	r5, [lr, #1152]
+	str	r5, [lr, #2304]
 	ldmfd	sp!, {r4, r5, pc}
 	.size	putMail, .-putMail
 	.align	2
@@ -170,9 +170,9 @@ initTD:
 	cmp	r0, r5
 	mov	r0, r5
 	movne	r0, #1
-	strne	r5, [r4, #1212]
-	strne	r5, [r4, #1204]
-	strne	r5, [r4, #1208]
+	strne	r5, [r4, #2364]
+	strne	r5, [r4, #2356]
+	strne	r5, [r4, #2360]
 	ldmfd	sp!, {r4, r5, pc}
 	.size	initTD, .-initTD
 	.ident	"GCC: (GNU) 4.0.2"

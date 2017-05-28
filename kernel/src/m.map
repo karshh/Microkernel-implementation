@@ -34,7 +34,7 @@ bss             0x0000000000000000        0x0
  *(.bss)
                 0x0000000000000000                _BssEnd = .
 
-text            0x0000000000000000     0x3ff7
+text            0x0000000000000000     0x466e
  *(.text)
  .text          0x0000000000000000      0x66c bwio.o
                 0x0000000000000170                bwputr
@@ -122,72 +122,72 @@ text            0x0000000000000000     0x3ff7
                 0x0000000000001f8c                processRequest
  .text          0x0000000000002054       0x80 interruptHandler.o
                 0x0000000000002054                activate
- .text          0x00000000000020d4     0x11f8 k2.o
-                0x0000000000002fc0                player4
-                0x0000000000003210                God
-                0x0000000000002d70                player3
+ .text          0x00000000000020d4     0x161c k2.o
+                0x000000000000331c                player4
+                0x0000000000003634                God
+                0x0000000000003004                player3
                 0x00000000000020d4                strlength
-                0x00000000000028d0                player1
+                0x00000000000029d4                player1
                 0x0000000000002100                strequal
-                0x000000000000328c                main
-                0x0000000000002b20                player2
+                0x00000000000036b0                main
+                0x0000000000002cec                player2
                 0x0000000000002104                referee
- .text          0x00000000000032cc      0x110 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_udivsi3.o)
-                0x00000000000032cc                __udivsi3
-                0x00000000000033c4                __aeabi_uidivmod
- .text          0x00000000000033dc       0xcc /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_umodsi3.o)
-                0x00000000000033dc                __umodsi3
- .text          0x00000000000034a8        0x4 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_dvmd_tls.o)
-                0x00000000000034a8                __aeabi_ldiv0
-                0x00000000000034a8                __div0
-                0x00000000000034a8                __aeabi_idiv0
- .text          0x00000000000034ac      0x400 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_addsubdf3.o)
-                0x0000000000003840                __floatdidf
-                0x00000000000037c0                __floatsidf
-                0x0000000000003798                __aeabi_ui2d
-                0x00000000000034ac                __aeabi_drsub
-                0x00000000000037ec                __extendsfdf2
-                0x00000000000034b8                __adddf3
-                0x0000000000003798                __floatunsidf
-                0x00000000000034b8                __aeabi_dadd
-                0x000000000000382c                __aeabi_ul2d
-                0x00000000000034b4                __aeabi_dsub
-                0x000000000000382c                __floatundidf
-                0x00000000000037c0                __aeabi_i2d
-                0x0000000000003840                __aeabi_l2d
-                0x00000000000037ec                __aeabi_f2d
-                0x00000000000034b4                __subdf3
- .text          0x00000000000038ac      0x470 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_muldivdf3.o)
-                0x0000000000003b18                __aeabi_ddiv
-                0x00000000000038ac                __aeabi_dmul
-                0x0000000000003b18                __divdf3
-                0x00000000000038ac                __muldf3
- .text          0x0000000000003d1c       0x5c /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_fixdfsi.o)
-                0x0000000000003d1c                __fixdfsi
-                0x0000000000003d1c                __aeabi_d2iz
+ .text          0x00000000000036f0      0x110 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_udivsi3.o)
+                0x00000000000036f0                __udivsi3
+                0x00000000000037e8                __aeabi_uidivmod
+ .text          0x0000000000003800       0xcc /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_umodsi3.o)
+                0x0000000000003800                __umodsi3
+ .text          0x00000000000038cc        0x4 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_dvmd_tls.o)
+                0x00000000000038cc                __aeabi_ldiv0
+                0x00000000000038cc                __div0
+                0x00000000000038cc                __aeabi_idiv0
+ .text          0x00000000000038d0      0x400 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_addsubdf3.o)
+                0x0000000000003c64                __floatdidf
+                0x0000000000003be4                __floatsidf
+                0x0000000000003bbc                __aeabi_ui2d
+                0x00000000000038d0                __aeabi_drsub
+                0x0000000000003c10                __extendsfdf2
+                0x00000000000038dc                __adddf3
+                0x0000000000003bbc                __floatunsidf
+                0x00000000000038dc                __aeabi_dadd
+                0x0000000000003c50                __aeabi_ul2d
+                0x00000000000038d8                __aeabi_dsub
+                0x0000000000003c50                __floatundidf
+                0x0000000000003be4                __aeabi_i2d
+                0x0000000000003c64                __aeabi_l2d
+                0x0000000000003c10                __aeabi_f2d
+                0x00000000000038d8                __subdf3
+ .text          0x0000000000003cd0      0x470 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_muldivdf3.o)
+                0x0000000000003f3c                __aeabi_ddiv
+                0x0000000000003cd0                __aeabi_dmul
+                0x0000000000003f3c                __divdf3
+                0x0000000000003cd0                __muldf3
+ .text          0x0000000000004140       0x5c /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_fixdfsi.o)
+                0x0000000000004140                __fixdfsi
+                0x0000000000004140                __aeabi_d2iz
  *(.got)
- .got           0x0000000000003d78       0x1c bwio.o
+ .got           0x000000000000419c       0x1c bwio.o
  *(.got.plt)
- .got.plt       0x0000000000003d94        0xc bwio.o
-                0x0000000000003d94                _GLOBAL_OFFSET_TABLE_
+ .got.plt       0x00000000000041b8        0xc bwio.o
+                0x00000000000041b8                _GLOBAL_OFFSET_TABLE_
  *(.rodata)
  *(.glue_7)
  *(.glue_7t)
  *(.rodata.str1.4)
  .rodata.str1.4
-                0x0000000000003da0       0x16 bwio.o
+                0x00000000000041c4       0x16 bwio.o
                                          0x18 (size before relaxing)
  .rodata.str1.4
-                0x0000000000003db6        0x0 dictionary.o
+                0x00000000000041da        0x0 dictionary.o
                                           0x4 (size before relaxing)
- *fill*         0x0000000000003db6        0x2 00
+ *fill*         0x00000000000041da        0x2 00
  .rodata.str1.4
-                0x0000000000003db8       0x3f kernelHandler.o
+                0x00000000000041dc       0x3f kernelHandler.o
                                          0x40 (size before relaxing)
- *fill*         0x0000000000003df7        0x1 00
+ *fill*         0x000000000000421b        0x1 00
  .rodata.str1.4
-                0x0000000000003df8      0x1ff k2.o
-                                        0x200 (size before relaxing)
+                0x000000000000421c      0x452 k2.o
+                                        0x454 (size before relaxing)
 
 .rel.dyn
 LOAD bwio.o
