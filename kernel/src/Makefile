@@ -19,7 +19,7 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 ARFLAGS = rcs
 LDFLAGS = -init main -Map m.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
-all: clean bwio.o debugtime.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o test.o k1.o test.elf k1.elf install
+all: clean bwio.o debugtime.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o test.o test.elf install
 
 # new file preable
 #.s: .c
@@ -122,15 +122,11 @@ test.elf:test.o
 k1.elf: k1.o
 	$(LD) $(LDFLAGS) -o $@ bwio.o debugtime.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o k1.o -lgcc
 
-
-
 k2.elf: k2.o
 	$(LD) $(LDFLAGS) -o $@ bwio.o debugtime.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o k2.o -lgcc
 
-install: test.elf k1.elf k2.elf
+install: test.elf 
 	cp test.elf /u/cs452/tftp/ARM/`whoami`/
-	cp k1.elf /u/cs452/tftp/ARM/`whoami`/
-	cp k2.elf /u/cs452/tftp/ARM/`whoami`/
 
 clean:
 	-rm -f *.s *.a *.o *.map *.elf
