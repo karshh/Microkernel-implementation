@@ -2,6 +2,7 @@
 #include "kernelHandler.h"
 #include "bwio.h"
 #include "td.h"
+#include "debugtime.h"
 #include "kernelMacros.h"
 
 
@@ -45,7 +46,7 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 	default:
 		break;
 	}
-	return 0;
+	return 1;
 
 
 }
@@ -183,38 +184,18 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 
 	// Cases where we return a -3 to the user task:
 	// 		1. User is trying to send a message to itself.
-	//		2. Message is too long [> MESSAGE_CAPACITY]
+	//		2. Message is too long [> MESSAGE_CAPACITY] (Deprecated)
 	//	Send this error in any situation where the transaction can't be completed.
-	if (tid == t->TID || msglen > MESSAGE_CAPACITY || replylen > MESSAGE_CAPACITY) {
+	if (tid == t->TID) {
 		t->reqVal = -3;
 		return 1;
 	}
-
-    // bwprintf(COM2, "Kernel: Case 11.\r\n");
-	//empty out all garbage in the message pointer.
-	m->senderTID = 0;
-	volatile int i = 0;
-    // bwprintf(COM2, "Kernel: Case 111.\r\n");
-	for (i = 0; i < MESSAGE_CAPACITY; i++) m->msg[i] = 0;
-    // bwprintf(COM2, "Kernel: Case 112.\r\n");
-	m->msglen = 0;
-	m->receiverTID = 0;
 	
 	//put request information in message.
 	m->senderTID = t->TID;
-	m->receiverTID = tid;
 	m->msglen = msglen;
-	for (i = 0; i < msglen; i++) {
-		m->msg[i] = ((char *) r->arg2)[i];
-	}
-	
+	m->msg = (char *) r->arg2;
 
-    // bwprintf(COM2, "Kernel: Case 14.\r\n");
-	// empty out all garbage in the sender's composebox.
-	t->compose = 0;
-	t->composelen = 0;
-
-	
 	//point task's compose to reply buffer.
 	t->compose = (char *) r->arg4;
 	t->composelen = replylen;
@@ -227,7 +208,6 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 		t->reqVal = -3;
 		return 1;
 	}
-
 
     ////bwprintf(COM2, "Kernel: Case 13.\r\n");
 	if ((ks->TDList[tid]).state == SEND_BLOCKED) {

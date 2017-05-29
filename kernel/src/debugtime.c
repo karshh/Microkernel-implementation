@@ -15,7 +15,7 @@ void startTime() {
 }
 
 int getTime() {
-	return (int) (((int) (STARTER_TIME - *VAL_ADDR)) * 1.96850393701); 	
+	return (((int) (STARTER_TIME - *VAL_ADDR)) * 1.96850393701) / 1; 	
 }
 
 

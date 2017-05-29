@@ -5,13 +5,9 @@
 
 
 int messageInit(message * m) {
-	int i = 0;
-	for(; i < MESSAGE_CAPACITY; i++) {
-		m->msg[i] = 0;
-	}
+	m->msg = 0;
 	m->msglen = 0;
 	m->senderTID = 0;
-	m->receiverTID = 0;
 	return 1;
 
 }
@@ -29,14 +25,9 @@ int checkMail(TD * td, message * m) {
     int n = i->mailSeen + 1 >= MAIL_CAPACITY ? 0 : i->mailSeen + 1;
     if (i->mailIncr == i->mailSeen) return 0;
     
-    // stuck on a memcpy linker error.Just manually copying over to bypass it.
-    m->receiverTID = (i->mail[i->mailSeen]).receiverTID;
     m->senderTID = (i->mail[i->mailSeen]).senderTID;
     m->msglen = (i->mail[i->mailSeen]).msglen;
-    int i_ = 0;
-    for (i_ = 0; i_ < m->msglen; i_++) {
-		m->msg[i_] = (i->mail[i->mailSeen]).msg[i_];
-    }
+    m->msg = (i->mail[i->mailSeen]).msg;
 
     i->mailSeen = n;
     return 1;
@@ -49,13 +40,9 @@ int putMail(TD * td, message * m) {
     if (n == i->mailSeen) return 0;
     
     // stuck on a memcpy linker error.Just manually copying over to bypass it.
-    (i->mail[i->mailIncr]).receiverTID = m->receiverTID;
     (i->mail[i->mailIncr]).senderTID = m->senderTID;
     (i->mail[i->mailIncr]).msglen = m->msglen;
-    int i_ = 0;
-    for (i_ = 0; i_ < m->msglen; i_++) {
-         (i->mail[i->mailIncr]).msg[i_] = m->msg[i_];
-    }
+    (i->mail[i->mailIncr]).msg = m->msg;
 
     i->mailIncr = n;
     return 1;
