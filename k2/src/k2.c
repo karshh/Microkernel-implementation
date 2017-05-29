@@ -39,6 +39,7 @@ int strequal(char * c1, char * c2) {
 void referee() {
 	bwprintf(COM2, "\r\n\r\n\r\n\r\nROCK, PAPER & SCISSORS\r\nBy: Paily & Karsh\r\n\r\n");
 	while(RegisterAs("REFEREE")){Pass();}
+
 	circularBuffer cb;
 	circularBufferInit(&cb);
 	int player1TID = -1;
@@ -208,6 +209,8 @@ void referee() {
 
 void player1() {
 	int myTid = MyTid();
+	
+	//int myTID = MyTid();
 	int refereeTID = -1;
 	while( refereeTID <0){
 		Pass();
@@ -259,6 +262,7 @@ void player1() {
 
 void player2() {
 	int myTid = MyTid();
+	//int myTID = MyTid();
 	int refereeTID = -1;
 	while( refereeTID <0){
 		Pass();
@@ -282,7 +286,7 @@ void player2() {
 	}
 
 
-	for (game = 0; game < 10; game++) {
+	for (game = 0; game < 5; game++) {
 		for (i = 0; i < 16; i++) reply[i] = 0;
 		int t = getTime();
 		char * c = t % 3 == 0 ? "rock" : (t % 3 == 1 ? "paper" : "scissors"); 
@@ -381,7 +385,7 @@ void player4() {
 	}
 
 
-	for (game = 0; game < 2; game++) {
+	for (game = 0; game < 20; game++) {
 		for (i = 0; i < 16; i++) reply[i] = 0;
 		int t = getTime();
 		char * c = t % 3 == 0 ? "rock" : (t % 3 == 1 ? "paper" : "scissors"); 
