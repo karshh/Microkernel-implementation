@@ -16,7 +16,7 @@ int getNextTID(kernelHandler  * ks, int * TID){
 int initKernel(kernelHandler * ks, int priority, int code){
 	//turn off fifos
 	bwsetfifo(COM2, OFF);
-
+	initHandlers();
 	ks->activeTask = 0;
 	int TID = 0;
 	/******************************************************
@@ -82,16 +82,23 @@ void kernelRun(int priority, int code) {
 		return;
 	}
 	
-	request r;
+	request * r;
+	request irq;
+	
 	message m;
 	volatile TD * task =0;
 	while(kernel_queuePop(&ks, &task)) {
+		irq.reqType = INTERRUPT;
 		task->state = ACTIVE;
 		//sets active task
 		ks.activeTask = task;
 		TD *td = (TD *)task;
-		r =* activate(task->reqVal, td);
-		processRequest(&ks, td, &r, &m);
+		//r =* activate(task->reqVal, (TD *) task);
+		r = activate(ks.activeTask);
+		if(!r){ r = &irq;
+			task->interupted = 1;
+		}
+		processRequest(&ks, td, r, &m);
 		if(task->state == ACTIVE)kernel_queuePush(&ks, task);
 		//we are done with task so setting active task to null
 		ks.activeTask = 0;

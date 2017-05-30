@@ -15,7 +15,8 @@ typedef enum requestType {
 	RECEIVE,
 	REPLY,
 	WHOIS,
-	REGISTER
+	REGISTER,
+	INTERRUPT
 } requestType;
 
 typedef struct request{
