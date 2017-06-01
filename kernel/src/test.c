@@ -232,11 +232,6 @@ Pass();
 }
 
 
-void userinfinitiPass(){
-	bwprintf(COM2, "infini task running \r\n");
-	while(1) Pass();
-}
-
 void userTask01(){
 	int myTid = MyTid();
 	int childTID =-1;
@@ -352,6 +347,38 @@ void testTaskGod4() {
     Exit( );
 }
 
+void userinfinitiPass(){
+	//bwprintf(COM2, "\033[2J\033[H infini task running \r\n");
+	int i=0;
+	//while(1){
+	for(i=0; i<10000; i++){
+		bwprintf(COM2, "%d\r\n" ,i);
+	}
+	Exit();
+}
+
+
+void taskTestInt(){
+	//bwprintf(COM2, "\033[2J\033[H  \r\n");
+	bwprintf(COM2,"creating infiniPass \n\r");
+    Create(31, (void*) userinfinitiPass);
+	volatile int c;
+	asm volatile(
+	"mrs %[c], cpsr"
+	:[c] "=r" (c));
+	bwprintf(COM2,"CPSR :%x\n\r",c);
+	int a = 100;
+	bwprintf(COM2,"a :%d\n\r",a);
+	MyParentTid(); //sabotaging code to add interupt to check if things worked.
+	bwprintf(COM2,"a :%d\n\r",a);
+	int i = 0;
+	for(i=0; i < 2; i++){
+		bwprintf(COM2,"taskTest try:%d\n\r",i);
+		int j = AwaitEvent(TIMER_TICK);
+		bwprintf(COM2,"returned from await:%d\n\r",j);
+	}
+	Exit();
+}
 int main(void) {
     // turning on data and instruction cache.
      /*   
@@ -361,6 +388,6 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
 */
-	kernelRun(5,(int) userTask01);
+	kernelRun(5,(int) taskTestInt);
 	return 0;
 }

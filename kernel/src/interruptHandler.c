@@ -8,7 +8,8 @@ void initHandlers(){
 	//Set location on swi entry point
 	int ptr =(int) swiHandler+ REDBOOT_LOAD_OFFSET;
 	* ((int *) (0x28)) = ((int) ptr) ;
-
+	ptr =(int) hwiHandler+ REDBOOT_LOAD_OFFSET;
+	* ((int *) (0x38)) = ((int) ptr) ;
 
 }
 
@@ -61,7 +62,9 @@ void initHandlers(){
 	asm volatile(
 	"hwiHandler:\n" //in IRQ 11010010 mode
         "       stmfd   sp!, {r0-r3}\n" //save r0-r3 on SP_IRQ
-        "       mov     r0, lr\n" //save IRQ_LR into r0
+ 	//       "       mov     r0, lr\n" //save IRQ_LR into r0
+        "       sub     r0, lr, #2\n" // subtracting lr by 2 to account for the two instructions that are botched due to HWI
+
         "       mrs     r1, spsr\n" //save IRQ_SPSR into r1
         "       msr     cpsr, #0xd3\n" //switch to supervisor mode
         "       mov     lr, r0\n" //copy r0 to SVC_LR

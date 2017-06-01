@@ -1,7 +1,7 @@
 #
 # Makefile for busy-wait IO library
 #
-XCC     = gcc  
+XCC     = gcc # -O2
 AS	= as
 AR	= ar
 LD	= ld

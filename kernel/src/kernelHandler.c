@@ -5,6 +5,7 @@
 #include "request.h"
 #include "bwio.h"
 #include "message.h"
+#include "ts7200.h"
 
 int getNextTID(kernelHandler  * ks, int * TID){
 	volatile TD * task = 0;
@@ -12,8 +13,21 @@ int getNextTID(kernelHandler  * ks, int * TID){
 	*TID = task->TID;
 	return 0;
 }
+void resetIRQ(){
+	volatile int *line;
 
+	line = (int *)( VIC1_BASE + VIC_INT_ENCLEAR);
+	*line = 0xffffffff;
+	line = (int *)( VIC2_BASE + VIC_INT_ENCLEAR);
+	*line = 0xffffffff;
+	line = (int *)( VIC1_BASE + VIC_SOFT_INTCLEAR);
+	*line = 0xffffffff;
+	line = (int *)( VIC1_BASE + VIC_SOFT_INTCLEAR);
+	*line = 0xffffffff;
+}
 int initKernel(kernelHandler * ks, int priority, int code){
+	//reset previous IRQ state, in case if last run state is bad
+	resetIRQ();
 	//turn off fifos
 	bwsetfifo(COM2, OFF);
 	initHandlers();
@@ -33,7 +47,14 @@ int initKernel(kernelHandler * ks, int priority, int code){
 
 	ks->freeHead = 0;
 	ks->freeTail = 0;
+
+	//servers
 	ks->nameServer = -1;
+	ks->clockServer = -1;
+	
+	//avait event tasks
+	ks->await_TIMER = -1;
+
 	int memOffset = (int) &(ks->taskSpace[MAX_STACKSIZE-1]);
 	memOffset = memOffset - (memOffset%16);
 	ks->memOffset = memOffset;
@@ -83,27 +104,30 @@ void kernelRun(int priority, int code) {
 	}
 	
 	request * r;
-	request irq;
 	
 	message m;
 	volatile TD * task =0;
+
+
 	while(kernel_queuePop(&ks, &task)) {
-		irq.reqType = INTERRUPT;
 		task->state = ACTIVE;
 		//sets active task
 		ks.activeTask = task;
 		TD *td = (TD *)task;
 		//r =* activate(task->reqVal, (TD *) task);
 		r = activate(ks.activeTask);
-		if(!r){ r = &irq;
-			task->interupted = 1;
+		if(!processRequest(&ks, td, r, &m)){
+			bwprintf(COM2,"PROCESS request failed!\n\r");
+			 break;
 		}
-		processRequest(&ks, td, r, &m);
+		bwprintf(COM2,"after process request\n\r");
 		if(task->state == ACTIVE)kernel_queuePush(&ks, task);
+		bwprintf(COM2,"after push to quue\n\r");
 		//we are done with task so setting active task to null
 		ks.activeTask = 0;
 	}
 
+	resetIRQ(); //clean IRQ for next person
 
 }
 
@@ -115,7 +139,6 @@ TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code)
 	else td->parent = &(ks->TDList[parentTID]);
 
 	td->state = READY;
-	td->spsr = 0xd0;
 	td->reqVal = -1;
 	volatile int mem = (volatile int) (TID * (MAX_STACKSIZE/MAX_TID));//giving stack space of 1kb
 	td->sp  = (int *) (ks->memOffset -(int) mem);

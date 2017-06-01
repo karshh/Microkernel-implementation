@@ -9,6 +9,7 @@ typedef enum requestType {
 	MYPARENTID,
 	CREATE,
 	CREATENAMESERVER,
+	CREATECLOCKSERVER,
 	PASS,
 	EXIT,
 	SEND,
@@ -16,6 +17,7 @@ typedef enum requestType {
 	REPLY,
 	WHOIS,
 	REGISTER,
+	AWAITEVENT,
 	INTERRUPT
 } requestType;
 

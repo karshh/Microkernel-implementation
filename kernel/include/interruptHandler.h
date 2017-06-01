@@ -13,6 +13,7 @@ request * swiHandler(int reqVal, TD * td);
 request *  activate(volatile TD * td);
 //request * swiHandler(volatile TD * td, request * irq_r);
 request * swiHandler(volatile TD * td);
+request * hwiHandler(volatile TD * td);
 void initHandlers();
 
 /*

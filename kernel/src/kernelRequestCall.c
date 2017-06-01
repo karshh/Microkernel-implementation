@@ -3,9 +3,19 @@
 #include "bwio.h"
 #include "td.h"
 #include "kernelMacros.h"
+#include "ts7200.h"
 
 
 int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
+
+	request irq;
+	irq.reqType = INTERRUPT;
+
+	if(!r){ 	
+		r = &irq;
+		t->interupted = 1;
+	}
+
 	switch(r->reqType){
 	case(MYTID):
 		return kernel_MyTid(t);
@@ -23,7 +33,6 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 		return kernel_Pass(t);
 		break;
 	case(EXIT):
-	
 		if( t->TID == ks->nameServer) ks->nameServer = -1;
 		return kernel_Exit(t);
 		break;
@@ -41,6 +50,15 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 		break;
 	case (REPLY):
 		return kernel_Reply(t, r, ks, m);
+		break;
+	case(INTERRUPT):
+		return processInterupt(ks);
+		break;
+	case(CREATECLOCKSERVER):
+		return kernel_CreateClockServer(t,r,ks);
+		break;
+	case(AWAITEVENT):
+		return kernel_AwaitEvent(t,r,ks);
 		break;
 	default:
 		break;
@@ -111,6 +129,41 @@ int kernel_CreateNameServer(TD * t, request * r, kernelHandler * ks){
 
 
 }
+
+int kernel_CreateClockServer(TD * t, request * r, kernelHandler * ks){
+	int priority =(int) r->arg1;
+	if (priority <0 || priority >31){
+		 //change to 
+		t->reqVal = -1;
+	}else if(ks->clockServer != -1 && ks->TDList[ks->clockServer].state != ZOMBIE){
+		t->reqVal = -3; //-3 if clock servre exists
+		//check if there exists a living clockserver;
+	}else{
+	
+		int TID  =0;
+		//int err = getNextTID(ks, &(t->reqVal));
+		int err = getNextTID(ks, &(TID));
+		//got a live child
+		if (err) 
+		{ t->reqVal  = -2;}
+		else{
+		t->reqVal= TID;
+		int code =(int) r->arg2;
+			
+		int PTID = t->TID;
+		TD * childTD = setTask(ks,TID, PTID,priority,code);   //if TID == , it is created by kernel
+	//	kernel_queuePush(ks, childTD);
+		 kernel_queuePush(ks, childTD);
+		//set name sever;
+		ks->nameServer = TID;
+		}
+	}
+	return 1;
+
+
+}
+
+
 
 
 int kernel_Create(TD * t, request * r, kernelHandler * ks) {
@@ -337,5 +390,184 @@ int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue
 	
 }
 
+int processInterupt(kernelHandler *ks){
+	bwprintf(COM2,"Processing request \n\r");
+	volatile unsigned int vic_status = 0;
+	int vic = 1;
+
+	volatile int * line = (int *)( VIC1_BASE + VIC_IRQ_STATUS);
+	//first check vic1 for interupts
+	if(*line) vic_status = *line;
+	//if zero check vic2
+	else{
+		line = (int *)( VIC2_BASE + VIC_IRQ_STATUS);
+		vic_status = *line;
+		vic = 2;
+	}
+	unsigned int c;     // c will be the number of zero bits on the right,
+
+	//find priority of highest asserted interupt;
+	if(vic_status == 0) {
+		bwprintf(COM2,"phantom interupt\n\r");
+		return 0;//if bit string is zero then no flags are checked
+	}
+	bwprintf(COM2,"vic:%d status%x \n\r",vic,vic_status);
+	//bit hack to count trailing zeroes. # of trailing zeroes are the first free priority queue
+	//33% faster than 3 * lg(N) + 4 for N bit words
+	// NOTE: if 0 == v, then c = 31.dd
+	unsigned v = vic_status;
+	if (v & 0x1) 
+	{
+	  // special case for odd v (assumed to happen half of the time)
+	  c = 0;
+	}
+	else
+	{
+	  c = 1;
+	  if ((v & 0xffff) == 0) 
+	  {  
+	    v >>= 16;  
+	    c += 16;
+	  }
+	  if ((v & 0xff) == 0) 
+	  {  
+	    v >>= 8;  
+	    c += 8;
+	  }
+	  if ((v & 0xf) == 0) 
+	  {  
+	    v >>= 4;
+	    c += 4;
+	  }
+	  if ((v & 0x3) == 0) 
+	  {  
+	    v >>= 2;
+	    c += 2;
+	  }
+	  c -= v & 0x1;
+	}
+	
+	bwprintf(COM2,"c:%d\n\r",c);
+	//c is the bit that 
+	switch(vic){
+		case(1)://vic1
+			switch(c){
+				case(4): //timer3
+					bwprintf(COM2,"TIMER 1!\n\r");
+					int * TIMER1CTL = (int *)( TIMER1_BASE+CRTL_OFFSET);
+					int * TIMER1CLR = (int *)( TIMER1_BASE+CLR_OFFSET);
+
+					int * line = (int *)( VIC2_BASE + VIC_INT_ENCLEAR);
+					*line ^= (-1 ^ *line) & VIC2_TIMER3_MASK; //disable TIMER 3 interupt
+
+					*TIMER1CTL = *TIMER1CTL & ~ENABLE_MASK; //disable timer
+					*TIMER1CLR = 1; //clear interupt on  timer
+
+					//for now we turn off softare interupt. in the future we must set clear register for timer 2
+					if(ks->await_TIMER > -1){
+						//if there is a waiting task
+						TD * waitingTask =&ks->TDList[ks->await_TIMER];
+						ks->await_TIMER = -1; //no one is waiting on this task anymore
+						waitingTask->state = READY;
+						waitingTask->reqVal = 0; //it finished timer. no "volatile" data to push for this event type.
+						//need to push this task back into it's ready queue
+						kernel_queuePush(ks, waitingTask);
+
+					}
+					return 1;
+					break;
+				default: 
+					break;
+			}
 
 
+			break;
+		case(2)://vic2
+			switch(c){
+				case(19): //timer3
+					bwprintf(COM2,"TIMER 3!\n\r");
+					int * TIMER1CTL = (int *)( TIMER1_BASE+CRTL_OFFSET);
+					int * TIMER1CLR = (int *)( TIMER1_BASE+CLR_OFFSET);
+
+					int * line = (int *)( VIC2_BASE + VIC_INT_ENCLEAR);
+					*line ^= (-1 ^ *line) & VIC2_TIMER3_MASK; //disable TIMER 3 interupt
+
+					*TIMER1CTL = *TIMER1CTL & ~ENABLE_MASK; //disable timer
+					*TIMER1CLR = 1; //clear interupt on  timer
+
+					//for now we turn off softare interupt. in the future we must set clear register for timer 2
+					if(ks->await_TIMER > -1){
+						//if there is a waiting task
+						TD * waitingTask =&ks->TDList[ks->await_TIMER];
+						ks->await_TIMER = -1; //no one is waiting on this task anymore
+						waitingTask->state = READY;
+						waitingTask->reqVal = 0; //it finished timer. no "volatile" data to push for this event type.
+						//need to push this task back into it's ready queue
+						kernel_queuePush(ks, waitingTask);
+
+					}
+					return 0;
+					break;
+				default: 
+					break;
+			}
+
+			break;
+		default:
+			break;
+	}
+
+	//if you got here you fucked up
+	return 0;
+
+	
+}
+
+int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
+	bwprintf(COM2,"await event");
+	int eventid = (int) r->arg1;
+	//first check if await event is correct (modify when needed)
+	switch(eventid){
+		case TIMER_TICK:
+	bwprintf(COM2,"await event clock timer\n\r ");
+			//put state into event blocked 
+			t->state = EVENT_BLOCKED;
+			ks->await_TIMER = t->TID; //might need to use pointer if allowing multiuple tasks on single event
+			//enable timer interupt flag
+			int * line = (int *)( VIC1_BASE + VIC_INT_ENABLE);
+			*line ^= (-1 ^ *line) & VIC1_TIMER1_MASK; //enable TIMER 3 interupt
+			//setup and start timer (lets use timer 3) 
+			//timer tick is once every 10ms.
+			
+			int * TIMER1LD = (int *)( TIMER1_BASE+LDR_OFFSET);
+			int * TIMER1VAL = (int *)( TIMER1_BASE+VAL_OFFSET);
+			int * TIMER1CTL = (int *)( TIMER1_BASE+CRTL_OFFSET);
+			int * TIMER1CLR = (int *)( TIMER1_BASE+CLR_OFFSET);
+			*TIMER1CLR = 1;
+			*TIMER1LD = 0x0Dff; //with 508KHZ, 10 ms
+			*TIMER1CTL = *TIMER1CTL | MODE_MASK;//periodic mode
+			*TIMER1CTL = *TIMER1CTL & ~CLR_OFFSET; //set timer to run at 508khz
+			line = (int *)( VIC1_BASE + VIC_IRQ_STATUS);
+			bwprintf(COM2," status vic1_base %x \n\r",*line);
+			bwprintf(COM2," status vic1_base %x \n\r",*TIMER1VAL);
+			*TIMER1CTL = *TIMER1CTL | ENABLE_MASK; //enable timer
+			bwprintf(COM2," status vic1_base %x \n\r",*line);
+			bwprintf(COM2," val of timer 1 %x \n\r",*TIMER1VAL);
+			bwprintf(COM2," val of timer 1 %x \n\r",*TIMER1VAL);
+			bwprintf(COM2," val of timer 1 %x \n\r",*TIMER1VAL);
+			//we are agooo
+			//return value handled by processInterupt command
+			return 1;
+			break;
+		default:
+			t->reqVal = -1; //invalid event
+			break;
+	}
+	return 1;
+	
+
+
+	
+
+
+}
