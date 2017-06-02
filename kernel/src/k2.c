@@ -428,7 +428,6 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
 
-    startTime();
 	kernelRun(1, (int) God);
 
 	return 0;

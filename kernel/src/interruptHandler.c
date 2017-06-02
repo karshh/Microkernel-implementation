@@ -50,5 +50,3 @@
 	rq = (request *) r;
 	return rq;
 }
-
-

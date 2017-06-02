@@ -302,36 +302,37 @@ void userTask11(void) {
 
 // MAKE SURE TO PLACE SENDTIMER IN RECEIVE TASK WHEN YOU TEST RSR.
 void testTaskSend64() {
+    int t = 0;
     char _msg[64];
-    if (Send(1, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 64, _msg, 64) >= 0) {
-        bwprintf(COM2, "Time: %d\r\n", getTime());
-    }
+    startTime();
+    Send(2, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 64, _msg, 64);
+    t = getTime();
+    bwprintf(COM2, "%d\r\n", t);
     Exit();
 }
 
 void testTaskReceive64() {
     int _tid = 0;
     char _msg[64];
-    startTime();
-    if (Receive(&_tid, _msg, 64) >= 0) {
-        Reply(_tid, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 64);
-    }
+    Receive(&_tid, _msg, 64);
+    Reply(_tid, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 64);
     Exit();
 }
 
 void testTaskGod64() {
-    Create(6, (void*) testTaskReceive64);
     Create(6, (void*) testTaskSend64);
+    Create(6, (void*) testTaskReceive64);
     Exit( );
 }
 
 
 void testTaskSend4() {
+    int t = 0;
     char _msg[4];
     startTime();
-    if (Send(2, "bbb", 4, _msg, 4) >=0) {
-        bwprintf(COM2, "%d\r\n", getTime());
-    }
+    Send(2, "bbb", 4, _msg, 4);
+    t = getTime();
+    bwprintf(COM2, "%d\r\n", t);
     Exit();
 
 
@@ -340,9 +341,8 @@ void testTaskSend4() {
 void testTaskReceive4() {
     int _tid = 0;
     char _msg[4];
-    if (Receive(&_tid, _msg, 4) >= 0) {
-        Reply(_tid, "aaa", 4);
-    }
+    Receive(&_tid, _msg, 4);
+    Reply(_tid, "aaa", 4);
     Exit();
 }
 
@@ -354,13 +354,13 @@ void testTaskGod4() {
 
 int main(void) {
     // turning on data and instruction cache.
-     /*   
+       
      asm volatile (
         "MRC p15, 0, r0, c1, c0, 0 \n"
         "ORR r0, r0, #0x1 <<12 \n"
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
-*/
+     
 	kernelRun(5,(int) testTaskGod4);
 	return 0;
 }
