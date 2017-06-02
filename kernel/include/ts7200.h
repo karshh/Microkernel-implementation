@@ -27,6 +27,7 @@
 #define COM1	0
 #define COM2	1
 
+
 #define VIC1_BASE		0x800B0000
 #define VIC2_BASE		0x800C0000
 
@@ -41,9 +42,14 @@
 	#define VIC_PROTECTION		0x20
 	#define VIC_VECT_ADDR		0x30
 
-	#define VIC1_TIMER1_MASK	0x10
-	#define VIC1_TIMER2_MASK	0x20
-	#define VIC2_TIMER3_MASK	0x80000
+// VIC1 offsets.
+#define TIMER1_INT			0x04
+#define TIMER2_INT			0x05
+
+// VIC2 offsets.
+#define TIMER3_INT		0x13
+#define UART1_INT		0x14
+#define UART2_INT		0x16
 
 
 #define IRDA_BASE	0x808b0000

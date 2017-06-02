@@ -9,6 +9,8 @@
 #include "request.h"
 #include "kernelHandler.h"
 #include "message.h"
+#include "time.h"
+#include "icu.h"
 
 // the context switch will execute one of the following code based on the
 // sw code. 

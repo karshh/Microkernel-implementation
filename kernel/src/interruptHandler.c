@@ -39,7 +39,7 @@ void initHandlers(){
 	:[tdsp] "r" (td->sp)
 	);
 	asm volatile(
-	"movs	pc, lr\n");
+	"subs	pc, lr, #4\n");
 	}
 	else{
 	asm volatile(

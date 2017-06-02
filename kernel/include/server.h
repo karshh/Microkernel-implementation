@@ -17,14 +17,37 @@ int nameServerInit(nameServer * ns);
 
 int nameServerRun();
 
+void NameServerTask();
 
 
 //
 // CLOCKSERVER
 //
 
+// storage data structure.
+#define STORAGE_CAPACITY 128
 
-void NameServerTask();
+typedef struct StorageNode {
+	int tid;
+	int delayTime;
+} StorageNode;
+
+typedef struct TimeStorage {
+	StorageNode store[STORAGE_CAPACITY];
+	int size;
+} TimeStorage;
+
+
+void initStorage(TimeStorage * t);
+int insertIntoStorage(TimeStorage * t, StorageNode * n);
+int deleteFromStorage(TimeStorage * t, StorageNode * n);
+
+// clockserver code.
+void clockNotifier();
+
+void clockServer();
+
+
 #endif
 
 

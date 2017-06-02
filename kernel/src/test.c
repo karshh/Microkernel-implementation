@@ -1,12 +1,12 @@
 #include "ts7200.h"
-#include "debugtime.h"
+#include "time.h"
 #include "bwio.h"
 #include "userRequestCall.h"
 #include "kernelHandler.h"
 #include "kernelMacros.h"
 #include "server.h"
 #include "dictionary.h"
-
+#include "icu.h"
 
 void userTask3() {
     bwprintf(COM2, "USER TASK 3 EXIT, REQUESTING TID.\r\n");
@@ -298,16 +298,13 @@ void userTask11(void) {
 // MAKE SURE TO PLACE SENDTIMER IN RECEIVE TASK WHEN YOU TEST RSR.
 void testTaskSend64() {
     char _msg[64];
-    if (Send(1, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 64, _msg, 64) >= 0) {
-        bwprintf(COM2, "Time: %d\r\n", getTime());
-    }
+    Send(1, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 64, _msg, 64);
     Exit();
 }
 
 void testTaskReceive64() {
     int _tid = 0;
     char _msg[64];
-    startTime();
     if (Receive(&_tid, _msg, 64) >= 0) {
         Reply(_tid, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 64);
     }
@@ -323,10 +320,7 @@ void testTaskGod64() {
 
 void testTaskSend4() {
     char _msg[4];
-    startTime();
-    if (Send(2, "bbb", 4, _msg, 4) >=0) {
-        bwprintf(COM2, "%d\r\n", getTime());
-    }
+    Send(2, "bbb", 4, _msg, 4);
     Exit();
 
 
@@ -379,15 +373,29 @@ void taskTestInt(){
 	}
 	Exit();
 }
+
+
+void taskTestInt2(){
+
+    toggleTimer1Interrupt(1);
+
+    startTimer(TIMER1_BASE, 508, 508);
+
+    volatile int i = 0;
+    for(i=0; i < 10000; i++);
+
+    Exit();
+}
+
+
 int main(void) {
     // turning on data and instruction cache.
-     /*   
      asm volatile (
         "MRC p15, 0, r0, c1, c0, 0 \n"
         "ORR r0, r0, #0x1 <<12 \n"
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
-*/
-	kernelRun(5,(int) taskTestInt);
+     
+	kernelRun(5,(int) clockServer);
 	return 0;
 }

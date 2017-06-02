@@ -60,7 +60,6 @@ void kernelTestRun(int priority, int code);
 
 TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code);
 
-void resetIRQ();
 
 // Abstracting queue code away.
 //int kernel_queuePush(kernelHandler * ks, BUFFER_TYPE task);

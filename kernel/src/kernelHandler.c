@@ -6,6 +6,7 @@
 #include "bwio.h"
 #include "message.h"
 #include "ts7200.h"
+#include "icu.h"
 
 int getNextTID(kernelHandler  * ks, int * TID){
 	volatile TD * task = 0;
@@ -13,21 +14,9 @@ int getNextTID(kernelHandler  * ks, int * TID){
 	*TID = task->TID;
 	return 0;
 }
-void resetIRQ(){
-	volatile int *line;
-
-	line = (int *)( VIC1_BASE + VIC_INT_ENCLEAR);
-	*line = 0xffffffff;
-	line = (int *)( VIC2_BASE + VIC_INT_ENCLEAR);
-	*line = 0xffffffff;
-	line = (int *)( VIC1_BASE + VIC_SOFT_INTCLEAR);
-	*line = 0xffffffff;
-	line = (int *)( VIC1_BASE + VIC_SOFT_INTCLEAR);
-	*line = 0xffffffff;
-}
 int initKernel(kernelHandler * ks, int priority, int code){
 	//reset previous IRQ state, in case if last run state is bad
-	resetIRQ();
+	disableInterrupts();
 	//turn off fifos
 	bwsetfifo(COM2, OFF);
 	initHandlers();
@@ -120,14 +109,12 @@ void kernelRun(int priority, int code) {
 			bwprintf(COM2,"PROCESS request failed!\n\r");
 			 break;
 		}
-		bwprintf(COM2,"after process request\n\r");
 		if(task->state == ACTIVE)kernel_queuePush(&ks, task);
-		bwprintf(COM2,"after push to quue\n\r");
 		//we are done with task so setting active task to null
 		ks.activeTask = 0;
 	}
 
-	resetIRQ(); //clean IRQ for next person
+	disableInterrupts(); 
 
 }
 
