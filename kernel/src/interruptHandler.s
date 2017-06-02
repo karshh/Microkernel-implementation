@@ -90,7 +90,7 @@ activate:
 .L9:
 	hwiHandler:
        stmfd   sp!, {r0-r3}
-       sub     r0, lr, #2
+       mov     r0, lr
        mrs     r1, spsr
        msr     cpsr, #0xd3
        mov     lr, r0

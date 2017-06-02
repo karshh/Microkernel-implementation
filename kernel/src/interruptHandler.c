@@ -62,8 +62,7 @@ void initHandlers(){
 	asm volatile(
 	"hwiHandler:\n" //in IRQ 11010010 mode
         "       stmfd   sp!, {r0-r3}\n" //save r0-r3 on SP_IRQ
- 	//       "       mov     r0, lr\n" //save IRQ_LR into r0
-        "       sub     r0, lr, #2\n" // subtracting lr by 2 to account for the two instructions that are botched due to HWI
+        "       mov     r0, lr\n" //save IRQ_LR into r0
 
         "       mrs     r1, spsr\n" //save IRQ_SPSR into r1
         "       msr     cpsr, #0xd3\n" //switch to supervisor mode

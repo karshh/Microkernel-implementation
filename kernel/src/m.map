@@ -28,7 +28,7 @@ bss             0x0000000000000000        0x0
  *(.bss)
                 0x0000000000000000                _BssEnd = .
 
-text            0x0000000000000000     0x896c
+text            0x0000000000000000     0x89c0
  *(.text)
  .text          0x0000000000000000      0xcc4 bwio.o
                 0x0000000000000378                bwputr
@@ -142,60 +142,60 @@ text            0x0000000000000000     0x896c
  .text          0x00000000000053a0      0x168 interruptHandler.o
                 0x00000000000053a0                initHandlers
                 0x0000000000005400                activate
- .text          0x0000000000005508      0xab0 server.o
+ .text          0x0000000000005508      0xaec server.o
                 0x0000000000005c48                idleTask
                 0x00000000000059d4                initStorage
                 0x0000000000005508                nameServerInit
-                0x0000000000005cbc                clockNotifier
+                0x0000000000005cf8                clockNotifier
                 0x0000000000005598                NameServerTask
-                0x0000000000005d60                clockServer
+                0x0000000000005d9c                clockServer
                 0x0000000000005ba0                deleteFromStorage
                 0x00000000000059f8                insertIntoStorage
                 0x0000000000005544                nameServerRun
- .text          0x0000000000005fb8     0x1738 test.o
-                0x00000000000065b8                userTask62
-                0x000000000000750c                taskTestInt
-                0x0000000000006034                userTask2
-                0x0000000000007448                testTaskGod4
-                0x0000000000006a98                userTaskClient2
-                0x00000000000066c4                userTask60
-                0x0000000000006484                userTask61
-                0x0000000000006798                userTaskClient
-                0x00000000000072bc                testTaskReceive64
-                0x000000000000763c                taskTestInt2
-                0x0000000000007330                testTaskGod64
-                0x0000000000006c18                userTask01
-                0x0000000000005fb8                userTask3
-                0x0000000000006d64                userTask11
-                0x00000000000076a4                main
-                0x00000000000073d4                testTaskReceive4
-                0x0000000000007380                testTaskSend4
-                0x0000000000007498                userinfinitiPass
-                0x000000000000625c                userTask1
-                0x0000000000006918                userTaskClient1
-                0x0000000000007268                testTaskSend64
- .text          0x00000000000076f0      0x110 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_udivsi3.o)
-                0x00000000000076f0                __udivsi3
-                0x00000000000077e8                __aeabi_uidivmod
- .text          0x0000000000007800       0xcc /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_umodsi3.o)
-                0x0000000000007800                __umodsi3
- .text          0x00000000000078cc        0x4 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_dvmd_tls.o)
-                0x00000000000078cc                __aeabi_ldiv0
-                0x00000000000078cc                __div0
-                0x00000000000078cc                __aeabi_idiv0
+ .text          0x0000000000005ff4     0x1738 test.o
+                0x00000000000065f4                userTask62
+                0x0000000000007548                taskTestInt
+                0x0000000000006070                userTask2
+                0x0000000000007484                testTaskGod4
+                0x0000000000006ad4                userTaskClient2
+                0x0000000000006700                userTask60
+                0x00000000000064c0                userTask61
+                0x00000000000067d4                userTaskClient
+                0x00000000000072f8                testTaskReceive64
+                0x0000000000007678                taskTestInt2
+                0x000000000000736c                testTaskGod64
+                0x0000000000006c54                userTask01
+                0x0000000000005ff4                userTask3
+                0x0000000000006da0                userTask11
+                0x00000000000076e0                main
+                0x0000000000007410                testTaskReceive4
+                0x00000000000073bc                testTaskSend4
+                0x00000000000074d4                userinfinitiPass
+                0x0000000000006298                userTask1
+                0x0000000000006954                userTaskClient1
+                0x00000000000072a4                testTaskSend64
+ .text          0x000000000000772c      0x110 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_udivsi3.o)
+                0x000000000000772c                __udivsi3
+                0x0000000000007824                __aeabi_uidivmod
+ .text          0x000000000000783c       0xcc /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_umodsi3.o)
+                0x000000000000783c                __umodsi3
+ .text          0x0000000000007908        0x4 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_dvmd_tls.o)
+                0x0000000000007908                __aeabi_ldiv0
+                0x0000000000007908                __div0
+                0x0000000000007908                __aeabi_idiv0
  *(.got)
- .got           0x00000000000078d0       0x44 bwio.o
+ .got           0x000000000000790c       0x44 bwio.o
  *(.got.plt)
- .got.plt       0x0000000000007914        0xc bwio.o
-                0x0000000000007914                _GLOBAL_OFFSET_TABLE_
+ .got.plt       0x0000000000007950        0xc bwio.o
+                0x0000000000007950                _GLOBAL_OFFSET_TABLE_
  *(.rodata)
- .rodata        0x0000000000007920       0x18 bwio.o
- .rodata        0x0000000000007938       0xac time.o
- .rodata        0x00000000000079e4        0x4 dictionary.o
- .rodata        0x00000000000079e8       0x5c kernelHandler.o
- .rodata        0x0000000000007a44      0x134 kernelRequestCall.o
- .rodata        0x0000000000007b78      0x1c8 server.o
- .rodata        0x0000000000007d40      0xc2c test.o
+ .rodata        0x000000000000795c       0x18 bwio.o
+ .rodata        0x0000000000007974       0xac time.o
+ .rodata        0x0000000000007a20        0x4 dictionary.o
+ .rodata        0x0000000000007a24       0x5c kernelHandler.o
+ .rodata        0x0000000000007a80      0x134 kernelRequestCall.o
+ .rodata        0x0000000000007bb4      0x1e0 server.o
+ .rodata        0x0000000000007d94      0xc2c test.o
  *(.glue_7)
  *(.glue_7t)
  *(.rodata.str1.4)

@@ -554,6 +554,14 @@ deleteFromStorage:
 	sub	sp, fp, #12
 	ldmfd	sp, {fp, sp, pc}
 	.size	deleteFromStorage, .-deleteFromStorage
+	.section	.rodata
+	.align	2
+.LC5:
+	.ascii	"ID: Enter\015\012\000"
+	.align	2
+.LC6:
+	.ascii	"ID: Exit\015\012\000"
+	.text
 	.align	2
 	.global	idleTask
 	.type	idleTask, %function
@@ -561,52 +569,68 @@ idleTask:
 	@ args = 0, pretend = 0, frame = 4
 	@ frame_needed = 1, uses_anonymous_args = 0
 	mov	ip, sp
-	stmfd	sp!, {fp, ip, lr, pc}
+	stmfd	sp!, {sl, fp, ip, lr, pc}
 	sub	fp, ip, #4
 	sub	sp, sp, #4
+	ldr	sl, .L63
+.L62:
+	add	sl, pc, sl
 	mov	r3, #0
-	str	r3, [fp, #-16]
+	str	r3, [fp, #-20]
 .L54:
 	mov	r3, #0
-	str	r3, [fp, #-16]
+	str	r3, [fp, #-20]
 	b	.L55
 .L56:
-	ldr	r3, [fp, #-16]
+	ldr	r3, [fp, #-20]
 	add	r3, r3, #1
-	str	r3, [fp, #-16]
+	str	r3, [fp, #-20]
 .L55:
-	ldr	r2, [fp, #-16]
-	ldr	r3, .L62
+	ldr	r2, [fp, #-20]
+	ldr	r3, .L63+4
 	cmp	r2, r3
 	ble	.L56
+	mov	r0, #1
+	ldr	r3, .L63+8
+	add	r3, sl, r3
+	mov	r1, r3
+	bl	bwprintf(PLT)
 	bl	Pass(PLT)
+	mov	r0, #1
+	ldr	r3, .L63+12
+	add	r3, sl, r3
+	mov	r1, r3
+	bl	bwprintf(PLT)
 	mov	r3, #0
-	str	r3, [fp, #-16]
+	str	r3, [fp, #-20]
 	b	.L58
 .L59:
-	ldr	r3, [fp, #-16]
+	ldr	r3, [fp, #-20]
 	add	r3, r3, #1
-	str	r3, [fp, #-16]
+	str	r3, [fp, #-20]
 .L58:
-	ldr	r2, [fp, #-16]
-	ldr	r3, .L62
+	ldr	r2, [fp, #-20]
+	ldr	r3, .L63+4
 	cmp	r2, r3
 	ble	.L59
 	b	.L54
-.L63:
+.L64:
 	.align	2
-.L62:
+.L63:
+	.word	_GLOBAL_OFFSET_TABLE_-(.L62+8)
 	.word	9999
+	.word	.LC5(GOTOFF)
+	.word	.LC6(GOTOFF)
 	.size	idleTask, .-idleTask
 	.section	.rodata
 	.align	2
-.LC5:
+.LC7:
 	.ascii	"clockNotifier: ENTERING NOTIFICATION LOOP\015\012\000"
 	.align	2
-.LC6:
+.LC8:
 	.ascii	"clockNotifier: TIMER INTERRUPT\015\012\000"
 	.align	2
-.LC7:
+.LC9:
 	.ascii	"clockNotifier: BACK TO AWAITING EVENT\015\012\000"
 	.text
 	.align	2
@@ -619,8 +643,8 @@ clockNotifier:
 	stmfd	sp!, {sl, fp, ip, lr, pc}
 	sub	fp, ip, #4
 	sub	sp, sp, #16
-	ldr	sl, .L68
-.L67:
+	ldr	sl, .L69
+.L68:
 	add	sl, pc, sl
 	bl	MyParentTid(PLT)
 	mov	r3, r0
@@ -628,15 +652,15 @@ clockNotifier:
 	mov	r3, #3
 	str	r3, [fp, #-20]
 	mov	r0, #1
-	ldr	r3, .L68+4
+	ldr	r3, .L69+4
 	add	r3, sl, r3
 	mov	r1, r3
 	bl	bwprintf(PLT)
-.L65:
+.L66:
 	mov	r0, #0
 	bl	AwaitEvent(PLT)
 	mov	r0, #1
-	ldr	r3, .L68+8
+	ldr	r3, .L69+8
 	add	r3, sl, r3
 	mov	r1, r3
 	bl	bwprintf(PLT)
@@ -649,41 +673,41 @@ clockNotifier:
 	mov	r3, ip
 	bl	Send(PLT)
 	mov	r0, #1
-	ldr	r3, .L68+12
+	ldr	r3, .L69+12
 	add	r3, sl, r3
 	mov	r1, r3
 	bl	bwprintf(PLT)
-	b	.L65
-.L69:
+	b	.L66
+.L70:
 	.align	2
-.L68:
-	.word	_GLOBAL_OFFSET_TABLE_-(.L67+8)
-	.word	.LC5(GOTOFF)
-	.word	.LC6(GOTOFF)
+.L69:
+	.word	_GLOBAL_OFFSET_TABLE_-(.L68+8)
 	.word	.LC7(GOTOFF)
+	.word	.LC8(GOTOFF)
+	.word	.LC9(GOTOFF)
 	.size	clockNotifier, .-clockNotifier
 	.section	.rodata
 	.align	2
-.LC8:
+.LC10:
 	.ascii	"clockServer: CREATING IDLE TASK\015\012\000"
 	.align	2
-.LC9:
+.LC11:
 	.ascii	"clockServer: CREATING CLOCK NOTIFIER\015\012\000"
 	.align	2
-.LC10:
+.LC12:
 	.ascii	"Invalid code received\015\012\000"
 	.align	2
-.LC11:
+.LC13:
 	.ascii	"clockServer: NOTIFIED BY THE GREAT NOTIFIER\015\012"
 	.ascii	"\000"
 	.align	2
-.LC12:
+.LC14:
 	.ascii	"Could not put back %d into storage.\015\012\000"
 	.align	2
-.LC13:
+.LC15:
 	.ascii	"clockServer: BACK TO RECEIVE MODE\015\012\000"
 	.align	2
-.LC14:
+.LC16:
 	.ascii	"Could not put %d into storage.\015\012\000"
 	.text
 	.align	2
@@ -696,26 +720,26 @@ clockServer:
 	stmfd	sp!, {sl, fp, ip, lr, pc}
 	sub	fp, ip, #4
 	sub	sp, sp, #1056
-	ldr	sl, .L82
-.L81:
+	ldr	sl, .L83
+.L82:
 	add	sl, pc, sl
 	mov	r0, #1
-	ldr	r3, .L82+4
+	ldr	r3, .L83+4
 	add	r3, sl, r3
 	mov	r1, r3
 	bl	bwprintf(PLT)
 	mov	r0, #10
-	ldr	r3, .L82+8
+	ldr	r3, .L83+8
 	ldr	r3, [sl, r3]
 	mov	r1, r3
 	bl	Create(PLT)
 	mov	r0, #1
-	ldr	r3, .L82+12
+	ldr	r3, .L83+12
 	add	r3, sl, r3
 	mov	r1, r3
 	bl	bwprintf(PLT)
 	mov	r0, #6
-	ldr	r3, .L82+16
+	ldr	r3, .L83+16
 	ldr	r3, [sl, r3]
 	mov	r1, r3
 	bl	Create(PLT)
@@ -731,9 +755,9 @@ clockServer:
 	str	r3, [fp, #-20]
 	mov	r3, #0
 	str	r3, [fp, #-1072]
-	b	.L80
-.L71:
-.L80:
+	b	.L81
+.L72:
+.L81:
 	sub	r2, fp, #1056
 	sub	r2, r2, #8
 	sub	r3, fp, #1056
@@ -747,32 +771,32 @@ clockServer:
 	mov	r3, r3, lsr #31
 	mov	r0, r3
 	mov	r1, #1
-	ldr	r3, .L82+20
+	ldr	r3, .L83+20
 	add	r3, sl, r3
 	mov	r2, r3
 	bl	bwassert(PLT)
 	ldr	r2, [fp, #-1064]
 	ldr	r3, [fp, #-24]
 	cmp	r2, r3
-	bne	.L72
+	bne	.L73
 	mov	r0, #1
-	ldr	r3, .L82+24
+	ldr	r3, .L83+24
 	add	r3, sl, r3
 	mov	r1, r3
 	bl	bwprintf(PLT)
 	ldr	r3, [fp, #-1072]
 	add	r3, r3, #1
 	str	r3, [fp, #-1072]
-	b	.L74
-.L75:
+	b	.L75
+.L76:
 	ldr	r3, [fp, #-32]
 	mov	r0, r3
-	ldr	r3, .L82+28
+	ldr	r3, .L83+28
 	add	r3, sl, r3
 	mov	r1, r3
 	mov	r2, #2
 	bl	Reply(PLT)
-.L74:
+.L75:
 	sub	r3, fp, #1056
 	sub	r3, r3, #4
 	sub	r2, fp, #32
@@ -781,12 +805,12 @@ clockServer:
 	bl	deleteFromStorage(PLT)
 	mov	r3, r0
 	cmp	r3, #0
-	beq	.L76
+	beq	.L77
 	ldr	r2, [fp, #-28]
 	ldr	r3, [fp, #-1072]
 	cmp	r2, r3
-	blt	.L75
-.L76:
+	blt	.L76
+.L77:
 	sub	r3, fp, #1056
 	sub	r3, r3, #4
 	sub	r2, fp, #32
@@ -797,24 +821,24 @@ clockServer:
 	ldr	ip, [fp, #-32]
 	mov	r0, r3
 	mov	r1, #1
-	ldr	r3, .L82+32
+	ldr	r3, .L83+32
 	add	r3, sl, r3
 	mov	r2, r3
 	mov	r3, ip
 	bl	bwassert(PLT)
 	mov	r0, #1
-	ldr	r3, .L82+36
+	ldr	r3, .L83+36
 	add	r3, sl, r3
 	mov	r1, r3
 	bl	bwprintf(PLT)
 	ldr	r0, [fp, #-24]
-	ldr	r3, .L82+28
+	ldr	r3, .L83+28
 	add	r3, sl, r3
 	mov	r1, r3
 	mov	r2, #2
 	bl	Reply(PLT)
-	b	.L71
-.L72:
+	b	.L72
+.L73:
 	ldr	r3, [fp, #-1064]
 	str	r3, [fp, #-32]
 	ldrb	r3, [fp, #-1066]	@ zero_extendqisi2
@@ -832,25 +856,25 @@ clockServer:
 	ldr	ip, [fp, #-32]
 	mov	r0, r3
 	mov	r1, #1
-	ldr	r3, .L82+40
+	ldr	r3, .L83+40
 	add	r3, sl, r3
 	mov	r2, r3
 	mov	r3, ip
 	bl	bwassert(PLT)
-	b	.L71
-.L83:
+	b	.L72
+.L84:
 	.align	2
-.L82:
-	.word	_GLOBAL_OFFSET_TABLE_-(.L81+8)
-	.word	.LC8(GOTOFF)
-	.word	idleTask(GOT)
-	.word	.LC9(GOTOFF)
-	.word	clockNotifier(GOT)
+.L83:
+	.word	_GLOBAL_OFFSET_TABLE_-(.L82+8)
 	.word	.LC10(GOTOFF)
+	.word	idleTask(GOT)
 	.word	.LC11(GOTOFF)
-	.word	.LC2(GOTOFF)
+	.word	clockNotifier(GOT)
 	.word	.LC12(GOTOFF)
 	.word	.LC13(GOTOFF)
+	.word	.LC2(GOTOFF)
 	.word	.LC14(GOTOFF)
+	.word	.LC15(GOTOFF)
+	.word	.LC16(GOTOFF)
 	.size	clockServer, .-clockServer
 	.ident	"GCC: (GNU) 4.0.2"
