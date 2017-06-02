@@ -89,27 +89,28 @@ void NameServerTask(){
 }
 
 
+
 void initStorage(TimeStorage * t) {
 	t->size = 0;
-
 }
 
 int insertIntoStorage(TimeStorage * t, StorageNode * n) {
 	
-	if (t->size >= 128) return 0;
+	if (t->size >= STORAGE_CAPACITY) return 0;
 
 	volatile int low = 0;
 	volatile int high = t->size;
-	volatile int mid = (low + high) / 2;
-
+	volatile int mid = (low + high - 1) / 2;
 	while (low != high) {
-		mid = (low + high) / 2;
+		mid = (low + high - 1) / 2;
 		if ((t->store[mid]).delayTime > n->delayTime) {
 			low = mid + 1;
 		} else {
 			high = mid;
 		}
 	}
+	// delayTime-index relationship instability fix
+	while ((mid < t->size) && ((t->store[mid]).delayTime > n->delayTime)) mid++;
     
     if (t->size != 0) {
 
@@ -120,6 +121,7 @@ int insertIntoStorage(TimeStorage * t, StorageNode * n) {
 
 	t->store[mid].delayTime = n->delayTime;
     (t->size)++;
+    
 	return 1;
 }
 
@@ -130,6 +132,7 @@ int deleteFromStorage(TimeStorage * t, StorageNode * n) {
 	(t->size)--;
 	return 1;
 }
+
 
 void idleTask() {
 	volatile int i = 0;

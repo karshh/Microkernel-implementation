@@ -2,7 +2,7 @@
 #include "kernelHandler.h"
 #include "bwio.h"
 #include "td.h"
-#include "debugtime.h"
+#include "time.h"
 #include "kernelMacros.h"
 #include "ts7200.h"
 

@@ -297,7 +297,6 @@ void userTask11(void) {
 
 // MAKE SURE TO PLACE SENDTIMER IN RECEIVE TASK WHEN YOU TEST RSR.
 void testTaskSend64() {
-    int t = 0;
     char _msg[64];
     Send(1, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 64, _msg, 64);
     Exit();
@@ -320,7 +319,6 @@ void testTaskGod64() {
 
 
 void testTaskSend4() {
-    int t = 0;
     char _msg[4];
     Send(2, "bbb", 4, _msg, 4);
     Exit();
