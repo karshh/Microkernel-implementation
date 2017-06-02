@@ -27,5 +27,10 @@ int RegisterAs( char *name );
 
 int AwaitEvent(int eventid);
 
+int Delay(int tid, int ticks);
+
+int Time(int tid);
+
+int DelayUntil(int tid, int ticks);
 
 #endif

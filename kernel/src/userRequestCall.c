@@ -201,3 +201,30 @@ int AwaitEvent( int eventid){
 }
 
 
+int Delay(int tid, int ticks) {
+	request myRequest;
+	myRequest.reqType = DELAY;
+	myRequest.arg1 = (void *) tid;
+	myRequest.arg2 = (void *) ticks;
+	return user_contextswitch(0xdeadbeef, &myRequest);
+
+}
+
+int Time(int tid) {
+	request myRequest;
+	myRequest.reqType = TIME;
+	myRequest.arg1 = (void *) tid;
+	return user_contextswitch(0xdeadbeef, &myRequest);
+}
+
+
+int DelayUntil(int tid, int ticks) {
+	request myRequest;
+	myRequest.reqType = DELAYUNTIL;
+	myRequest.arg1 = (void *) tid;
+	myRequest.arg2 = (void *) ticks;
+	return user_contextswitch(0xdeadbeef, &myRequest);
+
+}
+
+

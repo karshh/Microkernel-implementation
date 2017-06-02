@@ -18,7 +18,10 @@ typedef enum requestType {
 	WHOIS,
 	REGISTER,
 	AWAITEVENT,
-	INTERRUPT
+	INTERRUPT,
+	DELAY,
+	TIME,
+	DELAYUNTIL
 } requestType;
 
 typedef struct request{

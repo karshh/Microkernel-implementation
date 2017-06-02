@@ -16,7 +16,9 @@
 // sw code. 
 
 int kernel_Create(TD * t, request * r, kernelHandler * ks);
+
 int kernel_CreateNameServer(TD * t, request * r, kernelHandler * ks);
+
 int kernel_CreateClockServer(TD * t, request * r, kernelHandler * ks);
 
 int kernel_MyTid(TD * t);
@@ -32,20 +34,25 @@ int kernel_Exit(TD * t);
 int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m);
 
 int kernel_WhoIs(TD * t, request * r, kernelHandler * ks, message * m);
+
 int kernel_RegisterAs(TD * t, request * r, kernelHandler * ks, message * m);
 
 int kernel_Receive(TD * t, request * r, kernelHandler * ks, message * m);
 
 int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m);
 
-int processMail(int receiever, kernelHandler * ks, message * m, int pushIntoQueue);
+int kernel_Delay(TD * t, request * r,kernelHandler * ks);
 
+int kernel_Time(TD * t, request * r,kernelHandler * ks);
 
-int processInterupt(kernelHandler *ks);
+int kernel_DelayUntil(TD * t, request * r,kernelHandler * ks);
+
 void kernelTestRun();
 
-
-// return 1 if request was succesfully processed.
 int processRequest(kernelHandler *ks, TD * t, request * r, message * m);
+
+int processMail(int receiever, kernelHandler * ks, message * m, int pushIntoQueue);
+
+int processInterupt(kernelHandler *ks);
 
 #endif

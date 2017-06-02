@@ -61,6 +61,15 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 	case(AWAITEVENT):
 		return kernel_AwaitEvent(t,r,ks);
 		break;
+	case(DELAY):
+		return kernel_Delay(t,r,ks);
+		break;
+	case(TIME):
+		return kernel_Time(t,r,ks);
+		break;
+	case(DELAYUNTIL):
+		return kernel_DelayUntil(t,r,ks);
+		break;
 	default:
 		break;
 	}
@@ -69,6 +78,18 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 
 }
 
+// stubs, To be implemented...
+int kernel_Delay(TD * t, request * r,kernelHandler * ks) {
+	return 1;
+}
+
+int kernel_Time(TD * t, request * r,kernelHandler * ks) {
+	return 1;
+}
+
+int kernel_DelayUntil(TD * t, request * r,kernelHandler * ks) {
+	return 1;
+}
 
 
 int kernel_MyTid(TD * t) {
