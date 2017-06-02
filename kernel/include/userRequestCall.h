@@ -3,9 +3,9 @@
 #ifndef _USER_REQUEST_CALL
 
 #define _USER_REQUEST_CALL
-
 int Create( int priority, void (*code));
 int CreateNameServer( int priority, void (*code));
+int CreateClockServer( int priority, void (*code));
 
 int MyTid( );
 
@@ -25,6 +25,7 @@ int WhoIs( char *name );
 
 int RegisterAs( char *name );
 
+int AwaitEvent(int eventid);
 
 
 #endif

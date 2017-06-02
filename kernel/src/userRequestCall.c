@@ -27,6 +27,15 @@ int CreateNameServer( int priority, void (*code)){
 	return user_contextswitch(0xdeadbeef, &myRequest);
 }
 
+int CreateClockServer( int priority, void (*code)){
+	request myRequest;
+	myRequest.reqType = CREATECLOCKSERVER;
+	myRequest.arg1 = (void *) priority;
+	myRequest.arg2 = code;
+	return user_contextswitch(0xdeadbeef, &myRequest);
+}
+
+
 int MyTid(){
 	
 	request myRequest;
@@ -183,3 +192,12 @@ int Reply(int tid, char *reply, int rplen){
 	
 	return user_contextswitch(0xdeadbeef, &myRequest);
 }
+
+int AwaitEvent( int eventid){
+	request myRequest;
+	myRequest.reqType = AWAITEVENT;
+	myRequest.arg1 = (void *) eventid;
+	return user_contextswitch(0xdeadbeef, &myRequest);
+}
+
+

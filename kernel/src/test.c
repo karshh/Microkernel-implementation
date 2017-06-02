@@ -1,12 +1,12 @@
 #include "ts7200.h"
-#include "debugtime.h"
+#include "time.h"
 #include "bwio.h"
 #include "userRequestCall.h"
 #include "kernelHandler.h"
 #include "kernelMacros.h"
 #include "server.h"
 #include "dictionary.h"
-
+#include "icu.h"
 
 void userTask3() {
     bwprintf(COM2, "USER TASK 3 EXIT, REQUESTING TID.\r\n");
@@ -232,11 +232,6 @@ Pass();
 }
 
 
-void userinfinitiPass(){
-	bwprintf(COM2, "infini task running \r\n");
-	while(1) Pass();
-}
-
 void userTask01(){
 	int myTid = MyTid();
 	int childTID =-1;
@@ -304,18 +299,16 @@ void userTask11(void) {
 void testTaskSend64() {
     int t = 0;
     char _msg[64];
-    startTime();
-    Send(2, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 64, _msg, 64);
-    t = getTime();
-    bwprintf(COM2, "%d\r\n", t);
+    Send(1, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 64, _msg, 64);
     Exit();
 }
 
 void testTaskReceive64() {
     int _tid = 0;
     char _msg[64];
-    Receive(&_tid, _msg, 64);
-    Reply(_tid, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 64);
+    if (Receive(&_tid, _msg, 64) >= 0) {
+        Reply(_tid, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 64);
+    }
     Exit();
 }
 
@@ -329,10 +322,7 @@ void testTaskGod64() {
 void testTaskSend4() {
     int t = 0;
     char _msg[4];
-    startTime();
     Send(2, "bbb", 4, _msg, 4);
-    t = getTime();
-    bwprintf(COM2, "%d\r\n", t);
     Exit();
 
 
@@ -352,15 +342,61 @@ void testTaskGod4() {
     Exit( );
 }
 
+void userinfinitiPass(){
+	//bwprintf(COM2, "\033[2J\033[H infini task running \r\n");
+	int i=0;
+	//while(1){
+	for(i=0; i<10000; i++){
+		bwprintf(COM2, "%d\r\n" ,i);
+	}
+	Exit();
+}
+
+
+void taskTestInt(){
+	//bwprintf(COM2, "\033[2J\033[H  \r\n");
+	bwprintf(COM2,"creating infiniPass \n\r");
+    Create(31, (void*) userinfinitiPass);
+	volatile int c;
+	asm volatile(
+	"mrs %[c], cpsr"
+	:[c] "=r" (c));
+	bwprintf(COM2,"CPSR :%x\n\r",c);
+	int a = 100;
+	bwprintf(COM2,"a :%d\n\r",a);
+	MyParentTid(); //sabotaging code to add interupt to check if things worked.
+	bwprintf(COM2,"a :%d\n\r",a);
+	int i = 0;
+	for(i=0; i < 2; i++){
+		bwprintf(COM2,"taskTest try:%d\n\r",i);
+		int j = AwaitEvent(TIMER_TICK);
+		bwprintf(COM2,"returned from await:%d\n\r",j);
+	}
+	Exit();
+}
+
+
+void taskTestInt2(){
+
+    toggleTimer1Interrupt(1);
+
+    startTimer(TIMER1_BASE, 508, 508);
+
+    volatile int i = 0;
+    for(i=0; i < 10000; i++);
+
+    Exit();
+}
+
+
 int main(void) {
     // turning on data and instruction cache.
-       
      asm volatile (
         "MRC p15, 0, r0, c1, c0, 0 \n"
         "ORR r0, r0, #0x1 <<12 \n"
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
      
-	kernelRun(5,(int) testTaskGod4);
+	kernelRun(5,(int) clockServer);
 	return 0;
 }

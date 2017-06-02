@@ -4,9 +4,19 @@
 #include "td.h"
 #include "debugtime.h"
 #include "kernelMacros.h"
+#include "ts7200.h"
 
 
 int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
+
+	request irq;
+	irq.reqType = INTERRUPT;
+
+	if(!r){ 	
+		r = &irq;
+		t->interupted = 1;
+	}
+
 	switch(r->reqType){
 	case(MYTID):
 		return kernel_MyTid(t);
@@ -24,7 +34,6 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 		return kernel_Pass(t);
 		break;
 	case(EXIT):
-	
 		if( t->TID == ks->nameServer) ks->nameServer = -1;
 		return kernel_Exit(t);
 		break;
@@ -42,6 +51,15 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 		break;
 	case (REPLY):
 		return kernel_Reply(t, r, ks, m);
+		break;
+	case(INTERRUPT):
+		return processInterupt(ks);
+		break;
+	case(CREATECLOCKSERVER):
+		return kernel_CreateClockServer(t,r,ks);
+		break;
+	case(AWAITEVENT):
+		return kernel_AwaitEvent(t,r,ks);
 		break;
 	default:
 		break;
@@ -112,6 +130,41 @@ int kernel_CreateNameServer(TD * t, request * r, kernelHandler * ks){
 
 
 }
+
+int kernel_CreateClockServer(TD * t, request * r, kernelHandler * ks){
+	int priority =(int) r->arg1;
+	if (priority <0 || priority >31){
+		 //change to 
+		t->reqVal = -1;
+	}else if(ks->clockServer != -1 && ks->TDList[ks->clockServer].state != ZOMBIE){
+		t->reqVal = -3; //-3 if clock servre exists
+		//check if there exists a living clockserver;
+	}else{
+	
+		int TID  =0;
+		//int err = getNextTID(ks, &(t->reqVal));
+		int err = getNextTID(ks, &(TID));
+		//got a live child
+		if (err) 
+		{ t->reqVal  = -2;}
+		else{
+		t->reqVal= TID;
+		int code =(int) r->arg2;
+			
+		int PTID = t->TID;
+		TD * childTD = setTask(ks,TID, PTID,priority,code);   //if TID == , it is created by kernel
+	//	kernel_queuePush(ks, childTD);
+		 kernel_queuePush(ks, childTD);
+		//set name sever;
+		ks->nameServer = TID;
+		}
+	}
+	return 1;
+
+
+}
+
+
 
 
 int kernel_Create(TD * t, request * r, kernelHandler * ks) {
@@ -317,5 +370,70 @@ int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue
 	
 }
 
+int processInterupt(kernelHandler *ks){
+	// bwprintf(COM2,"Processing request \n\r");
+	volatile int x = checkInterrupts();
+	switch(x) {
+		case TIMER1_INT:
+			bwprintf(COM2, "Kernel: TIMER 1 INTERRUPT, BITCHES\r\n");
+			bwprintf(COM2, "Kernel: Currently listening TID: %d\r\n", ks->await_TIMER);
+			bwprintf(COM2, "Kernel: Stopping Timer1.\r\n");
+			stopTimer(TIMER1_BASE);
+			clearTimerInterrupt(TIMER1_BASE);
+			if (ks->await_TIMER > -1) {
+				(ks->TDList[ks->await_TIMER]).state = ACTIVE;
+				kernel_queuePush(ks, &(ks->TDList[ks->await_TIMER]));
+				ks->await_TIMER = -1;
+			}
+			return 1;
+			break;
+		case TIMER2_INT:
+			stopTimer(TIMER2_BASE);
+			clearTimerInterrupt(TIMER2_BASE);
+			bwprintf(COM2, "TIMER 2 INTERRUPT, BITCHES\r\n");
+			startTimer(TIMER2_BASE, 508, 5080);
+			return 1;
+			break;
+		case TIMER3_INT:
+			stopTimer(TIMER3_BASE);
+			clearTimerInterrupt(TIMER3_BASE);
+			bwprintf(COM2, "TIMER 3 INTERRUPT, BITCHES\r\n");
+			startTimer(TIMER3_BASE, 508, 508);
+			return 1;
+			break;
+		case UART1_INT:
+		case UART2_INT:
+		default:
+			return 0;
+			break;
+
+	}
+	//bwprintf(COM2, "Invalid interrupt code: %d\r\n", x);
+	return 0;
+}
+
+int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
+	int eventid = (int) r->arg1;
+	bwprintf(COM2, "Kernel: Await event on code: %d\r\n", eventid);
+	switch(eventid){
+		case TIMER_TICK:
+			bwassert(ks->await_TIMER  == -1, COM2, "Another task is waiting on this event: %d.\r\n", ks->await_TIMER);
+			//put state into event blocked 
+			bwprintf(COM2, "Kernel: Blocking TD %d...\r\n", t->TID);
+			t->state = EVENT_BLOCKED;
+			ks->await_TIMER = t->TID; //might need to use pointer if allowing multiuple tasks on single event
+			//enable timer interupt flag
+			bwprintf(COM2, "Starting Timer1...\r\n", t->TID);
+			toggleTimer1Interrupt(1);
+			startTimer(TIMER1_BASE, 508, 5080);
+
+			return 1;
+			break;
+		default:
+			t->reqVal = -1; //invalid event
+			break;
+	}
+	return 1;
 
 
+}

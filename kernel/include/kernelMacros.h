@@ -1,5 +1,9 @@
 //Keep a list of macros used in kernal
 
+#ifndef KERNEL_MACROS
+
+#define KERNEL_MACROS
+
 
 //Redboot macros
 #define REDBOOT_LOAD_OFFSET 0x218000
@@ -17,3 +21,9 @@
 #define MAX_HASH 347
 #define MAX_NAME_LENGTH 16
 #define MAX_STACKSIZE  1024*1024*16  // 16MBytes (space allocated for tasks
+
+typedef enum awaitEventType {
+	TIMER_TICK
+} awaitEventType;
+
+#endif

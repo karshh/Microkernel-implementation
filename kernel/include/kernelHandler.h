@@ -24,7 +24,22 @@ typedef struct kernelHandler{
 	volatile TD * freeTail;
 
 	volatile TD * activeTask;
-	volatile int nameServer;
+
+	volatile int nameServer; //k2
+	
+	volatile int clockServer;//k3
+	/******************************
+		we need to figure for each possible wait event, if there can only be one
+		task for each interupt, or if multiple tasks should wait for a particular event.
+		i.e should only the clock notifier care about the timer wait event, or can other tasks be put on wait as well?
+		if so, do they all get unblocked or do they get poped one at a time?
+
+		for now, im going to assume there is only one task waiting on a prarticular event at a time.
+		if we need to allow mutliple, we should do something like freeHead, free tail, where we push these tasks to a
+		list/queue.
+	*/
+	volatile int await_TIMER; 
+
 	//memm offset for user task space
 	int memOffset;
 	//an idea from ben to safely allocate space is to have 

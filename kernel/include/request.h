@@ -9,13 +9,16 @@ typedef enum requestType {
 	MYPARENTID,
 	CREATE,
 	CREATENAMESERVER,
+	CREATECLOCKSERVER,
 	PASS,
 	EXIT,
 	SEND,
 	RECEIVE,
 	REPLY,
 	WHOIS,
-	REGISTER
+	REGISTER,
+	AWAITEVENT,
+	INTERRUPT
 } requestType;
 
 typedef struct request{
