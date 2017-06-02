@@ -168,7 +168,7 @@ void clockServer() {
 	bwprintf(COM2, "clockServer: CREATING IDLE TASK\r\n");
 	Create(10, (void *) idleTask);
 	bwprintf(COM2, "clockServer: CREATING CLOCK NOTIFIER\r\n");
-	int notifierTID = Create(6, (void *) clockNotifier);
+	int notifierTID = Create(1, (void *) clockNotifier);
 	StorageNode s;
 	TimeStorage t;
 	initStorage(&t);
