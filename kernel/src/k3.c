@@ -47,6 +47,7 @@ void God() {
 // Add bw print code for debugging purposes.
 void Task() {
 	int godTid = MyParentTid();
+	int myTid = MyTid();
 	int tid;
 	char msg = "1"; // Random message.
 	int msgLen = 2;
@@ -57,7 +58,7 @@ void Task() {
 	volatile int delayTime = (int) msg[0];
 	volatile int numDelays = (int) msg[1];
 	volatile int i = 0;
-	for (i = 0; i < numDelays; i++) Delay(delayTime);
+	for (i = 0; i < numDelays; i++) Delay(myTid, delayTime);
 	Exit();
 
 }
@@ -73,7 +74,7 @@ int main() {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
 
-     
+
 	kernelRun(1, (int) God);
 
 }
