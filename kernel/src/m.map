@@ -1,0 +1,256 @@
+Archive member included because of file (symbol)
+
+/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_udivsi3.o)
+                              bwio.o (__udivsi3)
+/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_umodsi3.o)
+                              bwio.o (__umodsi3)
+/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_dvmd_tls.o)
+                              /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_udivsi3.o) (__div0)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+ram              0x0000000000000000 0x0000000002000000
+rom              0x0000000060000000 0x0000000000800000
+rim              0x0000000060000000 0x0000000000800000
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+
+data            0x0000000000000000        0x0
+                0x0000000000000000                _DataStart = .
+ *(.data)
+                0x0000000000000000                _DataEnd = .
+
+bss             0x0000000000000000        0x0
+                0x0000000000000000                _BssStart = .
+ *(.bss)
+                0x0000000000000000                _BssEnd = .
+
+text            0x0000000000000000     0x89c0
+ *(.text)
+ .text          0x0000000000000000      0xcc4 bwio.o
+                0x0000000000000378                bwputr
+                0x0000000000000c54                bwassert
+                0x00000000000008e4                bwi2a
+                0x0000000000000000                bwsetfifo
+                0x00000000000001d4                bwputc
+                0x0000000000000634                bwa2d
+                0x00000000000000c8                bwsetspeed
+                0x0000000000000298                c2x
+                0x00000000000006dc                bwa2i
+                0x000000000000057c                bwgetc
+                0x00000000000007a0                bwui2a
+                0x0000000000000948                bwformat
+                0x0000000000000474                bwputw
+                0x0000000000000c1c                bwprintf
+                0x00000000000002f8                bwputx
+                0x00000000000003f8                bwputstr
+ .text          0x0000000000000cc4      0x354 time.o
+                0x0000000000000cc4                startTimer
+                0x0000000000000f64                getTicks
+                0x0000000000000e00                stopTimer
+                0x0000000000000eb8                clearTimerInterrupt
+ .text          0x0000000000001018      0x35c icu.o
+                0x0000000000001090                toggleTimer2Interrupt
+                0x0000000000001180                toggleUART1Interrupt
+                0x00000000000011f8                toggleUART2Interrupt
+                0x000000000000133c                disableInterrupts
+                0x0000000000001018                toggleTimer1Interrupt
+                0x0000000000001270                checkInterrupts
+                0x0000000000001108                toggleTimer3Interrupt
+ .text          0x0000000000001374      0x8c4 pkstring.o
+                0x0000000000001a68                pkstrcpy_aftern
+                0x0000000000001484                pkstrcpy
+                0x0000000000001954                pkstreq_volatile
+                0x0000000000001b70                pkstrcpy_aftern_append
+                0x0000000000001530                pkstreql
+                0x00000000000019b0                pkstrcpy_firstn
+                0x00000000000018f8                pkstreq
+                0x0000000000001714                pkstrcmp_volatile
+                0x0000000000001374                pkmemcpy
+                0x0000000000001668                pkstrcpy_volatile
+                0x0000000000001810                pkstrcmp
+                0x0000000000001400                pkstrlen
+ .text          0x0000000000001c38      0x844 dictionary.o
+                0x0000000000001cf8                initTIDLookup
+                0x00000000000022c0                searchDictionary
+                0x0000000000001c88                initHashMap
+                0x0000000000001d44                initDictionary
+                0x0000000000002190                deleteHashMap
+                0x0000000000002330                addDictionary
+                0x0000000000001fd0                insertHashMap
+                0x00000000000023c8                deleteDictionary
+                0x0000000000001eac                searchHashMap
+                0x0000000000001c38                initHashEntry
+                0x0000000000001dc0                hashCode
+ .text          0x000000000000247c      0x278 buffer.o
+                0x000000000000265c                bufferLength
+                0x00000000000024b4                addToBuffer
+                0x000000000000255c                getFromBuffer
+                0x000000000000247c                circularBufferInit
+                0x000000000000260c                isBufferEmpty
+ .text          0x00000000000026f4      0x56c td.o
+                0x00000000000027b4                checkMail
+                0x0000000000002b2c                initTD
+                0x0000000000002974                putMail
+                0x00000000000026f4                messageInit
+                0x000000000000277c                initInbox
+ .text          0x0000000000002c60      0xd00 kernelHandler.o
+                0x0000000000003598                kernel_queuePop_priority
+                0x0000000000002fdc                kernelRun
+                0x00000000000034bc                free_Push
+                0x0000000000003328                kernel_queuePush
+                0x0000000000003810                kernel_queuePop
+                0x0000000000002cd0                initKernel
+                0x000000000000372c                free_Pop
+                0x00000000000031d4                setTask
+                0x0000000000002c60                getNextTID
+ .text          0x0000000000003960      0x584 userRequestCall.o
+                0x0000000000003b68                Send
+                0x0000000000003ac4                MyParentTid
+                0x0000000000003b00                Pass
+                0x0000000000003bdc                WhoIs
+                0x000000000000398c                Create
+                0x0000000000003e9c                AwaitEvent
+                0x0000000000003ddc                Receive
+                0x0000000000003e3c                Reply
+                0x0000000000003a88                MyTid
+                0x0000000000003a34                CreateClockServer
+                0x0000000000003b34                Exit
+                0x00000000000039e0                CreateNameServer
+                0x0000000000003960                user_contextswitch
+                0x0000000000003cdc                RegisterAs
+ .text          0x0000000000003ee4     0x14bc kernelRequestCall.o
+                0x0000000000004168                kernel_MyParentTid
+                0x000000000000501c                processInterupt
+                0x0000000000004b58                kernel_Receive
+                0x00000000000041c4                kernel_Exit
+                0x0000000000005248                kernel_AwaitEvent
+                0x0000000000004e3c                processMail
+                0x0000000000004820                kernel_Send
+                0x0000000000004138                kernel_MyTid
+                0x0000000000004710                kernel_RegisterAs
+                0x0000000000004214                kernel_CreateNameServer
+                0x000000000000438c                kernel_CreateClockServer
+                0x0000000000004198                kernel_Pass
+                0x0000000000004600                kernel_WhoIs
+                0x0000000000004508                kernel_Create
+                0x0000000000004be0                kernel_Reply
+                0x0000000000003ee4                processRequest
+ .text          0x00000000000053a0      0x168 interruptHandler.o
+                0x00000000000053a0                initHandlers
+                0x0000000000005400                activate
+ .text          0x0000000000005508      0xaec server.o
+                0x0000000000005c48                idleTask
+                0x00000000000059d4                initStorage
+                0x0000000000005508                nameServerInit
+                0x0000000000005cf8                clockNotifier
+                0x0000000000005598                NameServerTask
+                0x0000000000005d9c                clockServer
+                0x0000000000005ba0                deleteFromStorage
+                0x00000000000059f8                insertIntoStorage
+                0x0000000000005544                nameServerRun
+ .text          0x0000000000005ff4     0x1738 test.o
+                0x00000000000065f4                userTask62
+                0x0000000000007548                taskTestInt
+                0x0000000000006070                userTask2
+                0x0000000000007484                testTaskGod4
+                0x0000000000006ad4                userTaskClient2
+                0x0000000000006700                userTask60
+                0x00000000000064c0                userTask61
+                0x00000000000067d4                userTaskClient
+                0x00000000000072f8                testTaskReceive64
+                0x0000000000007678                taskTestInt2
+                0x000000000000736c                testTaskGod64
+                0x0000000000006c54                userTask01
+                0x0000000000005ff4                userTask3
+                0x0000000000006da0                userTask11
+                0x00000000000076e0                main
+                0x0000000000007410                testTaskReceive4
+                0x00000000000073bc                testTaskSend4
+                0x00000000000074d4                userinfinitiPass
+                0x0000000000006298                userTask1
+                0x0000000000006954                userTaskClient1
+                0x00000000000072a4                testTaskSend64
+ .text          0x000000000000772c      0x110 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_udivsi3.o)
+                0x000000000000772c                __udivsi3
+                0x0000000000007824                __aeabi_uidivmod
+ .text          0x000000000000783c       0xcc /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_umodsi3.o)
+                0x000000000000783c                __umodsi3
+ .text          0x0000000000007908        0x4 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_dvmd_tls.o)
+                0x0000000000007908                __aeabi_ldiv0
+                0x0000000000007908                __div0
+                0x0000000000007908                __aeabi_idiv0
+ *(.got)
+ .got           0x000000000000790c       0x44 bwio.o
+ *(.got.plt)
+ .got.plt       0x0000000000007950        0xc bwio.o
+                0x0000000000007950                _GLOBAL_OFFSET_TABLE_
+ *(.rodata)
+ .rodata        0x000000000000795c       0x18 bwio.o
+ .rodata        0x0000000000007974       0xac time.o
+ .rodata        0x0000000000007a20        0x4 dictionary.o
+ .rodata        0x0000000000007a24       0x5c kernelHandler.o
+ .rodata        0x0000000000007a80      0x134 kernelRequestCall.o
+ .rodata        0x0000000000007bb4      0x1e0 server.o
+ .rodata        0x0000000000007d94      0xc2c test.o
+ *(.glue_7)
+ *(.glue_7t)
+ *(.rodata.str1.4)
+
+.rel.dyn
+LOAD bwio.o
+LOAD time.o
+LOAD icu.o
+LOAD pkstring.o
+LOAD dictionary.o
+LOAD buffer.o
+LOAD td.o
+LOAD kernelHandler.o
+LOAD userRequestCall.o
+LOAD kernelRequestCall.o
+LOAD interruptHandler.o
+LOAD server.o
+LOAD test.o
+LOAD /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a
+OUTPUT(test.elf elf32-littlearm)
+
+.comment        0x0000000000000000       0xea
+ .comment       0x0000000000000000       0x12 bwio.o
+ .comment       0x0000000000000012       0x12 time.o
+ .comment       0x0000000000000024       0x12 icu.o
+ .comment       0x0000000000000036       0x12 pkstring.o
+ .comment       0x0000000000000048       0x12 dictionary.o
+ .comment       0x000000000000005a       0x12 buffer.o
+ .comment       0x000000000000006c       0x12 td.o
+ .comment       0x000000000000007e       0x12 kernelHandler.o
+ .comment       0x0000000000000090       0x12 userRequestCall.o
+ .comment       0x00000000000000a2       0x12 kernelRequestCall.o
+ .comment       0x00000000000000b4       0x12 interruptHandler.o
+ .comment       0x00000000000000c6       0x12 server.o
+ .comment       0x00000000000000d8       0x12 test.o
+
+.debug_line     0x0000000000000000      0x14f
+ .debug_line    0x0000000000000000       0x86 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_udivsi3.o)
+ .debug_line    0x0000000000000086       0x6f /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_umodsi3.o)
+ .debug_line    0x00000000000000f5       0x5a /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_dvmd_tls.o)
+
+.debug_info     0x0000000000000000      0x153
+ .debug_info    0x0000000000000000       0x71 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_udivsi3.o)
+ .debug_info    0x0000000000000071       0x71 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_umodsi3.o)
+ .debug_info    0x00000000000000e2       0x71 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_dvmd_tls.o)
+
+.debug_abbrev   0x0000000000000000       0x3c
+ .debug_abbrev  0x0000000000000000       0x14 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_udivsi3.o)
+ .debug_abbrev  0x0000000000000014       0x14 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_umodsi3.o)
+ .debug_abbrev  0x0000000000000028       0x14 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_dvmd_tls.o)
+
+.debug_aranges  0x0000000000000000       0x60
+ .debug_aranges
+                0x0000000000000000       0x20 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_udivsi3.o)
+ .debug_aranges
+                0x0000000000000020       0x20 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_umodsi3.o)
+ .debug_aranges
+                0x0000000000000040       0x20 /u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2/libgcc.a(_dvmd_tls.o)

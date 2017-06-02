@@ -5,6 +5,8 @@
 #include "request.h"
 #include "bwio.h"
 #include "message.h"
+#include "ts7200.h"
+#include "icu.h"
 
 int getNextTID(kernelHandler  * ks, int * TID){
 	volatile TD * task = 0;
@@ -12,11 +14,12 @@ int getNextTID(kernelHandler  * ks, int * TID){
 	*TID = task->TID;
 	return 0;
 }
-
 int initKernel(kernelHandler * ks, int priority, int code){
+	//reset previous IRQ state, in case if last run state is bad
+	disableInterrupts();
 	//turn off fifos
 	bwsetfifo(COM2, OFF);
-
+	initHandlers();
 	ks->activeTask = 0;
 	int TID = 0;
 	/******************************************************
@@ -33,7 +36,14 @@ int initKernel(kernelHandler * ks, int priority, int code){
 
 	ks->freeHead = 0;
 	ks->freeTail = 0;
+
+	//servers
 	ks->nameServer = -1;
+	ks->clockServer = -1;
+	
+	//avait event tasks
+	ks->await_TIMER = -1;
+
 	int memOffset = (int) &(ks->taskSpace[MAX_STACKSIZE-1]);
 	memOffset = memOffset - (memOffset%16);
 	ks->memOffset = memOffset;
@@ -82,21 +92,29 @@ void kernelRun(int priority, int code) {
 		return;
 	}
 	
-	request r;
+	request * r;
+	
 	message m;
 	volatile TD * task =0;
+
+
 	while(kernel_queuePop(&ks, &task)) {
 		task->state = ACTIVE;
 		//sets active task
 		ks.activeTask = task;
 		TD *td = (TD *)task;
-		r =* activate(task->reqVal, td);
-		processRequest(&ks, td, &r, &m);
+		//r =* activate(task->reqVal, (TD *) task);
+		r = activate(ks.activeTask);
+		if(!processRequest(&ks, td, r, &m)){
+			bwprintf(COM2,"PROCESS request failed!\n\r");
+			 break;
+		}
 		if(task->state == ACTIVE)kernel_queuePush(&ks, task);
 		//we are done with task so setting active task to null
 		ks.activeTask = 0;
 	}
 
+	disableInterrupts(); 
 
 }
 
@@ -108,7 +126,6 @@ TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code)
 	else td->parent = &(ks->TDList[parentTID]);
 
 	td->state = READY;
-	td->spsr = 0xd0;
 	td->reqVal = -1;
 	volatile int mem = (volatile int) (TID * (MAX_STACKSIZE/MAX_TID));//giving stack space of 1kb
 	td->sp  = (int *) (ks->memOffset -(int) mem);
