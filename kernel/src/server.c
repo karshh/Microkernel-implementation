@@ -162,7 +162,7 @@ void clockNotifier() {
 }
 
 void clockServer() {
-
+	bwassert(!RegisterAs("clockServer"), COM2, "Failed to register clockServer.\r\n");
 	Create(31, (void *) idleTask);
 	int notifierTID = Create(1, (void *) clockNotifier);
 	StorageNode s;
@@ -236,4 +236,15 @@ void clockServer() {
 		}
 
 	}
+}
+
+/******************************************************************************
+FIRST USER TASK
+*****************************************************************************/
+
+
+void FirstUserTask() {
+	CreateNameServer(2, (void *) NameServerTask);
+	CreateClockServer(2, (void *) clockServer);
+	Exit();
 }

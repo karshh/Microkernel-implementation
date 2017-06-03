@@ -10,28 +10,35 @@
 
 
 // Add bw print code for debugging purposes.
+
 void Task() {
 	int godTid = MyParentTid();
 	int myTid = MyTid();
+	int clockServerTid = WhoIs("clockServer");
 	char reply[3];
 	char replyLen = 3;
-	bwprintf(COM2, "<%d>: Asking God for a delay request.\r\n", myTid);
+	bwprintf(COM2, "TD<%d>: Asking God for a delay request.\r\n", myTid);
 	Send(godTid, "1", 2, reply, replyLen);
 	volatile int delayTime = (int) reply[0];
 	volatile int numDelays = (int) reply[1];
 	volatile int i = 0;
-	bwprintf(COM2, "<%d>: Received delayTime:%d, numDelays:%d.\r\n", myTid, delayTime, numDelays);
+	bwprintf(COM2, "TD<%d>: Received delayTime:%d, numDelays:%d. Entering delay mode.\r\n", myTid, delayTime, numDelays);
+	volatile int time1 = 0;
+	volatile int time2 = 0;
 	for (i = 0; i < numDelays; i++) {
-		Delay(1, delayTime);
-		bwprintf(COM2, "<%d>: Slept %d %s. Current time is %d ticks.\r\n", myTid, i+1, i == 0 ? "time" : "times", Time(1));
+		time1 = Time(clockServerTid);
+		Delay(clockServerTid, delayTime);
+		time2 = Time(clockServerTid);
+		bwprintf(COM2, "TD<%d>: Delay Interval:[%d-%d]\tDelays completed: %d.\r\n", myTid, time1, time2, i+1);
 	}
-	bwprintf(COM2, "<%d>: Completed God's delay request. Current time is %d ticks\r\n", myTid, Time(1));
+	bwprintf(COM2, "TD<%d>: Completed God's delay request. Current time is %d ticks\r\n", myTid, Time(clockServerTid));
 	Exit();
 
 }
 
 
 void God() {
+	CreateNameServer(2, (void *) NameServerTask);
 	CreateClockServer(2, (void *) clockServer);
 	Create(3, (void *) Task);
     Create(4, (void *) Task);
