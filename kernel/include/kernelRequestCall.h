@@ -41,11 +41,7 @@ int kernel_Receive(TD * t, request * r, kernelHandler * ks, message * m);
 
 int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m);
 
-int kernel_Delay(TD * t, request * r,kernelHandler * ks);
-
-int kernel_Time(TD * t, request * r,kernelHandler * ks);
-
-int kernel_DelayUntil(TD * t, request * r,kernelHandler * ks);
+int kernel_RequestClockServer(TD * t, request * r, kernelHandler * ks, message * m);
 
 void kernelTestRun();
 

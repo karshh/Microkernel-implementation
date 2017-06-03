@@ -26,6 +26,7 @@ typedef struct kernelHandler{
 	volatile TD * activeTask;
 
 	volatile int nameServer; //k2
+	volatile int clockServer;//k3
 
 	volatile int idleTaskRunning;//k3
 	volatile int clockTaskRunning;//k3
@@ -37,7 +38,6 @@ typedef struct kernelHandler{
 	volatile int totalCNRunningTime;//k3
 	volatile int totalIdleRunningTime;//k3
 
-	volatile int clockServer;//k3
 	/******************************
 		we need to figure for each possible wait event, if there can only be one
 		task for each interupt, or if multiple tasks should wait for a particular event.

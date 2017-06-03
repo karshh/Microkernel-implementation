@@ -39,7 +39,7 @@ int initKernel(kernelHandler * ks, int priority, int code){
 	as part of the init and push/pop of register in the context switch it might be a good idea 
 	to set a stack limit (r10) for each task on init.....i might even do that.....
 	not going to do so now unless if program is unrunable
-        */
+     *****************************************************/
 
 
 	ks->freeHead = 0;
@@ -47,7 +47,7 @@ int initKernel(kernelHandler * ks, int priority, int code){
 
 	//servers
 	ks->nameServer = -1;
-	ks->clockServer = -1;
+	ks->clockServer = 0;
 	
 	//avait event tasks
 	ks->await_TIMER = -1;
@@ -134,11 +134,11 @@ void kernelRun(int priority, int code) {
 diagnostic code
 *************************************/
 
-			if(ks.activeTask->priority ==31) //makes assumption a 31 prioty task is an idle task
-		{	ks.idleTaskRunning = 1;
-			ks.lastIdleRunningTime = getTicks(TIMER4_BASE,0);
+		// 	if(ks.activeTask->priority ==31) //makes assumption a 31 prioty task is an idle task
+		// {	ks.idleTaskRunning = 1;
+		// 	ks.lastIdleRunningTime = getTicks(TIMER4_BASE,0);
 			
-		}
+		// }
 
 /*************************************
 end diagnostic code
@@ -149,18 +149,18 @@ end diagnostic code
 diagnostic code
 *************************************/
 
-if(ks.idleTaskRunning ){
-			bwprintf(COM2,"lastIdleTime%d\n\r" ,(getTicks(TIMER4_BASE,0) -ks.lastIdleRunningTime)/983);
-			ks.totalIdleRunningTime += getTicks(TIMER4_BASE,0) -ks.lastIdleRunningTime;
-			ks.idleTaskRunning = 0;
+// if(ks.idleTaskRunning ){
+// 			bwprintf(COM2,"lastIdleTime%d\n\r" ,(getTicks(TIMER4_BASE,0) -ks.lastIdleRunningTime)/983);
+// 			ks.totalIdleRunningTime += getTicks(TIMER4_BASE,0) -ks.lastIdleRunningTime;
+// 			ks.idleTaskRunning = 0;
 			
-	}
+// 	}
 
 
-if(r == 0){
-//currentTime = getTicks(TIMER4_BASE,0);
-bwprintf(COM2,"Diagnostic: Timer Usage Percent idle:%d%% \n\r",(ks.totalIdleRunningTime * 100 / getTicks(TIMER4_BASE,0)));
-}
+// if(r == 0){
+// //currentTime = getTicks(TIMER4_BASE,0);
+// bwprintf(COM2,"Diagnostic: Timer Usage Percent idle:%d%% \n\r",(ks.totalIdleRunningTime * 100 / getTicks(TIMER4_BASE,0)));
+// }
 
 
 

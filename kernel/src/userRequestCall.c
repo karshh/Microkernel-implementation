@@ -142,10 +142,10 @@ int RegisterAs(char *name){
 	request myRequest;
 
 	myRequest.reqType = REGISTER;
-    	char _reply[2];
+    char _reply[2];
 	_reply[0] = 0;
 	_reply[1] = 0;
-    	int _rplen = 2;
+    int _rplen = 2;
 	myRequest.arg1 = (void *) 0;
 	myRequest.arg2 = (void *) name1;
 	myRequest.arg3 = (void *) 18;
@@ -202,28 +202,75 @@ int AwaitEvent( int eventid){
 
 
 int Delay(int tid, int ticks) {
+	// keep delays to 9999 ticks. 
+	if (ticks <= 0 || ticks > 9999) return -2;
+	char msg[4];
+	msg[0] = 10;
+	msg[1] = ticks / 100;
+	msg[2] = ticks % 100;
+	msg[3] = 0;
+	int msgLen = 4;
+	char rpl[2];
+	int rplLen = 2;
+
 	request myRequest;
+
 	myRequest.reqType = DELAY;
 	myRequest.arg1 = (void *) tid;
-	myRequest.arg2 = (void *) ticks;
-	return user_contextswitch(0xdeadbeef, &myRequest);
+	myRequest.arg2 = (void *) msg;
+	myRequest.arg3 = (void *) msgLen;
+	myRequest.arg4 = (void *) rpl;
+	myRequest.arg5 = (void *) rplLen;
+	return user_contextswitch(0xdeadbeef, &myRequest) == 2 ? 0 : -3;
 
 }
 
 int Time(int tid) {
+	char msg[2];
+	msg[0] = 11;
+	msg[1] = 0;
+	int msgLen = 2;
+	char rpl[6];
+	int rplLen = 6;
+
 	request myRequest;
 	myRequest.reqType = TIME;
 	myRequest.arg1 = (void *) tid;
-	return user_contextswitch(0xdeadbeef, &myRequest);
+	myRequest.arg2 = (void *) msg;
+	myRequest.arg3 = (void *) msgLen;
+	myRequest.arg4 = (void *) rpl;
+	myRequest.arg5 = (void *) rplLen;
+	return user_contextswitch(0xdeadbeef, &myRequest) == 6 
+			? 	((((int)rpl[0]) * 100000000) + 
+				(((int)rpl[1]) * 1000000) + 
+				(((int)rpl[2]) * 10000) + 
+				(((int)rpl[3]) * 100) + 
+				((int)rpl[4])) 
+			: 	-1;
 }
 
 
 int DelayUntil(int tid, int ticks) {
+	char msg[7];
+	msg[0] = 12;
+	msg[1] = (ticks / 100000000) % 100;
+	msg[2] = (ticks / 1000000) % 100;
+	msg[3] = (ticks / 10000) % 100;
+	msg[4] = (ticks / 100) % 100;
+	msg[5] = ticks % 100;
+	msg[6] = 0;
+	int msgLen = 7;
+	char rpl[2];
+	int rplLen = 2;
+
 	request myRequest;
 	myRequest.reqType = DELAYUNTIL;
 	myRequest.arg1 = (void *) tid;
-	myRequest.arg2 = (void *) ticks;
-	return user_contextswitch(0xdeadbeef, &myRequest);
+	myRequest.arg2 = (void *) msg;
+	myRequest.arg3 = (void *) msgLen;
+	myRequest.arg4 = (void *) rpl;
+	myRequest.arg5 = (void *) rplLen;
+	return user_contextswitch(0xdeadbeef, &myRequest) == 2 ? 0 : -3;
 
 }
 

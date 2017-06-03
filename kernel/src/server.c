@@ -134,12 +134,65 @@ int deleteFromStorage(TimeStorage * t, StorageNode * n) {
 }
 
 
+
+void testTask() {
+	int parentTid = MyParentTid();
+
+	bwprintf(COM2, "beginning 1000 tick delay..\r\n");
+	
+
+	int code = Delay(parentTid, 1000);
+	if (!code) {
+		bwprintf(COM2, "Succesfully delayed..\r\n");
+	} else {
+		bwprintf(COM2, "Got back code %d..\r\n", code);
+	}
+
+	bwprintf(COM2, "beginning 200 tick delay..\r\n");
+	
+
+	code = Delay(parentTid, 200);
+	if (!code) {
+		bwprintf(COM2, "Succesfully delayed..\r\n");
+	} else {
+		bwprintf(COM2, "Got back code %d..\r\n", code);
+	}
+
+	bwprintf(COM2, "Getting current time..\r\n");
+
+	code = Time(parentTid);
+	if (code == -1) {
+		bwprintf(COM2, "Failed..\r\n");
+	} else {
+		bwprintf(COM2, "Time returned: %d..\r\n", code);
+	}
+
+	bwprintf(COM2, "beginning delay until time 2000..\r\n");
+
+	code = DelayUntil(parentTid, 2000);
+	if (!code) {
+		bwprintf(COM2, "Succesfully delayed..\r\n");
+	} else {
+		bwprintf(COM2, "Got back code %d..\r\n", code);
+	}
+
+	bwprintf(COM2, "Getting current time..\r\n");
+
+	code = Time(parentTid);
+	if (code == -1) {
+		bwprintf(COM2, "Failed..\r\n");
+	} else {
+		bwprintf(COM2, "Time returned: %d..\r\n", code);
+	}
+	Exit( );
+}
+
 void idleTask() {
 	//idle task does absolutly nothing but spin
 	while(1){
 
 	} 
-	//gets into infinite loop that spins. only way out is an interupt
+	//gets into infinite loop that spins. only way out is an interrupt
 }
 	
 
@@ -151,7 +204,6 @@ void clockNotifier() {
 	// avoiding corruption of memory regarding null char pointer passing.
 	char msg[3];
 	int msgLen = 3;
-	bwprintf(COM2, "clockNotifier: ENTERING NOTIFICATION LOOP\r\n");
 	while(1) {
 
 		AwaitEvent(TIMER_TICK);
@@ -160,40 +212,77 @@ void clockNotifier() {
 		//bwprintf(COM2, "clockNotifier: BACK TO AWAITING EVENT\r\n");
 
 	}
-
-
 }
+
 void clockServer() {
 
-	bwprintf(COM2, "clockServer: CREATING IDLE TASK\r\n");
 	Create(31, (void *) idleTask);
-	bwprintf(COM2, "clockServer: CREATING CLOCK NOTIFIER\r\n");
 	int notifierTID = Create(1, (void *) clockNotifier);
+	Create(4, (void *) testTask);
 	StorageNode s;
 	TimeStorage t;
 	initStorage(&t);
 
 	int _tid = -1;
-	char _msg[3];
-	int msgCap = 3;
+	char msg[7];
+	int msgCap = 7;
 	volatile int tick = 0;
+	char reply[6];
 
 	while(1) {
-		bwassert(Receive(&_tid, _msg, msgCap) >= 0, COM2, "Invalid code received\r\n");
+		bwassert(Receive(&_tid, msg, msgCap) >= 0, COM2, "Invalid code received\r\n");
 		if (_tid == notifierTID) {
 	//		bwprintf(COM2, "clockServer: NOTIFIED BY THE GREAT NOTIFIER\r\n");
 			tick++;
-			while(deleteFromStorage(&t, &s) && s.delayTime < tick) {
+			while(1) {
+				if (!deleteFromStorage(&t, &s)) break;
+				if (s.delayTime > tick) {
+					bwassert(insertIntoStorage(&t, &s), COM2, "<ClockServer>: Reinsertion error: Could not put back %d into storage.\r\n", s.tid);
+					break;
+				}
 				Reply(s.tid, "1", 2);
 			}
-			bwassert(insertIntoStorage(&t, &s), COM2, "Could not put back %d into storage.\r\n", s.tid);
 	//		bwprintf(COM2, "clockServer: BACK TO RECEIVE MODE\r\n");
-
 			Reply(notifierTID, "1", 2);
 		} else {
-			s.tid = _tid;
-			s.delayTime = tick + ((int)_msg[1]);
-			bwassert(insertIntoStorage(&t, &s), COM2, "Could not put %d into storage.\r\n", s.tid);
+			volatile int requestCode = (int) msg[0];
+			switch(requestCode) {
+				case 10:
+					// Delay code.
+					s.tid = _tid;
+					s.delayTime = tick + (((int) msg[1]) * 100) + ((int) msg[2]);
+					bwassert(insertIntoStorage(&t, &s), COM2, "<ClockServer>: Delay storage error. Could not put %d into storage.\r\n", s.tid);
+					break;
+				case 11:
+					// Time code.
+					bwassert(tick >= 0, COM2, "<ClockServer>: Time overflow error. Could not send time to %d.\r\n", _tid);
+					reply[0] = (tick / 100000000) % 100;
+					reply[1] = (tick / 1000000) % 100;
+					reply[2] = (tick / 10000) % 100;
+					reply[3] = (tick / 100) % 100;
+					reply[4] = tick % 100;
+					reply[5] = 0;
+					Reply(_tid, reply, 6);
+					break;
+				case 12:
+					// Delay Until code.
+					s.tid = _tid;
+					s.delayTime = ((((int)msg[1]) * 100000000) + 
+									(((int)msg[2]) * 1000000) + 
+									(((int)msg[3]) * 10000) + 
+									(((int)msg[4]) * 100) + 
+									((int)msg[5]));
+					bwassert(tick + s.delayTime >= 0, COM2, "<ClockServer>: DelayUntil overflow error. Could not delay %d.\r\n", _tid);
+					if (s.delayTime <= tick) {
+						Reply(_tid, "1", 2);
+					}
+					bwassert(insertIntoStorage(&t, &s), COM2, "<ClockServer>: DelayUntil storage error. Could not put %d into storage.\r\n", s.tid);
+					break;
+				default:
+					bwassert(0, COM2, "<ClockServer>: Invalid code: %d.\r\n", requestCode);
+					break;
+			}
+
 		}
 
 	}

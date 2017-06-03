@@ -5,13 +5,11 @@
 #include "time.h"
 #include "kernelMacros.h"
 #include "ts7200.h"
-#include "debugtime.h"
 
 
 int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 
 	if(!r){ 	
-
 		t->interupted = 1;
 		return processInterupt(ks);
 	}
@@ -59,33 +57,33 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 		return kernel_AwaitEvent(t,r,ks);
 		break;
 	case(DELAY):
-		return kernel_Delay(t,r,ks);
+		return kernel_RequestClockServer(t,r,ks,m);
 		break;
 	case(TIME):
-		return kernel_Time(t,r,ks);
+		return kernel_RequestClockServer(t,r,ks, m);
 		break;
 	case(DELAYUNTIL):
-		return kernel_DelayUntil(t,r,ks);
+		return kernel_RequestClockServer(t,r,ks, m);
 		break;
 	default:
 		break;
 	}
-	return 1;
+	return 0;
 
 
 }
 
-// stubs, To be implemented...
-int kernel_Delay(TD * t, request * r,kernelHandler * ks) {
-	return 1;
-}
 
-int kernel_Time(TD * t, request * r,kernelHandler * ks) {
-	return 1;
-}
+// Extra error case added:
+// 		-3 : The send-recieve-reply transmission could not be completed.
+//
+int kernel_RequestClockServer(TD * t, request * r, kernelHandler * ks, message * m) {
+	if (ks->clockServer == -1 || (ks->clockServer != ((int) r->arg1))) {
+		t->reqVal = -1;
+		return 1;
+	}
 
-int kernel_DelayUntil(TD * t, request * r,kernelHandler * ks) {
-	return 1;
+	return kernel_Send(t, r, ks, m);
 }
 
 
