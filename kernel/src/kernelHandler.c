@@ -7,12 +7,20 @@
 #include "message.h"
 #include "ts7200.h"
 #include "icu.h"
+#include "time.h"
 
 int getNextTID(kernelHandler  * ks, int * TID){
 	volatile TD * task = 0;
 	if(!free_Pop(ks,&task)) return -1;
 	*TID = task->TID;
 	return 0;
+}
+
+void exitKernel(kernelHandler * ks){
+	//clean up after kernel when exiting.
+	disableInterrupts();
+	stopTimer(TIMER1_BASE);
+	stopTimer(TIMER4_BASE);
 }
 int initKernel(kernelHandler * ks, int priority, int code){
 	//reset previous IRQ state, in case if last run state is bad
@@ -79,7 +87,26 @@ int initKernel(kernelHandler * ks, int priority, int code){
 		 bwprintf(COM2, "Kernel:failed to push TD %d on the queue\n\r", td->TID);
 		return -2;
 	}
+
+	//init timers 
+	//first stop any timers than might be running.
+	stopTimer(TIMER1_BASE);
+	//stopTimer(TIMER4_BASE);
+	stopTimer(TIMER4_BASE);
+	//start timers now
+	startTimer(TIMER1_BASE, 508, 508*10,PERIODIC);
+	startTimer(TIMER4_BASE, 0,0,0); //TIMER 4 cares not for other arguments
+	ks->idleTaskRunning = 0;
+	ks->clockTaskRunning = 0;
+	ks->clockNotifierTaskRunning= 0;
+	ks->totalIdleRunningTime =0;
+	ks->totalCSRunningTime =0;
+	ks->totalCNRunningTime =0;
+	
+
 	//everthing good by this point
+
+
 	return 0;
 }
 
@@ -96,25 +123,68 @@ void kernelRun(int priority, int code) {
 	
 	message m;
 	volatile TD * task =0;
-
-
+	
 	while(kernel_queuePop(&ks, &task)) {
 		task->state = ACTIVE;
 		//sets active task
 		ks.activeTask = task;
 		TD *td = (TD *)task;
 		//r =* activate(task->reqVal, (TD *) task);
+/*************************************
+diagnostic code
+*************************************/
+
+			if(ks.activeTask->priority ==31) //makes assumption a 31 prioty task is an idle task
+		{	ks.idleTaskRunning = 1;
+			ks.lastIdleRunningTime = getTicks(TIMER4_BASE,0);
+			
+		}
+
+/*************************************
+end diagnostic code
+*************************************/
+
 		r = activate(ks.activeTask);
+/*************************************
+diagnostic code
+*************************************/
+
+if(ks.idleTaskRunning ){
+			bwprintf(COM2,"lastIdleTime%d\n\r" ,(getTicks(TIMER4_BASE,0) -ks.lastIdleRunningTime)/983);
+			ks.totalIdleRunningTime += getTicks(TIMER4_BASE,0) -ks.lastIdleRunningTime;
+			ks.idleTaskRunning = 0;
+			
+	}
+
+
+if(r == 0){
+//currentTime = getTicks(TIMER4_BASE,0);
+bwprintf(COM2,"Diagnostic: Timer Usage Percent idle:%d%% \n\r",(ks.totalIdleRunningTime * 100 / getTicks(TIMER4_BASE,0)));
+}
+
+
+
+/*************************************
+end diagnostic code
+*************************************/
+
+
+
+
+
 		if(!processRequest(&ks, td, r, &m)){
 			bwprintf(COM2,"PROCESS request failed!\n\r");
 			 break;
 		}
 		if(task->state == ACTIVE)kernel_queuePush(&ks, task);
+
+
+
+
 		//we are done with task so setting active task to null
 		ks.activeTask = 0;
 	}
-
-	disableInterrupts(); 
+	exitKernel(&ks);
 
 }
 

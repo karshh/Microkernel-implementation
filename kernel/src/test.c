@@ -378,7 +378,7 @@ void taskTestInt2(){
 
     toggleTimer1Interrupt(1);
 
-    startTimer(TIMER1_BASE, 508, 508);
+    startTimer(TIMER1_BASE, 508, 508,PERIODIC);
 
     volatile int i = 0;
     for(i=0; i < 10000; i++);

@@ -135,16 +135,15 @@ int deleteFromStorage(TimeStorage * t, StorageNode * n) {
 
 
 void idleTask() {
-	volatile int i = 0;
-	while(1) {
-		for (i = 0; i < 10000; i++) {}
+	//idle task does absolutly nothing but spin
+	while(1){
 
-		bwprintf(COM2, "ID: Enter\r\n");
-		Pass();
-		bwprintf(COM2, "ID: Exit\r\n");
-		for (i = 0; i < 10000; i++) {}
-	}
+	} 
+	//gets into infinite loop that spins. only way out is an interupt
 }
+	
+
+
 
 void clockNotifier() {
 
@@ -156,9 +155,10 @@ void clockNotifier() {
 	while(1) {
 
 		AwaitEvent(TIMER_TICK);
-		bwprintf(COM2, "clockNotifier: TIMER INTERRUPT\r\n");
+		//bwprintf(COM2, "clockNotifier: TIMER INTERRUPT\r\n");
 		Send(csTID, 0, 0, msg, msgLen);
-		bwprintf(COM2, "clockNotifier: BACK TO AWAITING EVENT\r\n");
+		//bwprintf(COM2, "clockNotifier: BACK TO AWAITING EVENT\r\n");
+
 	}
 
 
@@ -166,7 +166,7 @@ void clockNotifier() {
 void clockServer() {
 
 	bwprintf(COM2, "clockServer: CREATING IDLE TASK\r\n");
-	Create(10, (void *) idleTask);
+	Create(31, (void *) idleTask);
 	bwprintf(COM2, "clockServer: CREATING CLOCK NOTIFIER\r\n");
 	int notifierTID = Create(1, (void *) clockNotifier);
 	StorageNode s;
@@ -181,13 +181,14 @@ void clockServer() {
 	while(1) {
 		bwassert(Receive(&_tid, _msg, msgCap) >= 0, COM2, "Invalid code received\r\n");
 		if (_tid == notifierTID) {
-			bwprintf(COM2, "clockServer: NOTIFIED BY THE GREAT NOTIFIER\r\n");
+	//		bwprintf(COM2, "clockServer: NOTIFIED BY THE GREAT NOTIFIER\r\n");
 			tick++;
 			while(deleteFromStorage(&t, &s) && s.delayTime < tick) {
 				Reply(s.tid, "1", 2);
 			}
 			bwassert(insertIntoStorage(&t, &s), COM2, "Could not put back %d into storage.\r\n", s.tid);
-			bwprintf(COM2, "clockServer: BACK TO RECEIVE MODE\r\n");
+	//		bwprintf(COM2, "clockServer: BACK TO RECEIVE MODE\r\n");
+
 			Reply(notifierTID, "1", 2);
 		} else {
 			s.tid = _tid;

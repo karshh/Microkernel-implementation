@@ -347,8 +347,10 @@ void testTaskReceive4() {
 }
 
 void testTaskGod4() {
+	startTime();
     Create(6, (void*) testTaskSend4);
     Create(6, (void*) testTaskReceive4);
+	getTime();
     Exit( );
 }
 

@@ -3,6 +3,7 @@
 #include "bwio.h"
 #include "server.h"
 #include "pkstring.h"
+#include "debugtime.h"
 
 int nameServerInit(nameServer * ns) {
 	volatile int myTid = MyTid();

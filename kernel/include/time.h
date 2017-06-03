@@ -6,7 +6,13 @@
 #include "ts7200.h"
 #include "bwio.h"
 
-void startTimer(int base, int khz, int startTime);
+typedef enum timerModeType {
+	FREERUNNING,
+	PERIODIC
+} timerModeType;
+
+
+void startTimer(int base, int khz, int startTime, int timerMode);
 
 void stopTimer(int base);
 

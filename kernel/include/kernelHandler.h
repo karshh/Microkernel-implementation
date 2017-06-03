@@ -26,7 +26,17 @@ typedef struct kernelHandler{
 	volatile TD * activeTask;
 
 	volatile int nameServer; //k2
-	
+
+	volatile int idleTaskRunning;//k3
+	volatile int clockTaskRunning;//k3
+	volatile int clockNotifierTaskRunning;//k3
+
+	volatile int lastIdleRunningTime;//k3
+
+	volatile int totalCSRunningTime;//k3
+	volatile int totalCNRunningTime;//k3
+	volatile int totalIdleRunningTime;//k3
+
 	volatile int clockServer;//k3
 	/******************************
 		we need to figure for each possible wait event, if there can only be one
@@ -50,6 +60,8 @@ typedef struct kernelHandler{
 
 // return 1 if kernel handler was succesfully initialized. 
 int initKernel(kernelHandler * ks, int priority, int code);
+
+void  exitKernel(kernelHandler * ks);
 
 // run the kernel
 void kernelRun();

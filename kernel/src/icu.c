@@ -24,6 +24,9 @@ void toggleUART2Interrupt(int _switch) {
 }
 
 int checkInterrupts() {
+	//Note this works if there is only one interupt.
+	//but if there are multpliple interupts on, we need to re-order this based on priority on which interupts must be handled
+	//eg if timer1 and uart1 are asserted, should we make sure timer1 await is handled before or after uart 1 is handled?
 	if (*((int *) (VIC1_BASE + VIC_IRQ_STATUS)) >> TIMER1_INT == 1) return TIMER1_INT;
 	if (*((int *) (VIC1_BASE + VIC_IRQ_STATUS)) >> TIMER2_INT == 1) return TIMER2_INT;
 	if (*((int *) (VIC2_BASE + VIC_IRQ_STATUS)) >> TIMER3_INT == 1) return TIMER3_INT;

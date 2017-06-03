@@ -15,8 +15,13 @@
 	#define	ENABLE_MASK	0x00000080 // start/stop the timer
 	#define	MODE_MASK	0x00000040 //  investigate this
 	#define	CLKSEL_MASK	0x00000008 // set clock cycles...?
+
 #define CLR_OFFSET	0x0000000c	// no data, WO
 
+#define TIMER4_BASE	0x80810064//40-bit timer HIGH_VALUE/ENABLE
+#define TIMER4_VALUE	0x80810060//40-bit timer LOW_VALUE
+	#define	TIMER4_HIGH_MASK	0xFF // start/stop the timer
+	#define	TIMER4_ENABLE_MASK	0x100 // start/stop the timer
 
 #define LED_ADDRESS	0x80840020	
 	#define LED_NONE	0x0

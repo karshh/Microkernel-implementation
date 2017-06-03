@@ -5,18 +5,18 @@
 #include "time.h"
 #include "kernelMacros.h"
 #include "ts7200.h"
+#include "debugtime.h"
 
 
 int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 
-	request irq;
-	irq.reqType = INTERRUPT;
-
 	if(!r){ 	
-		r = &irq;
-		t->interupted = 1;
-	}
 
+		t->interupted = 1;
+		return processInterupt(ks);
+	}
+	
+	
 	switch(r->reqType){
 	case(MYTID):
 		return kernel_MyTid(t);
@@ -51,9 +51,6 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 		break;
 	case (REPLY):
 		return kernel_Reply(t, r, ks, m);
-		break;
-	case(INTERRUPT):
-		return processInterupt(ks);
 		break;
 	case(CREATECLOCKSERVER):
 		return kernel_CreateClockServer(t,r,ks);
@@ -396,32 +393,53 @@ int processInterupt(kernelHandler *ks){
 	volatile int x = checkInterrupts();
 	switch(x) {
 		case TIMER1_INT:
-			bwprintf(COM2, "Kernel: TIMER 1 INTERRUPT, BITCHES\r\n");
-			bwprintf(COM2, "Kernel: Currently listening TID: %d\r\n", ks->await_TIMER);
-			bwprintf(COM2, "Kernel: Stopping Timer1.\r\n");
-			stopTimer(TIMER1_BASE);
-			clearTimerInterrupt(TIMER1_BASE);
+		//	bwprintf(COM2, "Kernel: TIMER 1 INTERRUPT, BITCHES\r\n");
+		//	bwprintf(COM2, "Kernel: Currently listening TID: %d\r\n", ks->await_TIMER);
+		//	bwprintf(COM2, "Kernel: Stopping Timer1.\r\n");
+		//	stopTimer(TIMER1_BASE); //don't stop it, but let it run 
+			toggleTimer1Interrupt(0);//disables interupt on icu
+			clearTimerInterrupt(TIMER1_BASE); //unasserts interupt on timer (note timer still runs)
 			if (ks->await_TIMER > -1) {
 				(ks->TDList[ks->await_TIMER]).state = ACTIVE;
 				kernel_queuePush(ks, &(ks->TDList[ks->await_TIMER]));
 				ks->await_TIMER = -1;
 			}
+
+/*
+			ks->clockNotifierTaskRunning = 1;
+
+			{
+				int * ld = (int *) (TIMER3_BASE + LDR_OFFSET);
+				int * ctrl = (int *) (TIMER3_BASE + CRTL_OFFSET);
+					*ctrl &= ~ENABLE_MASK;
+					*ld = 0x77777777;
+					*ctrl |= CLKSEL_MASK ;
+					*ctrl |= ENABLE_MASK ;
+
+			}
+*/
 			return 1;
 			break;
 		case TIMER2_INT:
 			stopTimer(TIMER2_BASE);
 			clearTimerInterrupt(TIMER2_BASE);
 			bwprintf(COM2, "TIMER 2 INTERRUPT, BITCHES\r\n");
-			startTimer(TIMER2_BASE, 508, 5080);
+			startTimer(TIMER2_BASE, 508, 5080,PERIODIC);
 			return 1;
 			break;
 		case TIMER3_INT:
-			stopTimer(TIMER3_BASE);
-			clearTimerInterrupt(TIMER3_BASE);
-			bwprintf(COM2, "TIMER 3 INTERRUPT, BITCHES\r\n");
-			startTimer(TIMER3_BASE, 508, 508);
+			bwprintf(COM2, "Kernel: TIMER 1 INTERRUPT, BITCHES\r\n");
+			bwprintf(COM2, "Kernel: Currently listening TID: %d\r\n", ks->await_TIMER);
+			bwprintf(COM2, "Kernel: Stopping Timer1.\r\n");
+		//	stopTimer(TIMER1_BASE); //don't stop it, but let it run 
+			//toggleTimer1Interrupt(0);//disables interupt on icu
+			clearTimerInterrupt(TIMER3_BASE); //unasserts interupt on timer (note timer still runs)
+			if (ks->await_TIMER > -1) {
+				(ks->TDList[ks->await_TIMER]).state = ACTIVE;
+				kernel_queuePush(ks, &(ks->TDList[ks->await_TIMER]));
+				ks->await_TIMER = -1;
+			}
 			return 1;
-			break;
 		case UART1_INT:
 		case UART2_INT:
 		default:
@@ -432,22 +450,32 @@ int processInterupt(kernelHandler *ks){
 	//bwprintf(COM2, "Invalid interrupt code: %d\r\n", x);
 	return 0;
 }
-
 int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
 	int eventid = (int) r->arg1;
-	bwprintf(COM2, "Kernel: Await event on code: %d\r\n", eventid);
+	//bwprintf(COM2, "Kernel: Await event on code: %d %d\r\n", eventid,ks->clockNotifierTaskRunning);
 	switch(eventid){
 		case TIMER_TICK:
+/*
+			if(ks->clockNotifierTaskRunning==1){
+				//int * val = (int*) (TIMER3_BASE + VAL_OFFSET);
+			
+	 	
+				//bwprintf(COM2,"Time between last wake up and current sleep %dms \n\r", (0x77777777 - *val)/508);
+				ks->clockNotifierTaskRunning = 0;
+			}
+*/
 			bwassert(ks->await_TIMER  == -1, COM2, "Another task is waiting on this event: %d.\r\n", ks->await_TIMER);
 			//put state into event blocked 
-			bwprintf(COM2, "Kernel: Blocking TD %d...\r\n", t->TID);
+		//	bwprintf(COM2, "Kernel: Blocking TD %d...\r\n", t->TID);
 			t->state = EVENT_BLOCKED;
 			ks->await_TIMER = t->TID; //might need to use pointer if allowing multiuple tasks on single event
 			//enable timer interupt flag
-			bwprintf(COM2, "Starting Timer1...\r\n", t->TID);
-			toggleTimer1Interrupt(1);
-			startTimer(TIMER1_BASE, 508, 5080);
-
+		//	bwprintf(COM2, "Starting Timer1...\r\n", t->TID);
+			toggleTimer1Interrupt(1);//enables interupt on icu
+			clearTimerInterrupt(TIMER1_BASE); //unasserts interupt on timer from previous tick
+			//note timer 1 was started in the kernel initiatilzation,
+			// timer 1 is set to to tick every 10 ms periodically
+			// so the the task will wait until next tick <= 10 ms.
 			return 1;
 			break;
 		default:
