@@ -148,10 +148,10 @@ void testTask() {
 		bwprintf(COM2, "Got back code %d..\r\n", code);
 	}
 
-	bwprintf(COM2, "beginning 200 tick delay..\r\n");
+	bwprintf(COM2, "beginning 300 tick delay..\r\n");
 	
 
-	code = Delay(parentTid, 200);
+	code = Delay(parentTid, 300);
 	if (!code) {
 		bwprintf(COM2, "Succesfully delayed..\r\n");
 	} else {
@@ -237,7 +237,7 @@ void clockServer() {
 			while(1) {
 				if (!deleteFromStorage(&t, &s)) break;
 				if (s.delayTime > tick) {
-					bwassert(insertIntoStorage(&t, &s), COM2, "<ClockServer>: Reinsertion error: Could not put back %d into storage.\r\n", s.tid);
+					bwassert(insertIntoStorage(&t, &s), COM2, "<ClockServer>: Reinsertion error: Could not put back TD<%d> into storage.\r\n", s.tid);
 					break;
 				}
 				Reply(s.tid, "1", 2);
@@ -247,15 +247,19 @@ void clockServer() {
 		} else {
 			volatile int requestCode = (int) msg[0];
 			switch(requestCode) {
-				case 10:
-					// Delay code.
+				case 10: // Delay code.
 					s.tid = _tid;
-					s.delayTime = tick + (((int) msg[1]) * 100) + ((int) msg[2]);
+					s.delayTime = tick + ((((int)msg[1]) * 100000000) + 
+									(((int)msg[2]) * 1000000) + 
+									(((int)msg[3]) * 10000) + 
+									(((int)msg[4]) * 100) + 
+									((int)msg[5]));
+					bwassert(s.delayTime >= 0, COM2, "<ClockServer>: Delay overflow error. Could not delay TD<%d>.\r\n", _tid);
 					bwassert(insertIntoStorage(&t, &s), COM2, "<ClockServer>: Delay storage error. Could not put %d into storage.\r\n", s.tid);
-					break;
-				case 11:
-					// Time code.
-					bwassert(tick >= 0, COM2, "<ClockServer>: Time overflow error. Could not send time to %d.\r\n", _tid);
+					break; 
+					
+				case 11: // Time code.
+					bwassert(tick >= 0, COM2, "<ClockServer>: Time overflow error. Could not send time to TD<%d>.\r\n", _tid);
 					reply[0] = (tick / 100000000) % 100;
 					reply[1] = (tick / 1000000) % 100;
 					reply[2] = (tick / 10000) % 100;
@@ -264,19 +268,19 @@ void clockServer() {
 					reply[5] = 0;
 					Reply(_tid, reply, 6);
 					break;
-				case 12:
-					// Delay Until code.
+
+				case 12: // DelayUntil code.
 					s.tid = _tid;
 					s.delayTime = ((((int)msg[1]) * 100000000) + 
 									(((int)msg[2]) * 1000000) + 
 									(((int)msg[3]) * 10000) + 
 									(((int)msg[4]) * 100) + 
 									((int)msg[5]));
-					bwassert(tick + s.delayTime >= 0, COM2, "<ClockServer>: DelayUntil overflow error. Could not delay %d.\r\n", _tid);
+					bwassert(s.delayTime >= 0, COM2, "<ClockServer>: DelayUntil overflow error. Could not delay TD<%d>.\r\n", _tid);
 					if (s.delayTime <= tick) {
 						Reply(_tid, "1", 2);
 					}
-					bwassert(insertIntoStorage(&t, &s), COM2, "<ClockServer>: DelayUntil storage error. Could not put %d into storage.\r\n", s.tid);
+					bwassert(insertIntoStorage(&t, &s), COM2, "<ClockServer>: DelayUntil storage error. Could not put TD<%d> into storage.\r\n", s.tid);
 					break;
 				default:
 					bwassert(0, COM2, "<ClockServer>: Invalid code: %d.\r\n", requestCode);

@@ -201,15 +201,17 @@ int AwaitEvent( int eventid){
 }
 
 
-int Delay(int tid, int ticks) {
-	// keep delays to 9999 ticks. 
-	if (ticks <= 0 || ticks > 9999) return -2;
-	char msg[4];
+int Delay(int tid, int ticks) { 
+	if (ticks <= 0) return -2;
+	char msg[7];
 	msg[0] = 10;
-	msg[1] = ticks / 100;
-	msg[2] = ticks % 100;
-	msg[3] = 0;
-	int msgLen = 4;
+	msg[1] = (ticks / 100000000) % 100;
+	msg[2] = (ticks / 1000000) % 100;
+	msg[3] = (ticks / 10000) % 100;
+	msg[4] = (ticks / 100) % 100;
+	msg[5] = ticks % 100;
+	msg[6] = 0;
+	int msgLen = 7;
 	char rpl[2];
 	int rplLen = 2;
 
