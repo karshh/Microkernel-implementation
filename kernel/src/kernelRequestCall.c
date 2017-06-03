@@ -11,7 +11,7 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 
 	if(!r){ 	
 		t->interupted = 1;
-		return processInterupt(ks);
+		return processInterrupt(ks);
 	}
 	
 	
@@ -172,7 +172,7 @@ int kernel_CreateClockServer(TD * t, request * r, kernelHandler * ks){
 	//	kernel_queuePush(ks, childTD);
 		 kernel_queuePush(ks, childTD);
 		//set name sever;
-		ks->nameServer = TID;
+		ks->clockServer = TID;
 		}
 	}
 	return 1;
@@ -386,7 +386,7 @@ int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue
 	
 }
 
-int processInterupt(kernelHandler *ks){
+int processInterrupt(kernelHandler *ks){
 	// bwprintf(COM2,"Processing request \n\r");
 	volatile int x = checkInterrupts();
 	switch(x) {

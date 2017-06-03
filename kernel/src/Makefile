@@ -1,7 +1,7 @@
 #
 # Makefile for busy-wait IO library
 #
-XCC     = gcc -O2
+XCC     = gcc 
 AS	= as
 AR	= ar
 LD	= ld
@@ -122,6 +122,12 @@ k2.s: k2.c
 k2.o: k2.s
 	$(AS) $(ASFLAGS) -o k2.o k2.s
 
+k3.s: k3.c
+	$(XCC) -S $(CFLAGS) k3.c
+
+k3.o: k3.s
+	$(AS) $(ASFLAGS) -o k3.o k3.s
+
 test.elf:test.o
 	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o test.o -lgcc
 
@@ -131,8 +137,12 @@ k1.elf: k1.o
 k2.elf: k2.o
 	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o k2.o -lgcc
 
-install: test.elf 
+k3.elf: k3.o
+	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o k3.o -lgcc
+
+install: test.elf k3.elf
 	cp test.elf /u/cs452/tftp/ARM/`whoami`/
+	cp k3.elf /u/cs452/tftp/ARM/`whoami`/
 
 clean:
 	-rm -f *.s *.a *.o *.map *.elf

@@ -47,7 +47,7 @@ int initKernel(kernelHandler * ks, int priority, int code){
 
 	//servers
 	ks->nameServer = -1;
-	ks->clockServer = 0;
+	ks->clockServer = -1;
 	
 	//avait event tasks
 	ks->await_TIMER = -1;
@@ -80,13 +80,12 @@ int initKernel(kernelHandler * ks, int priority, int code){
  
 
 	TD * td = setTask(ks,TID,KERNAL_CHILD,priority,code);   //if PTID == -1 , it is created by kernel
-
-
-
 	if (!(kernel_queuePush(ks, td))){
 		 bwprintf(COM2, "Kernel:failed to push TD %d on the queue\n\r", td->TID);
 		return -2;
 	}
+
+
 
 	//init timers 
 	//first stop any timers than might be running.

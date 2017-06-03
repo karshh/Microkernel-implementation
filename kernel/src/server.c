@@ -134,59 +134,6 @@ int deleteFromStorage(TimeStorage * t, StorageNode * n) {
 }
 
 
-
-void testTask() {
-	int parentTid = MyParentTid();
-
-	bwprintf(COM2, "beginning 1000 tick delay..\r\n");
-	
-
-	int code = Delay(parentTid, 1000);
-	if (!code) {
-		bwprintf(COM2, "Succesfully delayed..\r\n");
-	} else {
-		bwprintf(COM2, "Got back code %d..\r\n", code);
-	}
-
-	bwprintf(COM2, "beginning 300 tick delay..\r\n");
-	
-
-	code = Delay(parentTid, 300);
-	if (!code) {
-		bwprintf(COM2, "Succesfully delayed..\r\n");
-	} else {
-		bwprintf(COM2, "Got back code %d..\r\n", code);
-	}
-
-	bwprintf(COM2, "Getting current time..\r\n");
-
-	code = Time(parentTid);
-	if (code == -1) {
-		bwprintf(COM2, "Failed..\r\n");
-	} else {
-		bwprintf(COM2, "Time returned: %d..\r\n", code);
-	}
-
-	bwprintf(COM2, "beginning delay until time 2000..\r\n");
-
-	code = DelayUntil(parentTid, 2000);
-	if (!code) {
-		bwprintf(COM2, "Succesfully delayed..\r\n");
-	} else {
-		bwprintf(COM2, "Got back code %d..\r\n", code);
-	}
-
-	bwprintf(COM2, "Getting current time..\r\n");
-
-	code = Time(parentTid);
-	if (code == -1) {
-		bwprintf(COM2, "Failed..\r\n");
-	} else {
-		bwprintf(COM2, "Time returned: %d..\r\n", code);
-	}
-	Exit( );
-}
-
 void idleTask() {
 	//idle task does absolutly nothing but spin
 	while(1){
@@ -218,7 +165,6 @@ void clockServer() {
 
 	Create(31, (void *) idleTask);
 	int notifierTID = Create(1, (void *) clockNotifier);
-	Create(4, (void *) testTask);
 	StorageNode s;
 	TimeStorage t;
 	initStorage(&t);
@@ -257,7 +203,7 @@ void clockServer() {
 					bwassert(s.delayTime >= 0, COM2, "<ClockServer>: Delay overflow error. Could not delay TD<%d>.\r\n", _tid);
 					bwassert(insertIntoStorage(&t, &s), COM2, "<ClockServer>: Delay storage error. Could not put %d into storage.\r\n", s.tid);
 					break; 
-					
+
 				case 11: // Time code.
 					bwassert(tick >= 0, COM2, "<ClockServer>: Time overflow error. Could not send time to TD<%d>.\r\n", _tid);
 					reply[0] = (tick / 100000000) % 100;

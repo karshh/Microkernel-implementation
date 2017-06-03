@@ -49,6 +49,6 @@ int processRequest(kernelHandler *ks, TD * t, request * r, message * m);
 
 int processMail(int receiever, kernelHandler * ks, message * m, int pushIntoQueue);
 
-int processInterupt(kernelHandler *ks);
+int processInterrupt(kernelHandler *ks);
 
 #endif
