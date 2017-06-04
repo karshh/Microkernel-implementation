@@ -38,13 +38,21 @@ void Task() {
 
 
 void God() {
+	//and lo on his day off he created a name server and clock server
+	bwprintf(COM2, "\033[2J\033[2;H");//clear screen
 	CreateNameServer(2, (void *) NameServerTask);
 	CreateClockServer(2, (void *) clockServer);
+	//and it was good
+	
+	//Then he created his children
 	Create(3, (void *) Task);
-    Create(4, (void *) Task);
+    	Create(4, (void *) Task);
 	Create(5, (void *) Task);
 	Create(6, (void *) Task);
-
+	
+	//lo when his children raised thier voices in query
+	//he gave them the commandment to wait.
+	//once the alloted time has arrived the idle shalt inherit the kernel
 	int _tid = 0;
 	char msg[4];
 	int msgLen = 4;
@@ -63,7 +71,7 @@ void God() {
 	Reply(_tid, reply, 3);
 	Receive( &_tid, msg, msgLen);
 	reply[0] = 33; // Delay Time (ticks)
-	reply[1] = 16; // Number of delays
+	reply[1] = 6; // Number of delays
 	reply[2] = 0;
 	bwprintf(COM2, "<God>: Sending the following delay parameters to TD<%d>: delayTime:%d, numDelays:%d \r\n", _tid, reply[0], reply[1]);
 	Reply(_tid, reply, 3);
@@ -73,9 +81,12 @@ void God() {
 	reply[2] = 0;
 	bwprintf(COM2, "<God>: Sending the following delay parameters to TD<%d>: delayTime:%d, numDelays:%d \r\n", _tid, reply[0], reply[1]);
 	Reply(_tid, reply, 3); 
-
+	//and it was good
+	//after giving his holy commandments, he left this mortal plane toward the next form of existence
 	bwprintf(COM2, "<God>: Exitting..\r\n");
 	Exit( );
+	//and it was good.
+	//amen
 }
 
 

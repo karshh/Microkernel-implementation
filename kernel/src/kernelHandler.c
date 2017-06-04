@@ -93,14 +93,18 @@ int initKernel(kernelHandler * ks, int priority, int code){
 	//stopTimer(TIMER4_BASE);
 	stopTimer(TIMER4_BASE);
 	//start timers now
-	startTimer(TIMER1_BASE, 508, 508*10,PERIODIC);
+/*
+Timer clock speeds
+508.4689 KHz
+1.9939 KHz
+983 KHz
+*/
+	startTimer(TIMER1_BASE, 508, 5084,PERIODIC);
 	startTimer(TIMER4_BASE, 0,0,0); //TIMER 4 cares not for other arguments
 	ks->idleTaskRunning = 0;
 	ks->clockTaskRunning = 0;
 	ks->clockNotifierTaskRunning= 0;
 	ks->totalIdleRunningTime =0;
-	ks->totalCSRunningTime =0;
-	ks->totalCNRunningTime =0;
 	
 
 	//everthing good by this point
@@ -122,44 +126,34 @@ void kernelRun(int priority, int code) {
 	
 	message m;
 	volatile TD * task =0;
-	
+	int old_idle;
 	while(kernel_queuePop(&ks, &task)) {
 		task->state = ACTIVE;
-		//sets active task
 		ks.activeTask = task;
 		TD *td = (TD *)task;
-		//r =* activate(task->reqVal, (TD *) task);
-/*************************************
-diagnostic code
-*************************************/
-
-		// 	if(ks.activeTask->priority ==31) //makes assumption a 31 prioty task is an idle task
-		// {	ks.idleTaskRunning = 1;
-		// 	ks.lastIdleRunningTime = getTicks(TIMER4_BASE,0);
+	 	if(ks.activeTask->priority ==31){
+			 //makes assumption a 31 prioty task is an idle task
+			ks.idleTaskRunning = 1;
+		 	ks.lastIdleRunningTime = getTicks4(0);
 			
-		// }
+		}
 
-/*************************************
-end diagnostic code
-*************************************/
 
 		r = activate(ks.activeTask);
-/*************************************
-diagnostic code
-*************************************/
+		if(ks.idleTaskRunning ){
+					ks.totalIdleRunningTime += getTicks4(0) -ks.lastIdleRunningTime;
+					ks.idleTaskRunning = 0;
+		}
 
-// if(ks.idleTaskRunning ){
-// 			bwprintf(COM2,"lastIdleTime%d\n\r" ,(getTicks(TIMER4_BASE,0) -ks.lastIdleRunningTime)/983);
-// 			ks.totalIdleRunningTime += getTicks(TIMER4_BASE,0) -ks.lastIdleRunningTime;
-// 			ks.idleTaskRunning = 0;
-			
-// 	}
-
-
-// if(r == 0){
-// //currentTime = getTicks(TIMER4_BASE,0);
-// bwprintf(COM2,"Diagnostic: Timer Usage Percent idle:%d%% \n\r",(ks.totalIdleRunningTime * 100 / getTicks(TIMER4_BASE,0)));
-// }
+		if(r == 0){
+		//if interupt print diagnostic info.
+		//print only if diagnostic info changes:
+			int new_idle = 100 * ks.totalIdleRunningTime / getTicks4(0);
+		 	if(old_idle - new_idle){
+				old_idle = new_idle;
+		 		bwprintf(COM2,"\033[s\033[?25l\033[1;90H idle:%d%% \033[u\033[?25h",old_idle);
+			}
+		}
 
 
 

@@ -16,7 +16,8 @@ void startTimer(int base, int khz, int startTime, int timerMode);
 
 void stopTimer(int base);
 
-int getTicks(int base, int offset);
+unsigned int getTicks(int base, int offset);
+unsigned long getTicks4(long offset);
 
 void clearTimerInterrupt(int base);
 

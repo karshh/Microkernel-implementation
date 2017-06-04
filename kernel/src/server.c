@@ -180,6 +180,20 @@ void clockServer() {
 		if (_tid == notifierTID) {
 	//		bwprintf(COM2, "clockServer: NOTIFIED BY THE GREAT NOTIFIER\r\n");
 			tick++;
+			/*
+			used to check timer speed. 
+			switch(tick %2
+			case 0:
+				bwprintf(COM2,"\033[s\033[?25l\033[1;100H           \033[u\033[?25h");
+				break;
+			case 1:
+				bwprintf(COM2,"\033[s\033[?25l\033[1;100H >        \033[u\033[?25h");
+				break;
+			default:
+				break;
+			}
+			*/
+
 			while(1) {
 				if (!deleteFromStorage(&t, &s)) break;
 				if (s.delayTime > tick) {

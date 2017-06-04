@@ -32,11 +32,9 @@ typedef struct kernelHandler{
 	volatile int clockTaskRunning;//k3
 	volatile int clockNotifierTaskRunning;//k3
 
-	volatile int lastIdleRunningTime;//k3
+	volatile unsigned long lastIdleRunningTime;//k3
 
-	volatile int totalCSRunningTime;//k3
-	volatile int totalCNRunningTime;//k3
-	volatile int totalIdleRunningTime;//k3
+	volatile unsigned long totalIdleRunningTime;//k3
 
 	/******************************
 		we need to figure for each possible wait event, if there can only be one

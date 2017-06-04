@@ -49,16 +49,20 @@ void clearTimerInterrupt(int base) {
 
 }
 
-int getTicks(int base, int offset) {
-	bwassert(base == TIMER1_BASE || base == TIMER2_BASE || base == TIMER3_BASE || base == TIMER4_BASE,
+unsigned int getTicks(int base, int offset) {
+	bwassert(base == TIMER1_BASE || base == TIMER2_BASE || base == TIMER3_BASE,
 				COM2, "ERROR geTicks: Illegal base address for timer: 0x%x\r\n", base);
-	if (base == TIMER1_BASE || base == TIMER2_BASE || base == TIMER3_BASE)
-		return (int) (offset -  *((int*) (base + VAL_OFFSET)));
-	else
-		//timer 4 works differntly, as it counts up, instead of down, so returns timer value - offset is ignored
-		//since likelyness of kernel running over 1.2 hrs is 0 at a time, only care of low 32 bits on Timer4 
-		return (int) (*((int*) (TIMER4_VALUE)) - offset) ;
+	return (unsigned int) (offset -  *((int*) (base + VAL_OFFSET)));
+
 }
 
+
+unsigned long getTicks4(long offset) {
+		//timer 4 works differntly, as it counts up, instead of down, so returns timer value - offset is ignored
+		//since likelyness of kernel running over 1.2 hrs is 0 at a time, only care of low 32 bits on Timer4 
+		return (unsigned long) (*((unsigned long*) (TIMER4_VALUE)) - offset)/983 ;
+
+
+}
 
 
