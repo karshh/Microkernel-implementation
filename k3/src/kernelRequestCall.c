@@ -418,7 +418,7 @@ int processInterrupt(kernelHandler *ks){
 			stopTimer(TIMER1_BASE);
 			clearTimerInterrupt(TIMER1_BASE); //unasserts interupt on timer (note timer still runs)
 			//startTimer(TIMER1_BASE, 508, 5084,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
-			startTimer(TIMER1_BASE, 508, 5084,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
+			startTimer(TIMER1_BASE, 508, 5085,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
 
 			clearTimerInterrupt(TIMER3_BASE); //unasserts interupt on timer (note timer still runs)
 			toggleTimer1Interrupt(0);//disables interupt on icu
