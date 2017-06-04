@@ -126,7 +126,7 @@ void kernelRun(int priority, int code) {
 	
 	message m;
 	volatile TD * task =0;
-	int old_idle;
+	int old_idle = 0;
 	while(kernel_queuePop(&ks, &task)) {
 		task->state = ACTIVE;
 		ks.activeTask = task;

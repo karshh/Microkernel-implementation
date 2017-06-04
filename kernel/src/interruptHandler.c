@@ -32,8 +32,8 @@ void initHandlers(){
 	"	msr	cpsr, #0xd3\n"
 	"	msr	spsr, r1\n"
 	"	mov	lr, r2\n"
-	"	msr	cpsr, #0xd2\n"
-        "       ldmfd   sp!, {r0-r3}\n" //save r0-r3 on SP_IRQ
+	"	msr	cpsr, #0xdf\n" 
+        "       ldmfd   sp!, {r0-r3}\n" //load r0-r3 on user task
 	"	msr	cpsr, #0xd3\n"
 	:
 	:[tdsp] "r" (td->sp)
@@ -61,9 +61,12 @@ void initHandlers(){
 
 	asm volatile(
 	"hwiHandler:\n" //in IRQ 11010010 mode
-        "       stmfd   sp!, {r0-r3}\n" //save r0-r3 on SP_IRQ
+	//instead of saving on irq save directly in user's stack
+	//gaurds against case where two tasks of same priority gets interupted before first one gets called.
+	"	msr	cpsr, #0xdf\n" //switch to system mode
+	"	stmfd	sp!, {r0-r3}\n" //save r0-r3 on user stack
+	"	msr	cpsr, #0xd2\n" //back to irq mode
         "       mov     r0, lr\n" //save IRQ_LR into r0
-
         "       mrs     r1, spsr\n" //save IRQ_SPSR into r1
         "       msr     cpsr, #0xd3\n" //switch to supervisor mode
         "       mov     lr, r0\n" //copy r0 to SVC_LR

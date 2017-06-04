@@ -29,7 +29,7 @@ void NameServerTask();
 
 typedef struct StorageNode {
 	int tid;
-	int delayTime;
+	volatile int delayTime;
 } StorageNode;
 
 typedef struct TimeStorage {
