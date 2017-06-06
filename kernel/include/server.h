@@ -55,6 +55,27 @@ FIRST USER TASK
 
 void FirstUserTask();
 
+/*****************************************************************************
+IOSERVER
+*****************************************************************************/
+
+void UART1Send_Notifier();
+
+void UART1Receive_Notifier();
+
+void UART2Send_Notifier();
+
+void UART2Receive_Notifier();
+
+#define UART1_FLAG ((int *) (UART1_BASE + UART_FLAG_OFFSET))
+#define UART2_FLAG ((int *) (UART2_BASE + UART_FLAG_OFFSET))
+#define UART1_DATA ((int *) (UART1_BASE + UART_DATA_OFFSET))
+#define UART2_DATA ((int *) (UART2_BASE + UART_DATA_OFFSET))
+
+void ioServer();
+
+
+
 #endif
 
 

@@ -52,6 +52,11 @@ int initKernel(kernelHandler * ks, int priority, int code){
 	//avait event tasks
 	ks->await_TIMER = -1;
 
+        ks->await_UART1SEND = -1;
+        ks->await_UART1RECEIVE = -1;
+        ks->await_UART2SEND = -1;
+        ks->await_UART2RECEIVE = -1;
+
 	int memOffset = (int) &(ks->taskSpace[MAX_STACKSIZE-1]);
 	memOffset = memOffset - (memOffset%16);
 	ks->memOffset = memOffset;

@@ -46,7 +46,11 @@ typedef struct kernelHandler{
 		if we need to allow mutliple, we should do something like freeHead, free tail, where we push these tasks to a
 		list/queue.
 	*/
-	volatile int await_TIMER; 
+	volatile int await_TIMER;
+	volatile int await_UART1SEND;
+	volatile int await_UART1RECEIVE;
+	volatile int await_UART2SEND;
+	volatile int await_UART2RECEIVE; 
 
 	//memm offset for user task space
 	int memOffset;

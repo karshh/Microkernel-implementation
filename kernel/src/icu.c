@@ -15,13 +15,50 @@ void toggleTimer3Interrupt(int _switch) {
 	*((int *) (VIC2_BASE + (_switch ? VIC_INT_ENABLE : VIC_INT_ENCLEAR))) |= 1 << TIMER3_INT;
 }
 
-void toggleUART1Interrupt(int _switch) {
+void toggleUART1SendInterrupt(int _switch) {
+
+         if (_switch) {
+                *((int *) (UART1_BASE + UART_CTLR_OFFSET)) |= TIEN_MASK | MSIEN_MASK;
+        } else {
+                *((int *) (UART1_BASE + UART_CTLR_OFFSET)) &= ~(TIEN_MASK | MSIEN_MASK);
+        }
+
 	*((int *) (VIC2_BASE + (_switch ? VIC_INT_ENABLE : VIC_INT_ENCLEAR))) |= 1 << UART1_INT;
 }
 
-void toggleUART2Interrupt(int _switch) {
-	*((int *) (VIC2_BASE + (_switch ? VIC_INT_ENABLE : VIC_INT_ENCLEAR))) |= 1 << UART2_INT;
+
+void toggleUART1ReceiveInterrupt(int _switch) {
+         if (_switch) {
+		*((int *) (UART1_BASE + UART_CTLR_OFFSET)) |= RIEN_MASK;
+        } else {
+		*((int *) (UART1_BASE + UART_CTLR_OFFSET)) &= ~RIEN_MASK;
+	}
+	*((int *) (VIC2_BASE + (_switch ? VIC_INT_ENABLE : VIC_INT_ENCLEAR))) |= 1 << UART1_INT;
 }
+
+
+void toggleUART2SendInterrupt(int _switch) {
+
+         if (_switch) {
+                *((int *) (UART2_BASE + UART_CTLR_OFFSET)) |= TIEN_MASK;
+        } else {
+                *((int *) (UART2_BASE + UART_CTLR_OFFSET)) &= ~TIEN_MASK;
+        }
+
+        *((int *) (VIC2_BASE + (_switch ? VIC_INT_ENABLE : VIC_INT_ENCLEAR))) |= 1 << UART2_INT;
+}
+
+
+void toggleUART2ReceiveInterrupt(int _switch) {
+         if (_switch) {
+                *((int *) (UART2_BASE + UART_CTLR_OFFSET)) |= RIEN_MASK;
+        } else {
+                *((int *) (UART2_BASE + UART_CTLR_OFFSET)) &= ~RIEN_MASK;
+        }
+        *((int *) (VIC2_BASE + (_switch ? VIC_INT_ENABLE : VIC_INT_ENCLEAR))) |= 1 << UART2_INT;
+}
+
+
 
 int checkInterrupts() {
 	//Note this works if there is only one interupt.
@@ -40,7 +77,11 @@ void disableInterrupts() {
 	toggleTimer1Interrupt(0);
 	toggleTimer2Interrupt(0);
 	toggleTimer3Interrupt(0);
-	toggleUART1Interrupt(0);
-	toggleUART2Interrupt(0);
+	toggleUART1SendInterrupt(0);
+	toggleUART1ReceiveInterrupt(0);
+        toggleUART2SendInterrupt(0);
+	toggleUART2ReceiveInterrupt(0);
+
+
 }
 

@@ -23,7 +23,11 @@
 #define MAX_STACKSIZE  1024*1024*16  // 16MBytes (space allocated for tasks
 
 typedef enum awaitEventType {
-	TIMER_TICK
+	TIMER_TICK,
+	UART1_SEND,
+	UART1_RECEIVE,
+	UART2_SEND,
+	UART2_RECEIVE
 } awaitEventType;
 
 #endif

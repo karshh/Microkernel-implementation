@@ -433,7 +433,58 @@ int processInterrupt(kernelHandler *ks){
 
 			return 1;
 		case UART1_INT:
+			
+			if (*((int*) (UART1_BASE + UART_INTR_OFFSET)) & MIS_MASK) {
+
+			} else if (*((int *) (UART1_BASE + UART_INTR_OFFSET)) & TIS_MASK) {
+				toggleUART1SendInterrupt(0);
+				if (ks->await_UART1SEND > -1) {				
+	                        	(ks->TDList[ks->await_UART1SEND]).state = ACTIVE;
+                               		kernel_queuePush(ks, &(ks->TDList[ks->await_UART1SEND]));
+                                	ks->await_UART1SEND = -1;
+				}
+
+			} else if (*((int *) (UART1_BASE + UART_INTR_OFFSET)) & RIS_MASK) {
+                                toggleUART1ReceiveInterrupt(0);
+                                if (ks->await_UART1RECEIVE > -1) {
+                                        (ks->TDList[ks->await_UART1RECEIVE]).state = ACTIVE;
+                                        kernel_queuePush(ks, &(ks->TDList[ks->await_UART1RECEIVE]));
+                                        ks->await_UART1RECEIVE = -1;
+                                }
+
+			} else if (*((int *) (UART1_BASE + UART_INTR_OFFSET)) & RTO_MASK) {
+			
+			} else {
+
+			} 
+			return 1;
+			break;
 		case UART2_INT:
+			
+                        if (*((int*)(UART2_BASE + UART_INTR_OFFSET)) & MIS_MASK) {
+                        
+			} else if (*((int*)(UART2_BASE + UART_INTR_OFFSET)) & TIS_MASK) {
+				toggleUART2SendInterrupt(0);
+                                if (ks->await_UART2SEND > -1) {
+                                        (ks->TDList[ks->await_UART2SEND]).state = ACTIVE;
+                                        kernel_queuePush(ks, &(ks->TDList[ks->await_UART2SEND]));
+                                        ks->await_UART2SEND = -1;
+                                }
+			
+                        } else if (*((int*)(UART2_BASE + UART_INTR_OFFSET)) & RIS_MASK) {
+				toggleUART2ReceiveInterrupt(0);
+                                if (ks->await_UART2RECEIVE > -1) {
+                                        (ks->TDList[ks->await_UART2RECEIVE]).state = ACTIVE;
+                                        kernel_queuePush(ks, &(ks->TDList[ks->await_UART2RECEIVE]));
+                                        ks->await_UART2RECEIVE = -1;
+                                }
+                        } else if (*((int*)(UART2_BASE + UART_INTR_OFFSET)) & RTO_MASK) {
+
+                        } else {
+	
+                        }
+			return 1;
+			break;
 		default:
 			return 0;
 			break;
@@ -456,7 +507,7 @@ int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
 				ks->clockNotifierTaskRunning = 0;
 			}
 */
-			bwassert(ks->await_TIMER  == -1, COM2, "Another task is waiting on this event: %d.\r\n", ks->await_TIMER);
+			bwassert(ks->await_TIMER  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_TIMER.\r\n", t->TID, ks->await_TIMER);
 			//put state into event blocked 
 		//	bwprintf(COM2, "Kernel: Blocking TD %d...\r\n", t->TID);
 			t->state = EVENT_BLOCKED;
@@ -470,11 +521,44 @@ int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
 			// so the the task will wait until next tick <= 10 ms.
 			return 1;
 			break;
+		case UART1_SEND:
+                        bwassert(ks->await_UART1SEND  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_UART1SEND.\r\n", t->TID, ks->await_UART1SEND);
+			t->state = EVENT_BLOCKED;
+			ks->await_UART1SEND = t->TID;
+			toggleUART1SendInterrupt(1);
+			return 1;
+			break;
+
+		case UART1_RECEIVE:
+                        bwassert(ks->await_UART1RECEIVE  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_UART1RECEIVE.\r\n", t->TID, ks->await_UART1RECEIVE);
+
+                        t->state = EVENT_BLOCKED;
+                        ks->await_UART1RECEIVE = t->TID;
+                        toggleUART1ReceiveInterrupt(1);
+			return 1;			
+			break;
+
+		case UART2_SEND:
+                        bwassert(ks->await_UART2SEND  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_UART2SEND.\r\n", t->TID, ks->await_UART2SEND);
+
+                        t->state = EVENT_BLOCKED;
+                        ks->await_UART2SEND = t->TID;
+                        toggleUART2SendInterrupt(1);
+			return 1;
+			break;
+
+		case UART2_RECEIVE:
+                        bwassert(ks->await_UART2RECEIVE  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_UART2RECEIVE.\r\n", t->TID, ks->await_UART2RECEIVE);
+
+			t->state = EVENT_BLOCKED;
+                        ks->await_UART2RECEIVE = t->TID;
+                        toggleUART2ReceiveInterrupt(1);
+			return 1;
+			break;
 		default:
 			t->reqVal = -1; //invalid event
 			break;
 	}
-	return 1;
-
+	return 0;
 
 }
