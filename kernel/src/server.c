@@ -275,25 +275,23 @@ IOSERVER
 *****************************************************************************/
 
 void UART1Send_Notifier() {
-		bwprintf(COM2, "UART1Send_Notifier created!\r\n");
 	int iosTID = MyParentTid();
-		bwprintf(COM2, "UART1Send_Notifier TID is %d!\r\n", MyTid());
-        char msg[3];
-        int msgLen = 3;
+	int clockTID = WhoIs("clockServer");
+    char msg[3];
+    int msgLen = 3;
 
 	while(1) {
 		AwaitEvent(UART1_SEND);
 		bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART1Send_Notifier>: Error with send.\r\n");
+		Delay(clockTID, 1);
 	}
 }
 
 
 void UART1Receive_Notifier() {
-		bwprintf(COM2, "UART1Receive_Notifier created!\r\n");
-        int iosTID = MyParentTid();
-		bwprintf(COM2, "UART1Receive_Notifier TID is %d!\r\n", MyTid());
-        char msg[3];
-        int msgLen = 3;
+    int iosTID = MyParentTid();
+    char msg[3];
+    int msgLen = 3;
 
 	while(1) {
         AwaitEvent(UART1_RECEIVE);
@@ -303,25 +301,23 @@ void UART1Receive_Notifier() {
 
 
 void UART2Send_Notifier() {
-		bwprintf(COM2, "UART2Send_Notifier created!\r\n");
-		int iosTID = MyParentTid();
-		bwprintf(COM2, "UART2Send_Notifier TID is %d!\r\n", MyTid());
-        char msg[3];
-        int msgLen = 3;
+	int iosTID = MyParentTid();
+	int clockTID = WhoIs("clockServer");
+    char msg[3];
+    int msgLen = 3;
 
 	while(1) {
 		AwaitEvent(UART2_SEND);
 		bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART2Send_Notifier>: Error with send.\r\n");
+		Delay(clockTID, 1);
 	}
 }
 
 
 void UART2Receive_Notifier() {
-		bwprintf(COM2, "UART2Receive_Notifier created!\r\n");
-		int iosTID = MyParentTid();
-		bwprintf(COM2, "UART2Receive_Notifier TID is %d!\r\n", MyTid());
-        char msg[3];
-        int msgLen = 3;
+	int iosTID = MyParentTid();
+    char msg[3];
+    int msgLen = 3;
 
 	while(1) {
 		AwaitEvent(UART2_RECEIVE);
@@ -344,10 +340,10 @@ void ioServer() {
 	circularBufferInit(&UART2_receiveQ);
 	
 	// create notifier tasks
-	volatile int UART1Send_TID = -1;//Create(1, (void *) UART1Send_Notifier);
-	volatile int UART1Receive_TID = -1;//Create(1, (void *) UART1Receive_Notifier);
+	volatile int UART1Receive_TID = Create(1, (void *) UART1Receive_Notifier);
 	volatile int UART2Receive_TID = Create(1, (void *) UART2Receive_Notifier);
 	volatile int UART2Send_TID = Create(1, (void *) UART2Send_Notifier);
+	volatile int UART1Send_TID = Create(1, (void *) UART1Send_Notifier);
 	
 	// initialize message buffers
 
@@ -362,14 +358,17 @@ void ioServer() {
 	while(1) {
 		bwassert(Receive(&_tid, msg, msgCap) >= 0, COM2, "<ioServer>: Receive error.\r\n");
 		if (_tid == UART1Send_TID) {
-			if (!(*UART1_FLAG & TXFF_MASK) && (*UART1_FLAG & CTS_MASK) && getFromBuffer((BUFFER_TYPE *) &c, &UART1_sendQ)) *UART1_DATA = c;
+			if ((*(UART1_FLAG) & TXFE_MASK)/* && (*UART1_FLAG & CTS_MASK)*/ && getFromBuffer((BUFFER_TYPE *) (&c), &UART1_sendQ)) *UART1_DATA = (int) c;
             c = 0;
             Reply(_tid, "1", 2);
 		
 		} else if (_tid == UART1Receive_TID) {
 			if (*UART1_FLAG & RXFF_MASK) {
             	c = *UART1_DATA;
-            	addToBuffer((BUFFER_TYPE) c, &UART1_receiveQ);
+            	if (c) {
+            		Delay(clockServer_TID, 1);
+            		addToBuffer((BUFFER_TYPE) c, &UART1_receiveQ);
+            	}
             }
             c = 0;
             Reply(_tid, "1", 2);
@@ -394,16 +393,15 @@ void ioServer() {
 		} else {
 			 switch((int) msg[0]) {
 	            case 10: // UART1 Getc
-	                getFromBuffer((BUFFER_TYPE *) &c, &UART1_receiveQ);
-	                reply[0] = c;
+	                reply[0] = getFromBuffer((BUFFER_TYPE *) (&c), &UART1_receiveQ) ? (char) c : 0;
 	                reply[1] = 0;
 	                Reply(_tid, reply, 2);
 	                c = 0;
 	                break;
 
 	            case 11: // UART1 Putc
-	                c = msg[1];
-	                addToBuffer((BUFFER_TYPE) c, &UART1_sendQ);
+	                c = (int) msg[1];
+	                if (c) bwassert(addToBuffer((BUFFER_TYPE) c, &UART1_sendQ), COM2, "<IOServer>: Buffer full. Could not add %d\r\n", c);
 	                Reply(_tid, "1", 2);
 	                c = 0;
 	                break;

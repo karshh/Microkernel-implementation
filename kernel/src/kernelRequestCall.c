@@ -477,40 +477,34 @@ int processInterrupt(kernelHandler *ks){
 
 	if (x & 0x8) {
 		// UART1
-		intrVal = *((int *) UART1_BASE + UART_INTR_OFFSET);
-		if (intrVal & MIS_MASK) *((int *) (UART1_BASE + UART_INTR_OFFSET)) = 1;
+		intrVal = *((int *) (UART1_BASE + UART_INTR_OFFSET));
+		*((int *) (UART1_BASE + UART_INTR_OFFSET)) = 1;
 
 		if (intrVal & TIS_MASK) {
-			if (ks->await_UART1SEND > -1) {				
-            	(ks->TDList[ks->await_UART1SEND]).state = ACTIVE;
-           		kernel_queuePush(ks, &(ks->TDList[ks->await_UART1SEND]));
-            	ks->await_UART1SEND = -1;
-			}
+			toggleUART1SendInterrupt(0);
+    		if (ks->await_UART1SEND > -1) {
+            		(ks->TDList[ks->await_UART1SEND]).state = ACTIVE;
+            		kernel_queuePush(ks, &(ks->TDList[ks->await_UART1SEND]));
+            		ks->await_UART1SEND = -1;
+    		}
 
-		} 
+		}
+
 		if (intrVal & RIS_MASK) {
-    		toggleUART1ReceiveInterrupt(0);
+			toggleUART1ReceiveInterrupt(0);
     		if (ks->await_UART1RECEIVE > -1) {
             		(ks->TDList[ks->await_UART1RECEIVE]).state = ACTIVE;
             		kernel_queuePush(ks, &(ks->TDList[ks->await_UART1RECEIVE]));
             		ks->await_UART1RECEIVE = -1;
     		}
-
 		}
 
 	}
 	if (x & 0x10) {
 		// UART2
 
-		//bwprintf(COM2,"Got the following interrupt from UART2: %x \n\r", *(((int *)UART2_BASE) + UART_INTR_OFFSET));
 		intrVal = *((int *) (UART2_BASE + UART_INTR_OFFSET));
 		*((int *) (UART2_BASE + UART_INTR_OFFSET)) = 1;
-		
-
-		//bwprintf(COM2,"Got the following interrupt: %x \n\r", x);
-		//bwprintf(COM2, "intrVal=%x\tintrVal & MIS_MASK=%x\tintrVal & TIS_MASK=%x\tintrVal & RIS_MASK=%x\r\n",
-		//intrVal, intrVal & MIS_MASK, intrVal & TIS_MASK, intrVal & RIS_MASK);
-        //if 	(intrVal & MIS_MASK) *((int *) (UART2_BASE + UART_INTR_OFFSET)) = 1;
 
 		if (intrVal & TIS_MASK) {
 			toggleUART2SendInterrupt(0);
@@ -524,9 +518,6 @@ int processInterrupt(kernelHandler *ks){
 		
 		if (intrVal & RIS_MASK) {
 			toggleUART2ReceiveInterrupt(0);
-			//bwprintf(COM2,"Got the following interrupt: %x \n\r", x);
-			//bwprintf(COM2, "intrVal=%x\tintrVal & MIS_MASK=%x\tintrVal & TIS_MASK=%x\tintrVal & RIS_MASK=%x\r\n",
-			//intrVal, intrVal & MIS_MASK, intrVal & TIS_MASK, intrVal & RIS_MASK);
     		if (ks->await_UART2RECEIVE > -1) {
             		(ks->TDList[ks->await_UART2RECEIVE]).state = ACTIVE;
             		kernel_queuePush(ks, &(ks->TDList[ks->await_UART2RECEIVE]));
@@ -574,6 +565,7 @@ int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
 			t->state = EVENT_BLOCKED;
 			ks->await_UART1SEND = t->TID;
 			toggleUART1SendInterrupt(1);
+
 			return 1;
 			break;
 
@@ -583,6 +575,7 @@ int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
             t->state = EVENT_BLOCKED;
             ks->await_UART1RECEIVE = t->TID;
             toggleUART1ReceiveInterrupt(1);
+
 			return 1;			
 			break;
 
@@ -592,9 +585,7 @@ int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
             t->state = EVENT_BLOCKED;
             ks->await_UART2SEND = t->TID;
             toggleUART2SendInterrupt(1);
-			//bwprintf(COM2, "<AwaitEvent>: Task %d is now waiting on UART2_SEND\r\n", t->TID);
 
-            //*((int *) (UART2_BASE + UART_INTR_OFFSET)) = 1;
 			return 1;
 			break;
 
@@ -603,6 +594,7 @@ int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
 			t->state = EVENT_BLOCKED;
             ks->await_UART2RECEIVE = t->TID;
             toggleUART2ReceiveInterrupt(1);
+
 			return 1;
 			break;
 		default:

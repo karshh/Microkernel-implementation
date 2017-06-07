@@ -392,7 +392,7 @@ void testTaskIO1() {
     Create(3, (void *) FirstUserTask);
 
     int iosTID = WhoIs("ioServer");
-    int nameTID = WhoIs("nameServer");
+    //int nameTID = WhoIs("nameServer");
     Putc(iosTID, COM2, 'h');
     Putc(iosTID, COM2, 'e');
     Putc(iosTID, COM2, 'l');
@@ -404,11 +404,8 @@ void testTaskIO1() {
     Putc(iosTID, COM2, 'l');
     Putc(iosTID, COM2, 'd');
     //Delay(WhoIs("nameServer"), 50);
-    volatile char c = 0;
     while (1) {
-    c = Getc(iosTID, COM2);
-    Delay(nameTID, 1);
-    Putc(iosTID, COM2, c);
+        Putc(iosTID, COM2, Getc(iosTID, COM2));
     }
 
     Exit();
