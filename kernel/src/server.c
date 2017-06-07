@@ -165,7 +165,6 @@ void clockNotifier() {
 
 void clockServer() {
 	bwassert(!RegisterAs("clockServer"), COM2, "Failed to register clockServer.\r\n");
-	Create(31, (void *) idleTask);
 	int notifierTID = Create(1, (void *) clockNotifier);
 	StorageNode s;
 	TimeStorage t;
@@ -259,8 +258,14 @@ FIRST USER TASK
 
 
 void FirstUserTask() {
-	CreateNameServer(2, (void *) NameServerTask);
+    bwprintf(COM2, "Creating nameServer...\r\n");
+	CreateNameServer(1, (void *) NameServerTask);
+    bwprintf(COM2, "Creating clockServer...\r\n");
 	CreateClockServer(2, (void *) clockServer);
+    bwprintf(COM2, "Creating idleTask...\r\n");
+	Create(31, (void *) idleTask);
+    bwprintf(COM2, "Creating ioServer...\r\n");
+	CreateIOServer(2, (void *) ioServer);
 	Exit();
 }
 
@@ -270,54 +275,63 @@ IOSERVER
 *****************************************************************************/
 
 void UART1Send_Notifier() {
+		bwprintf(COM2, "UART1Send_Notifier created!\r\n");
 	int iosTID = MyParentTid();
+		bwprintf(COM2, "UART1Send_Notifier TID is %d!\r\n", MyTid());
         char msg[3];
         int msgLen = 3;
 
 	while(1) {
 		AwaitEvent(UART1_SEND);
-		Send(iosTID, "1", 2, msg, msgLen);
+		bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART1Send_Notifier>: Error with send.\r\n");
 	}
 }
 
 
 void UART1Receive_Notifier() {
+		bwprintf(COM2, "UART1Receive_Notifier created!\r\n");
         int iosTID = MyParentTid();
+		bwprintf(COM2, "UART1Receive_Notifier TID is %d!\r\n", MyTid());
         char msg[3];
         int msgLen = 3;
 
 	while(1) {
-                AwaitEvent(UART1_RECEIVE);
-                Send(iosTID, "1", 2, msg, msgLen);
+        AwaitEvent(UART1_RECEIVE);
+		bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART1Receive_Notifier>: Error with send.\r\n");
 	}
 }
 
 
 void UART2Send_Notifier() {
-	int iosTID = MyParentTid();
+		bwprintf(COM2, "UART2Send_Notifier created!\r\n");
+		int iosTID = MyParentTid();
+		bwprintf(COM2, "UART2Send_Notifier TID is %d!\r\n", MyTid());
         char msg[3];
         int msgLen = 3;
 
 	while(1) {
 		AwaitEvent(UART2_SEND);
-		Send(iosTID, "1", 2, msg, msgLen);
+		bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART2Send_Notifier>: Error with send.\r\n");
 	}
 }
 
 
 void UART2Receive_Notifier() {
-	int iosTID = MyParentTid();
+		bwprintf(COM2, "UART2Receive_Notifier created!\r\n");
+		int iosTID = MyParentTid();
+		bwprintf(COM2, "UART2Receive_Notifier TID is %d!\r\n", MyTid());
         char msg[3];
         int msgLen = 3;
 
 	while(1) {
 		AwaitEvent(UART2_RECEIVE);
-		Send(iosTID, "1", 2, msg, msgLen);
+		bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART2Receive_Notifier>: Error with send.\r\n");
 	}
 }
 
 void ioServer() {
- 	
+	bwassert(!RegisterAs("ioServer"), COM2, "Failed to register ioServer.\r\n");
+ 	int clockServer_TID = WhoIs("clockServer");
 	// create and init circular buffer queues.
 	circularBuffer UART1_sendQ;
 	circularBuffer UART1_receiveQ;
@@ -330,75 +344,88 @@ void ioServer() {
 	circularBufferInit(&UART2_receiveQ);
 	
 	// create notifier tasks
-	volatile int UART1Send_TID = Create(1, (void *) UART1Send_Notifier);
-	volatile int UART1Receive_TID = Create(1, (void *) UART1Receive_Notifier);
-	volatile int UART2Send_TID = Create(1, (void *) UART2Send_Notifier);
+	volatile int UART1Send_TID = -1;//Create(1, (void *) UART1Send_Notifier);
+	volatile int UART1Receive_TID = -1;//Create(1, (void *) UART1Receive_Notifier);
 	volatile int UART2Receive_TID = Create(1, (void *) UART2Receive_Notifier);
+	volatile int UART2Send_TID = Create(1, (void *) UART2Send_Notifier);
 	
 	// initialize message buffers
 
-        int _tid = -1;
-        char msg[7];
-        int msgCap = 7;
-        char reply[6];
-	char c = 0;
+    int _tid = -1;
+    char msg[7];
+    int msgCap = 7;
+    char reply[6];
+	volatile int c = 0;
 
+	//bwprintf(COM2, "<ioServer> Entering receive mode!\r\n");
 	// for now, using bwputc and bwgetc for test purposes just to test every other component of kernel except io. Change this later.
 	while(1) {
 		bwassert(Receive(&_tid, msg, msgCap) >= 0, COM2, "<ioServer>: Receive error.\r\n");
 		if (_tid == UART1Send_TID) {
 			if (!(*UART1_FLAG & TXFF_MASK) && (*UART1_FLAG & CTS_MASK) && getFromBuffer((BUFFER_TYPE *) &c, &UART1_sendQ)) *UART1_DATA = c;
-                        Reply(_tid, "1", 2);
+            c = 0;
+            Reply(_tid, "1", 2);
 		
 		} else if (_tid == UART1Receive_TID) {
 			if (*UART1_FLAG & RXFF_MASK) {
-                        	c = *UART1_DATA;
-                        	addToBuffer((BUFFER_TYPE) c, &UART1_receiveQ);
-                        }
-                        Reply(_tid, "1", 2);
+            	c = *UART1_DATA;
+            	addToBuffer((BUFFER_TYPE) c, &UART1_receiveQ);
+            }
+            c = 0;
+            Reply(_tid, "1", 2);
 
 		} else if (_tid == UART2Send_TID) {
-			if (!(*UART2_FLAG & TXFF_MASK) && (*UART2_FLAG & CTS_MASK) && getFromBuffer((BUFFER_TYPE *) &c, &UART2_sendQ)) *UART2_DATA = c;
-                        Reply(_tid, "1", 2);
+			if ((*(UART2_FLAG) & TXFE_MASK)/* && (*UART2_FLAG & CTS_MASK)*/ && getFromBuffer((BUFFER_TYPE *) (&c), &UART2_sendQ)) *UART2_DATA = (int) c;
+            c = 0;
+            Reply(_tid, "1", 2);
+
 
 		} else if (_tid == UART2Receive_TID) {
 			if (*UART2_FLAG & RXFF_MASK) {
-                        	c = *UART2_DATA;
-                        	addToBuffer((BUFFER_TYPE) c, &UART2_receiveQ);
-                        }
-                        Reply(_tid, "1", 2);
+            	c = *UART2_DATA;
+            	if (c) {
+            		Delay(clockServer_TID, 1);
+            		addToBuffer((BUFFER_TYPE) c, &UART2_receiveQ);
+            	}
+            }
+            c = 0;
+            Reply(_tid, "1", 2);
 
 		} else {
 			 switch((int) msg[0]) {
-                                case 10: // UART1 Getc
-                                        getFromBuffer((BUFFER_TYPE *) &c, &UART1_receiveQ);
-                                        reply[0] = c;
-                                        reply[1] = 0;
-                                        Reply(_tid, reply, 2);
-                                        break;
-                                case 11: // UART1 Putc
-                                        c = msg[1];
-                                        addToBuffer((BUFFER_TYPE) c, &UART1_sendQ);
-                                        Reply(_tid, "1", 2);
-                                        break;
+	            case 10: // UART1 Getc
+	                getFromBuffer((BUFFER_TYPE *) &c, &UART1_receiveQ);
+	                reply[0] = c;
+	                reply[1] = 0;
+	                Reply(_tid, reply, 2);
+	                c = 0;
+	                break;
 
-                                case 20: // UART2 Getc
-                                        getFromBuffer((BUFFER_TYPE *) &c, &UART2_receiveQ);
-                                        reply[0] = c;
-                                        reply[1] = 0;
-                                        Reply(_tid, reply, 2);
-                                        break;
+	            case 11: // UART1 Putc
+	                c = msg[1];
+	                addToBuffer((BUFFER_TYPE) c, &UART1_sendQ);
+	                Reply(_tid, "1", 2);
+	                c = 0;
+	                break;
 
-                                case 21: // UART2 Putc
-                                        c = msg[1];
-                                        addToBuffer((BUFFER_TYPE) c, &UART2_sendQ);
-                                        Reply(_tid, "1", 2);
-                                        break;
+	            case 20: // UART2 Getc
+	                reply[0] = getFromBuffer((BUFFER_TYPE *) (&c), &UART2_receiveQ) ? (char) c : 0;
+	                reply[1] = 0;
+	                Reply(_tid, reply, 2);
+	                c = 0;
+	                break;
 
-                                default:
-                                        bwassert(0, COM2, "<ioServer>: Illegal request code from userTask <%d>.\r\n", _tid);
-                                        break;
-                        }
+	            case 21: // UART2 Putc
+	                c = (int) msg[1];
+	                if (c) bwassert(addToBuffer((BUFFER_TYPE) c, &UART2_sendQ), COM2, "<IOServer>: Buffer full. Could not add %d\r\n", c);
+	                Reply(_tid, "1", 2);
+	                c = 0;
+	                break;
+
+	            default:
+	                bwassert(0, COM2, "<ioServer>: Illegal request code from userTask <%d>.\r\n", _tid);
+	                break;
+        }
 
 		}
 

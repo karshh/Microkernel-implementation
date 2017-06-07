@@ -10,6 +10,7 @@ typedef enum requestType {
 	CREATE,
 	CREATENAMESERVER,
 	CREATECLOCKSERVER,
+	CREATEIOSERVER,
 	PASS,
 	EXIT,
 	SEND,
@@ -19,9 +20,8 @@ typedef enum requestType {
 	REGISTER,
 	AWAITEVENT,
 	INTERRUPT,
-	DELAY,
-	TIME,
-	DELAYUNTIL
+	CLOCK,
+	IO
 } requestType;
 
 typedef struct request{

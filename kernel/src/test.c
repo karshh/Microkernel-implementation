@@ -387,6 +387,35 @@ void taskTestInt2(){
 }
 
 
+void testTaskIO1() {
+
+    Create(3, (void *) FirstUserTask);
+
+    int iosTID = WhoIs("ioServer");
+    int nameTID = WhoIs("nameServer");
+    Putc(iosTID, COM2, 'h');
+    Putc(iosTID, COM2, 'e');
+    Putc(iosTID, COM2, 'l');
+    Putc(iosTID, COM2, 'l');
+    Putc(iosTID, COM2, 'o');
+    Putc(iosTID, COM2, 'w');
+    Putc(iosTID, COM2, 'o');
+    Putc(iosTID, COM2, 'r');
+    Putc(iosTID, COM2, 'l');
+    Putc(iosTID, COM2, 'd');
+    //Delay(WhoIs("nameServer"), 50);
+    volatile char c = 0;
+    while (1) {
+    c = Getc(iosTID, COM2);
+    Delay(nameTID, 1);
+    Putc(iosTID, COM2, c);
+    }
+
+    Exit();
+
+
+}
+
 int main(void) {
     // turning on data and instruction cache.
      asm volatile (
@@ -394,7 +423,6 @@ int main(void) {
         "ORR r0, r0, #0x1 <<12 \n"
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
-     
-	kernelRun(2,(int) clockServer);
+	kernelRun(4,(int) testTaskIO1);
 	return 0;
 }

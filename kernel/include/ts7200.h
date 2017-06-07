@@ -48,6 +48,7 @@
 	#define VIC_VECT_ADDR		0x30
 
 // VIC1 offsets.
+
 #define TIMER1_INT			0x04
 #define TIMER2_INT			0x05
 
@@ -102,7 +103,7 @@
 	#define MIS_MASK	0x1	// CTS/Modem
 	#define RIS_MASK	0x2	// Receive
 	#define TIS_MASK	0x4	// Transmit
-	#define RTO_MASK	0x8	// Receive timeout
+	#define RTIS_MASK	0x8	// Receive timeout
 #define UART_DMAR_OFFSET	0x28
 
 // Specific to UART1

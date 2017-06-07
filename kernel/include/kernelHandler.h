@@ -27,6 +27,7 @@ typedef struct kernelHandler{
 
 	volatile int nameServer; //k2
 	volatile int clockServer;//k3
+	volatile int ioServer;//k4
 
 	volatile int idleTaskRunning;//k3
 	volatile int clockTaskRunning;//k3

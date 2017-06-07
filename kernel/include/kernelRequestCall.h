@@ -21,6 +21,8 @@ int kernel_CreateNameServer(TD * t, request * r, kernelHandler * ks);
 
 int kernel_CreateClockServer(TD * t, request * r, kernelHandler * ks);
 
+int kernel_CreateIOServer(TD * t, request * r, kernelHandler * ks);
+
 int kernel_MyTid(TD * t);
 
 int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks);
@@ -42,6 +44,8 @@ int kernel_Receive(TD * t, request * r, kernelHandler * ks, message * m);
 int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m);
 
 int kernel_RequestClockServer(TD * t, request * r, kernelHandler * ks, message * m);
+
+int kernel_RequestIOServer(TD * t, request * r, kernelHandler * ks, message * m);
 
 void kernelTestRun();
 

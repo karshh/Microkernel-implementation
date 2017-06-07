@@ -10,6 +10,8 @@ int CreateNameServer( int priority, void (*code));
 
 int CreateClockServer( int priority, void (*code));
 
+int CreateIOServer( int priority, void (*code));
+
 int MyTid( );
 
 int MyParentTid( );
@@ -35,5 +37,9 @@ int Delay(int tid, int ticks);
 int Time(int tid);
 
 int DelayUntil(int tid, int ticks);
+
+char Getc(int tid, int uart);
+
+int Putc(int tid, int uart, char ch);
 
 #endif

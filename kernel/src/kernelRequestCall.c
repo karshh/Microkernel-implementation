@@ -28,11 +28,16 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 	case(CREATENAMESERVER):
 		return kernel_CreateNameServer(t,r,ks);
 		break;
+	case(CREATEIOSERVER):
+		return kernel_CreateIOServer(t, r, ks);
+		break;
 	case(PASS):
 		return kernel_Pass(t);
 		break;
 	case(EXIT):
 		if( t->TID == ks->nameServer) ks->nameServer = -1;
+		if( t->TID == ks->ioServer) ks->ioServer = -1;
+		if( t->TID == ks->clockServer) ks->clockServer = -1;
 		return kernel_Exit(t);
 		break;
 	case(SEND):
@@ -56,14 +61,11 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 	case(AWAITEVENT):
 		return kernel_AwaitEvent(t,r,ks);
 		break;
-	case(DELAY):
+	case(CLOCK):
 		return kernel_RequestClockServer(t,r,ks,m);
 		break;
-	case(TIME):
-		return kernel_RequestClockServer(t,r,ks, m);
-		break;
-	case(DELAYUNTIL):
-		return kernel_RequestClockServer(t,r,ks, m);
+	case(IO):
+		return kernel_RequestIOServer(t,r,ks,m);
 		break;
 	default:
 		break;
@@ -85,6 +87,16 @@ int kernel_RequestClockServer(TD * t, request * r, kernelHandler * ks, message *
 
 	return kernel_Send(t, r, ks, m);
 }
+
+int kernel_RequestIOServer(TD * t, request * r, kernelHandler * ks, message * m) {
+	if (ks->ioServer == -1 || (ks->ioServer != ((int) r->arg1))) {
+		t->reqVal = -1;
+		return 1;
+	}
+
+	return kernel_Send(t, r, ks, m);
+}
+
 
 
 int kernel_MyTid(TD * t) {
@@ -179,6 +191,40 @@ int kernel_CreateClockServer(TD * t, request * r, kernelHandler * ks){
 
 
 }
+
+int kernel_CreateIOServer(TD * t, request * r, kernelHandler * ks) {
+	int priority =(int) r->arg1;
+	if (priority <0 || priority >31){
+		 //change to 
+		t->reqVal = -1;
+	}else if(ks->ioServer != -1 && ks->TDList[ks->ioServer].state != ZOMBIE){
+		t->reqVal = -3; //-3 if clock servre exists
+		//check if there exists a living clockserver;
+	}else{
+	
+		int TID  =0;
+		//int err = getNextTID(ks, &(t->reqVal));
+		int err = getNextTID(ks, &(TID));
+		//got a live child
+		if (err) 
+		{ t->reqVal  = -2;}
+		else{
+		t->reqVal= TID;
+		int code =(int) r->arg2;
+			
+		int PTID = t->TID;
+		TD * childTD = setTask(ks,TID, PTID,priority,code);   //if TID == , it is created by kernel
+	//	kernel_queuePush(ks, childTD);
+		 kernel_queuePush(ks, childTD);
+		//set name sever;
+		ks->ioServer = TID;
+		}
+	}
+	return 1;
+
+
+}
+
 
 
 
@@ -387,112 +433,114 @@ int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue
 }
 
 int processInterrupt(kernelHandler *ks){
-	// bwprintf(COM2,"Processing request \n\r");
+	//bwprintf(COM2,"Processing request \n\r");
+	volatile int intrVal = 0;
 	volatile int x = checkInterrupts();
-	switch(x) {
-		case TIMER1_INT:
-		//	bwprintf(COM2, "Kernel: TIMER 1 INTERRUPT, BITCHES\r\n");
-		//	bwprintf(COM2, "Kernel: Currently listening TID: %d\r\n", ks->await_TIMER);
-		//	bwprintf(COM2, "Kernel: Stopping Timer1.\r\n");
-		//	stopTimer(TIMER1_BASE); //don't stop it, but let it run 
-			toggleTimer1Interrupt(0);//disables interupt on icu
-			clearTimerInterrupt(TIMER1_BASE); //unasserts interupt on timer (note timer still runs)
-			if (ks->await_TIMER > -1) {
-				(ks->TDList[ks->await_TIMER]).state = ACTIVE;
-				kernel_queuePush(ks, &(ks->TDList[ks->await_TIMER]));
-				ks->await_TIMER = -1;
+	if (x & 0x1) {
+		// TIMER3
+		//timer 3 used to correct for clock skew on timer 1.
+		//without it clock skews by more than 1 tick every 1 minute 40 seconds
+		stopTimer(TIMER1_BASE);
+		clearTimerInterrupt(TIMER1_BASE); //unasserts interupt on timer (note timer still runs)
+		//startTimer(TIMER1_BASE, 508, 5084,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
+		startTimer(TIMER1_BASE, 508, 5085,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
+
+		clearTimerInterrupt(TIMER3_BASE); //unasserts interupt on timer (note timer still runs)
+		toggleTimer1Interrupt(0);//disables interupt on icu
+		clearTimerInterrupt(TIMER1_BASE); //unasserts interupt on timer (note timer still runs)
+		if (ks->await_TIMER > -1) {
+			(ks->TDList[ks->await_TIMER]).state = ACTIVE;
+			kernel_queuePush(ks, &(ks->TDList[ks->await_TIMER]));
+			ks->await_TIMER = -1;
+		}
+		return 1;
+	}
+
+	if (x & 0x2) {
+		// TIMER1
+		toggleTimer1Interrupt(0);//disables interupt on icu
+		clearTimerInterrupt(TIMER1_BASE); //unasserts interupt on timer (note timer still runs)
+		if (ks->await_TIMER > -1) {
+			(ks->TDList[ks->await_TIMER]).state = ACTIVE;
+			kernel_queuePush(ks, &(ks->TDList[ks->await_TIMER]));
+			ks->await_TIMER = -1;
+		}
+	}
+
+	if (x & 0x4) {
+		// TIMER2
+		stopTimer(TIMER2_BASE);
+		clearTimerInterrupt(TIMER2_BASE);
+		bwprintf(COM2, "TIMER 2 INTERRUPT, BITCHES\r\n");
+		startTimer(TIMER2_BASE, 508, 5080,PERIODIC);
+	}
+
+	if (x & 0x8) {
+		// UART1
+		intrVal = *((int *) UART1_BASE + UART_INTR_OFFSET);
+		if (intrVal & MIS_MASK) *((int *) (UART1_BASE + UART_INTR_OFFSET)) = 1;
+
+		if (intrVal & TIS_MASK) {
+			if (ks->await_UART1SEND > -1) {				
+            	(ks->TDList[ks->await_UART1SEND]).state = ACTIVE;
+           		kernel_queuePush(ks, &(ks->TDList[ks->await_UART1SEND]));
+            	ks->await_UART1SEND = -1;
 			}
 
-			return 1;
-			break;
-		case TIMER2_INT:
-			stopTimer(TIMER2_BASE);
-			clearTimerInterrupt(TIMER2_BASE);
-			bwprintf(COM2, "TIMER 2 INTERRUPT, BITCHES\r\n");
-			startTimer(TIMER2_BASE, 508, 5080,PERIODIC);
-			return 1;
-			break;
-		case TIMER3_INT:
-			//timer 3 used to correct for clock skew on timer 1.
-			//without it clock skews by more than 1 tick every 1 minute 40 seconds
-			stopTimer(TIMER1_BASE);
-			clearTimerInterrupt(TIMER1_BASE); //unasserts interupt on timer (note timer still runs)
-			//startTimer(TIMER1_BASE, 508, 5084,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
-			startTimer(TIMER1_BASE, 508, 5085,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
+		} 
+		if (intrVal & RIS_MASK) {
+    		toggleUART1ReceiveInterrupt(0);
+    		if (ks->await_UART1RECEIVE > -1) {
+            		(ks->TDList[ks->await_UART1RECEIVE]).state = ACTIVE;
+            		kernel_queuePush(ks, &(ks->TDList[ks->await_UART1RECEIVE]));
+            		ks->await_UART1RECEIVE = -1;
+    		}
 
-			clearTimerInterrupt(TIMER3_BASE); //unasserts interupt on timer (note timer still runs)
-			toggleTimer1Interrupt(0);//disables interupt on icu
-			clearTimerInterrupt(TIMER1_BASE); //unasserts interupt on timer (note timer still runs)
-			if (ks->await_TIMER > -1) {
-				(ks->TDList[ks->await_TIMER]).state = ACTIVE;
-				kernel_queuePush(ks, &(ks->TDList[ks->await_TIMER]));
-				ks->await_TIMER = -1;
-			}
-
-
-
-			return 1;
-		case UART1_INT:
-			
-			if (*((int*) (UART1_BASE + UART_INTR_OFFSET)) & MIS_MASK) {
-
-			} else if (*((int *) (UART1_BASE + UART_INTR_OFFSET)) & TIS_MASK) {
-				toggleUART1SendInterrupt(0);
-				if (ks->await_UART1SEND > -1) {				
-	                        	(ks->TDList[ks->await_UART1SEND]).state = ACTIVE;
-                               		kernel_queuePush(ks, &(ks->TDList[ks->await_UART1SEND]));
-                                	ks->await_UART1SEND = -1;
-				}
-
-			} else if (*((int *) (UART1_BASE + UART_INTR_OFFSET)) & RIS_MASK) {
-                                toggleUART1ReceiveInterrupt(0);
-                                if (ks->await_UART1RECEIVE > -1) {
-                                        (ks->TDList[ks->await_UART1RECEIVE]).state = ACTIVE;
-                                        kernel_queuePush(ks, &(ks->TDList[ks->await_UART1RECEIVE]));
-                                        ks->await_UART1RECEIVE = -1;
-                                }
-
-			} else if (*((int *) (UART1_BASE + UART_INTR_OFFSET)) & RTO_MASK) {
-			
-			} else {
-
-			} 
-			return 1;
-			break;
-		case UART2_INT:
-			
-                        if (*((int*)(UART2_BASE + UART_INTR_OFFSET)) & MIS_MASK) {
-                        
-			} else if (*((int*)(UART2_BASE + UART_INTR_OFFSET)) & TIS_MASK) {
-				toggleUART2SendInterrupt(0);
-                                if (ks->await_UART2SEND > -1) {
-                                        (ks->TDList[ks->await_UART2SEND]).state = ACTIVE;
-                                        kernel_queuePush(ks, &(ks->TDList[ks->await_UART2SEND]));
-                                        ks->await_UART2SEND = -1;
-                                }
-			
-                        } else if (*((int*)(UART2_BASE + UART_INTR_OFFSET)) & RIS_MASK) {
-				toggleUART2ReceiveInterrupt(0);
-                                if (ks->await_UART2RECEIVE > -1) {
-                                        (ks->TDList[ks->await_UART2RECEIVE]).state = ACTIVE;
-                                        kernel_queuePush(ks, &(ks->TDList[ks->await_UART2RECEIVE]));
-                                        ks->await_UART2RECEIVE = -1;
-                                }
-                        } else if (*((int*)(UART2_BASE + UART_INTR_OFFSET)) & RTO_MASK) {
-
-                        } else {
-	
-                        }
-			return 1;
-			break;
-		default:
-			return 0;
-			break;
+		}
 
 	}
-	//bwprintf(COM2, "Invalid interrupt code: %d\r\n", x);
-	return 0;
+	if (x & 0x10) {
+		// UART2
+
+		//bwprintf(COM2,"Got the following interrupt from UART2: %x \n\r", *(((int *)UART2_BASE) + UART_INTR_OFFSET));
+		intrVal = *((int *) (UART2_BASE + UART_INTR_OFFSET));
+		*((int *) (UART2_BASE + UART_INTR_OFFSET)) = 1;
+		
+
+		//bwprintf(COM2,"Got the following interrupt: %x \n\r", x);
+		//bwprintf(COM2, "intrVal=%x\tintrVal & MIS_MASK=%x\tintrVal & TIS_MASK=%x\tintrVal & RIS_MASK=%x\r\n",
+		//intrVal, intrVal & MIS_MASK, intrVal & TIS_MASK, intrVal & RIS_MASK);
+        //if 	(intrVal & MIS_MASK) *((int *) (UART2_BASE + UART_INTR_OFFSET)) = 1;
+
+		if (intrVal & TIS_MASK) {
+			toggleUART2SendInterrupt(0);
+    		if (ks->await_UART2SEND > -1) {
+            		(ks->TDList[ks->await_UART2SEND]).state = ACTIVE;
+            		kernel_queuePush(ks, &(ks->TDList[ks->await_UART2SEND]));
+            		ks->await_UART2SEND = -1;
+    		}
+
+		}
+		
+		if (intrVal & RIS_MASK) {
+			toggleUART2ReceiveInterrupt(0);
+			//bwprintf(COM2,"Got the following interrupt: %x \n\r", x);
+			//bwprintf(COM2, "intrVal=%x\tintrVal & MIS_MASK=%x\tintrVal & TIS_MASK=%x\tintrVal & RIS_MASK=%x\r\n",
+			//intrVal, intrVal & MIS_MASK, intrVal & TIS_MASK, intrVal & RIS_MASK);
+    		if (ks->await_UART2RECEIVE > -1) {
+            		(ks->TDList[ks->await_UART2RECEIVE]).state = ACTIVE;
+            		kernel_queuePush(ks, &(ks->TDList[ks->await_UART2RECEIVE]));
+            		ks->await_UART2RECEIVE = -1;
+    		}
+		}
+
+	}
+	return 1;
 }
+
+
+
+
 int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
 	int eventid = (int) r->arg1;
 	//bwprintf(COM2, "Kernel: Await event on code: %d %d\r\n", eventid,ks->clockNotifierTaskRunning);
@@ -522,7 +570,7 @@ int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
 			return 1;
 			break;
 		case UART1_SEND:
-                        bwassert(ks->await_UART1SEND  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_UART1SEND.\r\n", t->TID, ks->await_UART1SEND);
+           	bwassert(ks->await_UART1SEND  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_UART1SEND.\r\n", t->TID, ks->await_UART1SEND);
 			t->state = EVENT_BLOCKED;
 			ks->await_UART1SEND = t->TID;
 			toggleUART1SendInterrupt(1);
@@ -530,29 +578,31 @@ int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
 			break;
 
 		case UART1_RECEIVE:
-                        bwassert(ks->await_UART1RECEIVE  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_UART1RECEIVE.\r\n", t->TID, ks->await_UART1RECEIVE);
+            bwassert(ks->await_UART1RECEIVE  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_UART1RECEIVE.\r\n", t->TID, ks->await_UART1RECEIVE);
 
-                        t->state = EVENT_BLOCKED;
-                        ks->await_UART1RECEIVE = t->TID;
-                        toggleUART1ReceiveInterrupt(1);
+            t->state = EVENT_BLOCKED;
+            ks->await_UART1RECEIVE = t->TID;
+            toggleUART1ReceiveInterrupt(1);
 			return 1;			
 			break;
 
 		case UART2_SEND:
-                        bwassert(ks->await_UART2SEND  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_UART2SEND.\r\n", t->TID, ks->await_UART2SEND);
+            bwassert(ks->await_UART2SEND  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_UART2SEND.\r\n", t->TID, ks->await_UART2SEND);
 
-                        t->state = EVENT_BLOCKED;
-                        ks->await_UART2SEND = t->TID;
-                        toggleUART2SendInterrupt(1);
+            t->state = EVENT_BLOCKED;
+            ks->await_UART2SEND = t->TID;
+            toggleUART2SendInterrupt(1);
+			//bwprintf(COM2, "<AwaitEvent>: Task %d is now waiting on UART2_SEND\r\n", t->TID);
+
+            //*((int *) (UART2_BASE + UART_INTR_OFFSET)) = 1;
 			return 1;
 			break;
 
 		case UART2_RECEIVE:
-                        bwassert(ks->await_UART2RECEIVE  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_UART2RECEIVE.\r\n", t->TID, ks->await_UART2RECEIVE);
-
+            bwassert(ks->await_UART2RECEIVE  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_UART2RECEIVE.\r\n", t->TID, ks->await_UART2RECEIVE);
 			t->state = EVENT_BLOCKED;
-                        ks->await_UART2RECEIVE = t->TID;
-                        toggleUART2ReceiveInterrupt(1);
+            ks->await_UART2RECEIVE = t->TID;
+            toggleUART2ReceiveInterrupt(1);
 			return 1;
 			break;
 		default:

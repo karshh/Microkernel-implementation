@@ -27,6 +27,9 @@ int initKernel(kernelHandler * ks, int priority, int code){
 	disableInterrupts();
 	//turn off fifos
 	bwsetfifo(COM2, OFF);
+	bwsetspeed(COM2, 115200);
+	bwsetfifo(COM1, OFF);
+	bwsetspeed(COM1, 2400);
 	initHandlers();
 	ks->activeTask = 0;
 	int TID = 0;
@@ -48,14 +51,14 @@ int initKernel(kernelHandler * ks, int priority, int code){
 	//servers
 	ks->nameServer = -1;
 	ks->clockServer = -1;
+	ks->ioServer = -1;
 	
 	//avait event tasks
 	ks->await_TIMER = -1;
-
-        ks->await_UART1SEND = -1;
-        ks->await_UART1RECEIVE = -1;
-        ks->await_UART2SEND = -1;
-        ks->await_UART2RECEIVE = -1;
+    ks->await_UART1SEND = -1;
+    ks->await_UART1RECEIVE = -1;
+    ks->await_UART2SEND = -1;
+    ks->await_UART2RECEIVE = -1;
 
 	int memOffset = (int) &(ks->taskSpace[MAX_STACKSIZE-1]);
 	memOffset = memOffset - (memOffset%16);
@@ -136,17 +139,24 @@ void kernelRun(int priority, int code) {
 	
 	message m;
 	volatile TD * task =0;
-	int old_idle = 0;
+	//int old_idle = 0;
 	while(kernel_queuePop(&ks, &task)) {
 		task->state = ACTIVE;
 		ks.activeTask = task;
 		TD *td = (TD *)task;
-	 	if(ks.activeTask->priority ==31){
-			 //makes assumption a 31 prioty task is an idle task
-			ks.idleTaskRunning = 1;
-		 	ks.lastIdleRunningTime = getTicks4(0);
+/*************************************
+ diagnostic code
+*************************************/
+	 // 	if(ks.activeTask->priority ==31){
+		// 	 //makes assumption a 31 prioty task is an idle task
+		// 	ks.idleTaskRunning = 1;
+		//  	ks.lastIdleRunningTime = getTicks4(0);
 			
-		}
+		// }
+
+/*************************************
+end diagnostic code
+*************************************/
 
 
 		r = activate(ks.activeTask);
@@ -155,15 +165,20 @@ void kernelRun(int priority, int code) {
 					ks.idleTaskRunning = 0;
 		}
 
-		if(r == 0){
-		//if interupt print diagnostic info.
-		//print only if diagnostic info changes:
-			int new_idle = 100 * ks.totalIdleRunningTime / getTicks4(0);
-		 	if(old_idle - new_idle){
-				old_idle = new_idle;
-		 		bwprintf(COM2,"\033[s\033[?25l\033[1;90H idle:%d%% \033[u\033[?25h",old_idle);
-			}
-		}
+
+/*************************************
+ diagnostic code
+*************************************/
+
+		// if(r == 0){
+		// //if interupt print diagnostic info.
+		// //print only if diagnostic info changes:
+		// 	int new_idle = 100 * ks.totalIdleRunningTime / getTicks4(0);
+		//  	if(old_idle - new_idle){
+		// 		old_idle = new_idle;
+		//  		bwprintf(COM2,"\033[s\033[?25l\033[1;90H idle:%d%% \033[u\033[?25h",old_idle);
+		// 	}
+		// }
 
 
 
@@ -176,7 +191,7 @@ end diagnostic code
 
 
 		if(!processRequest(&ks, td, r, &m)){
-			bwprintf(COM2,"PROCESS request failed!\n\r");
+			bwprintf(COM2,"PROCESS request failed[TID:%d]!\n\r", td->TID);
 			 break;
 		}
 		if(task->state == ACTIVE)kernel_queuePush(&ks, task);

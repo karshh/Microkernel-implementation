@@ -36,6 +36,15 @@ int CreateClockServer( int priority, void (*code)){
 }
 
 
+int CreateIOServer( int priority, void (*code)){
+	request myRequest;
+	myRequest.reqType = CREATEIOSERVER;
+	myRequest.arg1 = (void *) priority;
+	myRequest.arg2 = code;
+	return user_contextswitch(0xdeadbeef, &myRequest);
+}
+
+
 int MyTid(){
 	
 	request myRequest;
@@ -217,7 +226,7 @@ int Delay(int tid, int ticks) {
 
 	request myRequest;
 
-	myRequest.reqType = DELAY;
+	myRequest.reqType = CLOCK;
 	myRequest.arg1 = (void *) tid;
 	myRequest.arg2 = (void *) msg;
 	myRequest.arg3 = (void *) msgLen;
@@ -236,7 +245,7 @@ int Time(int tid) {
 	int rplLen = 6;
 
 	request myRequest;
-	myRequest.reqType = TIME;
+	myRequest.reqType = CLOCK;
 	myRequest.arg1 = (void *) tid;
 	myRequest.arg2 = (void *) msg;
 	myRequest.arg3 = (void *) msgLen;
@@ -266,7 +275,47 @@ int DelayUntil(int tid, int ticks) {
 	int rplLen = 2;
 
 	request myRequest;
-	myRequest.reqType = DELAYUNTIL;
+	myRequest.reqType = CLOCK;
+	myRequest.arg1 = (void *) tid;
+	myRequest.arg2 = (void *) msg;
+	myRequest.arg3 = (void *) msgLen;
+	myRequest.arg4 = (void *) rpl;
+	myRequest.arg5 = (void *) rplLen;
+	return user_contextswitch(0xdeadbeef, &myRequest) == 2 ? 0 : -3;
+
+}
+
+char Getc(int tid, int uart) {	
+	if (uart < 0 || uart > 1) return -1;
+	char msg[2];
+	msg[0] = (char)((1+uart) * 10);
+	msg[1] = 0;
+	int msgLen = 2;
+	char rpl[3];
+	int rplLen = 3;
+
+	request myRequest;
+	myRequest.reqType = IO;
+	myRequest.arg1 = (void *) tid;
+	myRequest.arg2 = (void *) msg;
+	myRequest.arg3 = (void *) msgLen;
+	myRequest.arg4 = (void *) rpl;
+	myRequest.arg5 = (void *) rplLen;
+	return user_contextswitch(0xdeadbeef, &myRequest) == 2 ? rpl[0] : -3;
+}
+
+int Putc(int tid, int uart, char ch) {
+	if (uart < 0 || uart > 1) return -1;
+	char msg[3];
+	msg[0] = (char)(((1+uart) * 10) + 1);
+	msg[1] = ch;
+	msg[2] = 0;
+	int msgLen = 3;
+	char rpl[3];
+	int rplLen = 3;
+
+	request myRequest;
+	myRequest.reqType = IO;
 	myRequest.arg1 = (void *) tid;
 	myRequest.arg2 = (void *) msg;
 	myRequest.arg3 = (void *) msgLen;

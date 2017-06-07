@@ -18,7 +18,7 @@ void toggleTimer3Interrupt(int _switch) {
 void toggleUART1SendInterrupt(int _switch) {
 
          if (_switch) {
-                *((int *) (UART1_BASE + UART_CTLR_OFFSET)) |= TIEN_MASK | MSIEN_MASK;
+                *((int *) (UART1_BASE + UART_CTLR_OFFSET)) |= (TIEN_MASK | MSIEN_MASK) ;
         } else {
                 *((int *) (UART1_BASE + UART_CTLR_OFFSET)) &= ~(TIEN_MASK | MSIEN_MASK);
         }
@@ -40,9 +40,9 @@ void toggleUART1ReceiveInterrupt(int _switch) {
 void toggleUART2SendInterrupt(int _switch) {
 
          if (_switch) {
-                *((int *) (UART2_BASE + UART_CTLR_OFFSET)) |= TIEN_MASK;
+                *((int *) (UART2_BASE + UART_CTLR_OFFSET)) |= (TIEN_MASK | MSIEN_MASK);
         } else {
-                *((int *) (UART2_BASE + UART_CTLR_OFFSET)) &= ~TIEN_MASK;
+                *((int *) (UART2_BASE + UART_CTLR_OFFSET)) &= ~(TIEN_MASK | MSIEN_MASK);
         }
 
         *((int *) (VIC2_BASE + (_switch ? VIC_INT_ENABLE : VIC_INT_ENCLEAR))) |= 1 << UART2_INT;
@@ -64,13 +64,19 @@ int checkInterrupts() {
 	//Note this works if there is only one interupt.
 	//but if there are multpliple interupts on, we need to re-order this based on priority on which interupts must be handled
 	//eg if timer1 and uart1 are asserted, should we make sure timer1 await is handled before or after uart 1 is handled?
-	if (*((int *) (VIC2_BASE + VIC_IRQ_STATUS)) >> TIMER3_INT == 1) return TIMER3_INT;
-	if (*((int *) (VIC1_BASE + VIC_IRQ_STATUS)) >> TIMER1_INT == 1) return TIMER1_INT;
-	if (*((int *) (VIC1_BASE + VIC_IRQ_STATUS)) >> TIMER2_INT == 1) return TIMER2_INT;
-	if (*((int *) (VIC2_BASE + VIC_IRQ_STATUS)) >> UART1_INT == 1) return UART1_INT;
-	if (*((int *) (VIC2_BASE + VIC_IRQ_STATUS)) >> UART2_INT == 1) return UART2_INT;
+	//(usharma): I guess we'll just have to return an encoded integer.
+
+	volatile int ans = 0;
+	volatile int vic1 = *((int *) (VIC1_BASE + VIC_IRQ_STATUS));
+	volatile int vic2 = *((int *) (VIC2_BASE + VIC_IRQ_STATUS));
+	if (vic2 >> TIMER3_INT == 1) ans |= 0x1;
+	if (vic1 >> TIMER1_INT == 1) ans |= 0x2;
+	if (vic1 >> TIMER2_INT == 1) ans |= 0x4;
+	if (vic2 >> UART1_INT == 1) ans |= 0x8; 
+	if (vic2 >> UART2_INT == 1) ans |= 0x10; 
+
 	
-	return 0;
+	return ans;
 }
 
 void disableInterrupts() {
@@ -79,7 +85,7 @@ void disableInterrupts() {
 	toggleTimer3Interrupt(0);
 	toggleUART1SendInterrupt(0);
 	toggleUART1ReceiveInterrupt(0);
-        toggleUART2SendInterrupt(0);
+    toggleUART2SendInterrupt(0);
 	toggleUART2ReceiveInterrupt(0);
 
 
