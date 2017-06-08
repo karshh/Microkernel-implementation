@@ -281,6 +281,7 @@ void UART1Send_Notifier() {
 	while(1) {
 		AwaitEvent(UART1_SEND);
 		if ((*UART1_FLAG & TXFE_MASK) && (*UART1_FLAG & CTS_MASK)) {
+			bwprintf(COM2, "Sending %d to trains controller!\r\n", msg[0]);
 			*UART1_DATA = msg[0];
 			bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART1Send_Notifier>: Error with send.\r\n");
 		}
@@ -421,8 +422,11 @@ void ioServer() {
 
 	            case 11: // UART1 Putc
 	            	if (msg[1]) {
+						bwprintf(COM2, "Adding %d to buffer!\r\n", msg[1]);
 		                bwassert(addToBuffer((BUFFER_TYPE) msg[1], &UART1_sendQ), COM2, "<IOServer>: Buffer full. Could not add %c[%d]\r\n", msg[1], msg[1]);
+
 		                if (UART1Send_blocked && getFromBuffer(&c, &UART1_sendQ)) {
+							bwprintf(COM2, "Sending %d to notifier!\r\n", c);
 							reply[0] = (char) c;
 							reply[1] = 0;
 			            	Reply(UART1Send_TID, reply, 2);

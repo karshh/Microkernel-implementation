@@ -9,6 +9,7 @@
 #include "icu.h"
 #include "time.h"
 
+
 int getNextTID(kernelHandler  * ks, int * TID){
 	volatile TD * task = 0;
 	if(!free_Pop(ks,&task)) return -1;
@@ -25,11 +26,11 @@ void exitKernel(kernelHandler * ks){
 int initKernel(kernelHandler * ks, int priority, int code){
 	//reset previous IRQ state, in case if last run state is bad
 	disableInterrupts();
-	//turn off fifos
-	bwsetfifo(COM2, OFF);
-	bwsetspeed(COM2, 115200);
-	bwsetfifo(COM1, OFF);
-	bwsetspeed(COM1, 2400);
+	// make sure speed and fifo are set IN THE RIGHT ORDER!!! MY MAN WHY YA GWANNIN BARE WASTE, MANZ SPENT TOO LONG FIXING RELATED BUG 
+    bwsetspeed(COM1, 2400);
+    bwsetfifo(COM1, OFF);
+    bwsetspeed(COM2, 115200);
+    bwsetfifo(COM2, OFF);
 	initHandlers();
 	ks->activeTask = 0;
 	int TID = 0;
