@@ -23,6 +23,15 @@ typedef char *va_list;
 #define ON	1
 #define	OFF	0
 
+
+char c2x( char ch );
+
+char bwa2i( char ch, char **src, int base, int *nump );
+
+void bwui2a( unsigned int num, unsigned int base, char *bf );
+
+void bwi2a( int num, char *bf );
+
 int bwsetfifo( int channel, int state );
 
 int bwsetspeed( int channel, int speed );

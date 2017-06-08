@@ -387,12 +387,22 @@ void taskTestInt2(){
 }
 
 
-void testTaskIO1() {
+// void testTaskReceive() {
 
+//     int iosTID = WhoIs("ioServer");
+
+//     Exit( );
+
+// }
+void testTaskIO1() {
     Create(3, (void *) FirstUserTask);
 
+
+
     int iosTID = WhoIs("ioServer");
-    //int nameTID = WhoIs("nameServer");
+    Printf(iosTID, COM2, "\033[2J");
+
+    // putc test.
     Putc(iosTID, COM2, 'h');
     Putc(iosTID, COM2, 'e');
     Putc(iosTID, COM2, 'l');
@@ -403,15 +413,26 @@ void testTaskIO1() {
     Putc(iosTID, COM2, 'r');
     Putc(iosTID, COM2, 'l');
     Putc(iosTID, COM2, 'd');
-    //Delay(WhoIs("nameServer"), 50);
-    while (1) {
-        Putc(iosTID, COM2, Getc(iosTID, COM2));
-    }
+    Putc(iosTID, COM2, '\r');
+    Putc(iosTID, COM2, '\n');
+
+    // printf test
+    Printf(iosTID, COM2, "Printing a long message:\r\n\r\n");
+
+    // stress test
+    Printf(iosTID, COM2, "Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of \"de Finibus Bonorum et Malorum\" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, \"Lorem ipsum dolor sit amet..\", comes from a line in section 1.10.32.\r\n\r\n\r\n");
+
+    // getc test
+    Printf(iosTID, COM2, "Type something here --> ");
+      while(1) {
+            Putc(iosTID, COM2, Getc(iosTID, COM2));
+        }
 
     Exit();
 
 
 }
+
 
 int main(void) {
     // turning on data and instruction cache.
@@ -420,6 +441,6 @@ int main(void) {
         "ORR r0, r0, #0x1 <<12 \n"
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
-	kernelRun(4,(int) testTaskIO1);
+    kernelRun(4,(int) testTaskIO1);
 	return 0;
 }

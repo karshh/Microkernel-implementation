@@ -1,7 +1,6 @@
 #include "userRequestCall.h"
 #include "request.h"
 #include "pkstring.h"
-#include "bwio.h"
 
 int user_contextswitch(int dummy, request * r) {
 	asm ("swi 0");
@@ -58,11 +57,6 @@ int MyParentTid(){
 	
 	request myRequest;
 	myRequest.reqType = MYPARENTID;
-	//r0 = &myrequest
-	//note args arg1...arg3 are useless might remove in future
-	//r1 = 3
-	//r2 = 1
-	//r3 = 4
 	
 	return user_contextswitch(0xdeadbeef, &myRequest);
 }
@@ -71,11 +65,6 @@ void Pass(){
 	
 	request myRequest;
 	myRequest.reqType = PASS;
-	//r0 = &myrequest
-	//note args arg1...arg3 are useless might remove in future
-	//r1 = 3
-	//r2 = 1
-	//r3 = 4
 
 	user_contextswitch(0xdeadbeef, &myRequest);
 }
@@ -85,11 +74,6 @@ void Exit(){
 	
 	request myRequest;
 	myRequest.reqType = EXIT;
-	//r0 = &myrequest
-	//note args arg1...arg3 are useless might remove in future
-	//r1 = 3
-	//r2 = 1
-	//r3 = 4
 	
 	user_contextswitch(0xdeadbeef, &myRequest);
 }
@@ -103,11 +87,6 @@ int Send(int tid, char *msg, int msglen, char *reply, int rplen){
 	myRequest.arg3 = (void *) msglen;
 	myRequest.arg4 = (void *) reply;
 	myRequest.arg5 = (void *) rplen;
-	//r0 = &myrequest
-	//note args arg1...arg3 are useless might remove in future
-	//r1 = 3
-	//r2 = 1
-	//r3 = 4
 	
 	return user_contextswitch(0xdeadbeef, &myRequest);
 }
@@ -118,7 +97,6 @@ int WhoIs(char *name){
 	name1[0] ='0';
 	name1[1] ='1';
 	pkstrcpy_aftern_append(name1,name2,2,17);
-	//name 1 is the truncated name with 
 
 	request myRequest;
 
@@ -146,8 +124,6 @@ int RegisterAs(char *name){
 	name1[0] ='1';
 	name1[1] ='0';
 	pkstrcpy_aftern_append(name1,name2,2,17);
-	//name 1 is the truncated name with 
-
 	request myRequest;
 
 	myRequest.reqType = REGISTER;
@@ -176,11 +152,6 @@ int Receive(int *tid, char *msg, int msglen){
 	myRequest.arg1 = (void *) tid;
 	myRequest.arg2 = (void *) msg;
 	myRequest.arg3 = (void *) msglen;
-	//r0 = &myrequest
-	//note args arg1...arg3 are useless might remove in future
-	//r1 = 3
-	//r2 = 1
-	//r3 = 4
 	
 	return user_contextswitch(0xdeadbeef, &myRequest);
 }
@@ -193,11 +164,6 @@ int Reply(int tid, char *reply, int rplen){
 	myRequest.arg1 = (void *) tid;
 	myRequest.arg2 = (void *) reply;
 	myRequest.arg3 = (void *) rplen;
-	//r0 = &myrequest
-	//note args arg1...arg3 are useless might remove in future
-	//r1 = 3
-	//r2 = 1
-	//r3 = 4
 	
 	return user_contextswitch(0xdeadbeef, &myRequest);
 }
@@ -323,6 +289,104 @@ int Putc(int tid, int uart, char ch) {
 	myRequest.arg5 = (void *) rplLen;
 	return user_contextswitch(0xdeadbeef, &myRequest) == 2 ? 0 : -3;
 
+}
+
+int Putx( int tid, int channel, char c ) {
+	char chh, chl;
+
+	chh = c2x( c / 16 );
+	chl = c2x( c % 16 );
+	Putc(tid, channel, chh );
+	return Putc(tid, channel, chl );
+}
+
+int Putr( int tid,  int channel, unsigned int reg ) {
+	int byte;
+	char *ch = (char *) &reg;
+
+	for( byte = 3; byte >= 0; byte-- ) Putx(tid, channel, ch[byte] );
+	return Putc(tid, channel, ' ' );
+}
+
+int Putstr( int tid,  int channel, char *str ) {
+	while( *str ) {
+		if( Putc(tid, channel, *str ) < 0 ) return -1;
+		str++;
+	}
+	return 0;
+}
+
+void Putw( int tid,  int channel, int n, char fc, char *bf ) {
+	char ch;
+	char *p = bf;
+
+	while( *p++ && n > 0 ) n--;
+	while( n-- > 0 ) Putc(tid, channel, fc );
+	while( ( ch = *bf++ ) ) Putc(tid, channel, ch );
+}
+
+void IOFormat ( int tid,  int channel, char *fmt, va_list va ) {
+	char bf[12];
+	char ch, lz;
+	int w;
+
+	
+	while ( ( ch = *(fmt++) ) ) {
+		if ( ch != '%' )
+			Putc(tid, channel, ch );
+		else {
+			lz = 0; w = 0;
+			ch = *(fmt++);
+			switch ( ch ) {
+			case '0':
+				lz = 1; ch = *(fmt++);
+				break;
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+				ch = bwa2i( ch, &fmt, 10, &w );
+				break;
+			}
+			switch( ch ) {
+			case 0: return;
+			case 'c':
+				Putc(tid, channel, va_arg( va, char ) );
+				break;
+			case 's':
+				Putw(tid, channel, w, 0, va_arg( va, char* ) );
+				break;
+			case 'u':
+				bwui2a( va_arg( va, unsigned int ), 10, bf );
+				Putw(tid, channel, w, lz, bf );
+				break;
+			case 'd':
+				bwi2a( va_arg( va, int ), bf );
+				Putw(tid, channel, w, lz, bf );
+				break;
+			case 'x':
+				bwui2a( va_arg( va, unsigned int ), 16, bf );
+				Putw(tid, channel, w, lz, bf );
+				break;
+			case '%':
+				Putc(tid, channel, ch );
+				break;
+			}
+		}
+	}
+}
+
+void Printf( int tid,  int channel, char *fmt, ... ) {
+        va_list va;
+
+        va_start(va,fmt);
+        IOFormat(tid, channel, fmt, va );
+        va_end(va);
 }
 
 

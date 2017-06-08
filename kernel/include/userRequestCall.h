@@ -4,6 +4,8 @@
 
 #define _USER_REQUEST_CALL
 
+#include "bwio.h"
+
 int Create( int priority, void (*code));
 
 int CreateNameServer( int priority, void (*code));
@@ -41,5 +43,20 @@ int DelayUntil(int tid, int ticks);
 char Getc(int tid, int uart);
 
 int Putc(int tid, int uart, char ch);
+
+int Putx( int tid, int channel, char c );
+
+int Putr( int tid, int channel, unsigned int reg );
+
+int Putstr( int tid, int channel, char *str );
+
+void Putw( int tid, int channel, int n, char fc, char *bf );
+
+void IOFormat ( int tid, int channel, char *fmt, va_list va );
+
+void Printf( int tid, int channel, char *fmt, ... );
+
+
+
 
 #endif

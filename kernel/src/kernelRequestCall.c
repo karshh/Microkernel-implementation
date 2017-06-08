@@ -564,6 +564,7 @@ int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
            	bwassert(ks->await_UART1SEND  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_UART1SEND.\r\n", t->TID, ks->await_UART1SEND);
 			t->state = EVENT_BLOCKED;
 			ks->await_UART1SEND = t->TID;
+            toggleUART1VICInterrupt(1);
 			toggleUART1SendInterrupt(1);
 
 			return 1;
@@ -574,6 +575,7 @@ int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
 
             t->state = EVENT_BLOCKED;
             ks->await_UART1RECEIVE = t->TID;
+            toggleUART1VICInterrupt(1);
             toggleUART1ReceiveInterrupt(1);
 
 			return 1;			
@@ -584,6 +586,7 @@ int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
 
             t->state = EVENT_BLOCKED;
             ks->await_UART2SEND = t->TID;
+            toggleUART2VICInterrupt(1);
             toggleUART2SendInterrupt(1);
 
 			return 1;
@@ -593,6 +596,7 @@ int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
             bwassert(ks->await_UART2RECEIVE  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_UART2RECEIVE.\r\n", t->TID, ks->await_UART2RECEIVE);
 			t->state = EVENT_BLOCKED;
             ks->await_UART2RECEIVE = t->TID;
+            toggleUART2VICInterrupt(1);
             toggleUART2ReceiveInterrupt(1);
 
 			return 1;
