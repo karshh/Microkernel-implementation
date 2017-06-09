@@ -56,10 +56,10 @@ int initKernel(kernelHandler * ks, int priority, int code){
 	
 	//avait event tasks
 	ks->await_TIMER = -1;
-    ks->await_UART1SEND = -1;
-    ks->await_UART1RECEIVE = -1;
-    ks->await_UART2SEND = -1;
-    ks->await_UART2RECEIVE = -1;
+    	ks->await_UART1SEND = -1;
+    	ks->await_UART1RECEIVE = -1;
+    	ks->await_UART2SEND = -1;
+    	ks->await_UART2RECEIVE = -1;
 
 	int memOffset = (int) &(ks->taskSpace[MAX_STACKSIZE-1]);
 	memOffset = memOffset - (memOffset%16);
@@ -148,12 +148,12 @@ void kernelRun(int priority, int code) {
 /*************************************
  diagnostic code
 *************************************/
-	 // 	if(ks.activeTask->priority ==31){
+	  	if(ks.activeTask->priority ==31){
 		// 	 //makes assumption a 31 prioty task is an idle task
-		// 	ks.idleTaskRunning = 1;
-		//  	ks.lastIdleRunningTime = getTicks4(0);
+		 	ks.idleTaskRunning = 1;
+		  	ks.lastIdleRunningTime = getTicks4(0);
 			
-		// }
+		 }
 
 /*************************************
 end diagnostic code
@@ -161,6 +161,8 @@ end diagnostic code
 
 
 		r = activate(ks.activeTask);
+
+
 		if(ks.idleTaskRunning ){
 					ks.totalIdleRunningTime += getTicks4(0) -ks.lastIdleRunningTime;
 					ks.idleTaskRunning = 0;
@@ -171,12 +173,12 @@ end diagnostic code
  diagnostic code
 *************************************/
 
-		// if(r == 0){
-		// //if interupt print diagnostic info.
-		// //print only if diagnostic info changes:
-		// 	int new_idle = 100 * ks.totalIdleRunningTime / getTicks4(0);
-		//  	if(old_idle - new_idle){
-		// 		old_idle = new_idle;
+		 //if(r == 0){
+		 //if interupt print diagnostic info.
+		 //print only if diagnostic info changes:
+		 //	int new_idle = 100 * ks.totalIdleRunningTime / getTicks4(0);
+		 // 	if(old_idle - new_idle){
+		 	//	old_idle = new_idle;
 		//  		bwprintf(COM2,"\033[s\033[?25l\033[1;90H idle:%d%% \033[u\033[?25h",old_idle);
 		// 	}
 		// }
@@ -196,9 +198,6 @@ end diagnostic code
 			 break;
 		}
 		if(task->state == ACTIVE)kernel_queuePush(&ks, task);
-
-
-
 
 		//we are done with task so setting active task to null
 		ks.activeTask = 0;

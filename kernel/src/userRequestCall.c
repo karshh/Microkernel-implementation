@@ -226,6 +226,12 @@ int Time(int tid) {
 			: 	-1;
 }
 
+int IdlePercentage() {
+	//get the idle percentage from kernel
+	request myRequest;
+	myRequest.reqType = IDLEPERCENTAGE;
+	return user_contextswitch(0xdeadbeef, &myRequest);
+}
 
 int DelayUntil(int tid, int ticks) {
 	char msg[7];

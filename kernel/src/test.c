@@ -400,9 +400,10 @@ void testTaskIO1() {
 
 
     int iosTID = WhoIs("ioServer");
-    int csTID = WhoIs("clockServer");
+    //int csTID = WhoIs("clockServer");
      
     Printf(iosTID, COM2, "The trains controller switch should turn on and off 3 times now..\r\n");
+/*
     // testing UART1
     Putc(iosTID, COM1 , 0x61);
     Delay(csTID, 100);
@@ -415,7 +416,7 @@ void testTaskIO1() {
     Putc(iosTID, COM1 , 0x61);
     Delay(csTID, 100);
     Putc(iosTID, COM1 , 0x60);
-
+*/
     Printf(iosTID, COM2, "\033[2J");
 
     // putc test.
@@ -443,10 +444,7 @@ void testTaskIO1() {
       while(1) {
             Putc(iosTID, COM2, Getc(iosTID, COM2));
         }
-
     Exit();
-
-
 }
 
 

@@ -7,6 +7,7 @@
 
 #define	TERMINAL_WIDTH 150
 #define	TERMINAL_HEIGHT 37
+
 #define DFA_INIT 0
 #define DFA_ERROR -1
 #define DFA_QUIT_TERMINATOR 1
@@ -20,6 +21,7 @@
 #define DFA_L_1 31
 #define DFA_L_2 32
 #define DFA_L_3 33
+
 #define MESSAGE_WARN 0
 #define MESSAGE_VALID 1
 #define TRAIN_MAX 80

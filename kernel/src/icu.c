@@ -90,7 +90,7 @@ void disableInterrupts() {
 	toggleUART1SendInterrupt(0);
 	toggleUART1ReceiveInterrupt(0);
 	toggleUART2VICInterrupt(0);
-    toggleUART2SendInterrupt(0);
+    	toggleUART2SendInterrupt(0);
 	toggleUART2ReceiveInterrupt(0);
 
 

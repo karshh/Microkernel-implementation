@@ -67,6 +67,9 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 	case(IO):
 		return kernel_RequestIOServer(t,r,ks,m);
 		break;
+	case(IDLEPERCENTAGE):
+		return kernel_IdlePercentage(t,ks);
+		break;
 	default:
 		break;
 	}
@@ -391,6 +394,11 @@ int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
 	return 1;
 	
 	
+}
+
+int kernel_IdlePercentage(TD * t, kernelHandler * ks) {
+	t->reqVal = 100 * ks->totalIdleRunningTime / getTicks4(0);
+	return 1;
 }
 
 

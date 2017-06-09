@@ -38,6 +38,8 @@ int Delay(int tid, int ticks);
 
 int Time(int tid);
 
+int IdlePercentage();
+
 int DelayUntil(int tid, int ticks);
 
 char Getc(int tid, int uart);
