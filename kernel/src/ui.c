@@ -2,11 +2,11 @@
 #include "time.h"
 #include "userRequestCall.h"
 #include "server.h"
+#include "controller.h"
 
 void displayGrid() {
 
     int iosTID = WhoIs("ioServer");
-
 	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
     
     // since this is the first function called, clear the damn screen!
@@ -54,20 +54,20 @@ void displayGrid() {
 	Printf(iosTID, COM2, "\033[3;15HSensor\033[4;14HTriggers");
         
     // manual description
-    Printf(iosTID, COM2, "\033[6;86HCOMMANDS:");
-    Printf(iosTID, COM2, "\033[8;86Htr A B");
-    Printf(iosTID, COM2, "\033[9;86H   Sets train A's speed to B.");
-    Printf(iosTID, COM2, "\033[10;86Hrv A");
-    Printf(iosTID, COM2, "\033[11;86H   Reverses train A.");
-    Printf(iosTID, COM2, "\033[12;86Hsw X Y");
-    Printf(iosTID, COM2, "\033[13;86H   Sets switch X to Y.");
-    Printf(iosTID, COM2, "\033[14;86Hq");
-    Printf(iosTID, COM2, "\033[15;86H   Quits the program.");
-    Printf(iosTID, COM2, "\033[17;86HNote constraints:");
-    Printf(iosTID, COM2, "\033[19;86H    1 <= A <= 80");
-    Printf(iosTID, COM2, "\033[20;86H    0 <= B <= 14");
-    Printf(iosTID, COM2, "\033[21;86H    1 <= X <= 18 || 153 <= X <= 156");
-    Printf(iosTID, COM2, "\033[22;86H    Y = 'C' for curved, 'S' for straight");
+    Printf(iosTID, COM2, "\033[4;86HCOMMANDS:");
+    Printf(iosTID, COM2, "\033[6;86Htr A B");
+    Printf(iosTID, COM2, "\033[7;86H   Sets train A's speed to B.");
+    Printf(iosTID, COM2, "\033[8;86Hrv A");
+    Printf(iosTID, COM2, "\033[9;86H   Reverses train A.");
+    Printf(iosTID, COM2, "\033[10;86Hsw X Y");
+    Printf(iosTID, COM2, "\033[11;86H   Sets switch X to Y.");
+    Printf(iosTID, COM2, "\033[12;86Hq");
+    Printf(iosTID, COM2, "\033[13;86H   Quits the program.");
+    Printf(iosTID, COM2, "\033[15;86HNote constraints:");
+    Printf(iosTID, COM2, "\033[17;86H    1 <= A <= 80");
+    Printf(iosTID, COM2, "\033[18;86H    0 <= B <= 14");
+    Printf(iosTID, COM2, "\033[19;86H    1 <= X <= 18 || 153 <= X <= 156");
+    Printf(iosTID, COM2, "\033[20;86H    Y = 'C' for curved, 'S' for straight");
 
     // Diagnostics header.
     Printf(iosTID, COM2, "\033[1;63HIdle:");
@@ -79,6 +79,92 @@ void displayGrid() {
     Exit();
 
 }
+
+#define COMMAND_DUMMY 21
+
+// GET RID OF THIS ONCE YOU IMPLEMENT PARSECOMMAND.
+int parseCommand(char * input, int * arg1, int * arg2) {
+	return COMMAND_DUMMY;
+}
+
+void displayUserPrompt() {
+	int iosTID = WhoIs("ioServer");
+	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
+
+	char terminalInput[1024];
+	int terminalInputIndex = 0;
+	int cursorCol = 2;
+	volatile char c = 0;
+
+	while (1) {
+		c = Getc(iosTID, COM2);
+
+		if (c <= 0) continue;
+	    else if (c == '\r') {
+	        int cleanup = 0;
+	        terminalInput[terminalInputIndex] = 0;
+	        int arg1;
+	        int arg2;
+	        switch (parseCommand(terminalInput, &arg1, &arg2)) {
+	            case COMMAND_Q:
+	            	// Change this to invoke Terminate() call here.
+	                Exit();
+	            
+	            case COMMAND_TR:
+	                for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
+	                terminalInputIndex = 0;
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KUpdated train %d's speed to %d.\033[34;1H>", arg1, arg2);
+	               	cursorCol = 2;
+	                break;
+	            
+	            case COMMAND_RV:
+	                terminalInputIndex = 0;
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KReversed train %d.\033[34;1H>", arg1, arg2);
+	                cursorCol = 2;
+	                break;
+	            
+	            case COMMAND_SW:
+	                terminalInputIndex = 0;
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KSwitch %d is configured as %c now.\033[34;1H>", arg1, arg2);
+	                cursorCol = 2;
+	                break;
+
+	            case COMMAND_DUMMY: // Erase this once parser is implemented..
+	                terminalInputIndex = 0;
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KPrompt acknowledged.\033[34;1H>");
+	                cursorCol = 2;
+	                break;
+	            
+	            default:
+	                for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
+	                terminalInputIndex = 0;
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KIncorrect Command.\033[34;1H>");
+	                cursorCol = 2;
+	                break;
+	        }
+	    } else if (c == 8) { // backspace
+	        if (cursorCol <= 2) continue;
+	        terminalInputIndex -= 1;
+	        terminalInput[terminalInputIndex] = 0;
+	        cursorCol -= 1;
+	        Printf(iosTID, COM2, "\033[34;%dH\033[K", cursorCol);
+	    } else {
+    
+		    terminalInput[terminalInputIndex] = c;
+		    terminalInputIndex += 1;
+		    Printf(iosTID, COM2, "\033[34;%dH%c", cursorCol, c);
+		    cursorCol += 1;
+
+	    }
+
+	}
+    
+    
+}
+
+
+
+
 
 
 
