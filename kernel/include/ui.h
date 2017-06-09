@@ -6,4 +6,6 @@ void displayGrid();
 
 void displayUserPrompt();
 
+void displaySensors();
+
 #endif

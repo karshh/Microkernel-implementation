@@ -17,8 +17,13 @@
 #define COMMAND_INVALID 3
 
 
+// This is the maximum number of recent sensor triggers that are to be returned.
+// Note that the actual recent sensors can be less than that number.
+#define SENSOR_LIST_SIZE 22
+
+
 // Passing in a integer  buffer of size 28
-int getSensorData(int * s);
+void getSensorData(int * s);
 
 // This function parses the input, and then based on the command typed by the user,
 // returns one of the command macros above. The menu will use the macro response to

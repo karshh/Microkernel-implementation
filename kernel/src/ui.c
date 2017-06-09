@@ -73,6 +73,14 @@ void displayGrid() {
     Printf(iosTID, COM2, "\033[1;63HIdle:");
     Printf(iosTID, COM2, "\033[1;120HTime:");
 
+    // Recent sensor pointer. It's ugliness is observer-dependent. Remove if not desired.
+	Printf(iosTID, COM2, "\033[6;13H-->");
+	Printf(iosTID, COM2, "\033[7;13H->");
+	Printf(iosTID, COM2, "\033[8;13H>");
+	Printf(iosTID, COM2, "\033[6;21H<--");
+	Printf(iosTID, COM2, "\033[7;22H<-");
+	Printf(iosTID, COM2, "\033[8;23H<");
+
 	// Displaying the prompt here.
     Printf(iosTID, COM2, "\033[34;1H>");	
 
@@ -161,6 +169,54 @@ void displayUserPrompt() {
     
     
 }
+
+void displaySensors() {
+	int iosTID = WhoIs("ioServer");
+	int csTID = WhoIs("clockServer");
+	int recentSensors[64];
+	volatile int i = 0;
+	for (; i < 64; i++) recentSensors[i] = 0;
+	
+	volatile int num = 0;
+	while(1)  {
+
+
+		/***************************************
+		  Start of block comment
+		****************************************/
+
+		/****************************************
+		  The actual command that must be run.
+		  MAKE SURE TO USE THE MACRO SNESOR_LIST_SIZE
+		  AS THE MAXIMUM NUMBER OF UPDATES YOU FILL
+		  THE ARRAY WITH.
+		*****************************************/
+		// void getSensorData(int * s);
+
+
+		/****************************************
+		  Dummy replacement for UI test purposes
+		*****************************************/
+		for (i = 0; i < SENSOR_LIST_SIZE; i++) {
+			recentSensors[i] = num;
+			num++;
+		}
+
+		/***************************************
+		  End of block comment
+		****************************************/
+
+		for (i = 0; recentSensors[i] != 0 && i < SENSOR_LIST_SIZE; i++) {
+			Printf(iosTID, COM2, "\033[%d;17H%d", i+6, recentSensors[i]);
+		}
+
+	}
+	Exit();
+
+}
+
+
+
 
 
 

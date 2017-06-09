@@ -457,7 +457,7 @@ void clockTest() {
 
     Create(3, (void *) displayGrid);
     Create(5, (void *) displayUserPrompt);
-
+    Create(5, (void *) displaySensors);
     Exit();
 }
 
