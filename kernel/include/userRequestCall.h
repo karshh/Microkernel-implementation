@@ -21,6 +21,7 @@ int MyParentTid( );
 void Pass( );
 
 void Exit( );
+void Quit( );
 
 int Send(int tid, char *msg, int msglen, char *reply, int rplen);
 
@@ -37,6 +38,8 @@ int AwaitEvent(int eventid);
 int Delay(int tid, int ticks);
 
 int Time(int tid);
+
+int IdlePercentage();
 
 int DelayUntil(int tid, int ticks);
 

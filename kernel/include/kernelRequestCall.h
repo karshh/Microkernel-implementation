@@ -47,6 +47,8 @@ int kernel_RequestClockServer(TD * t, request * r, kernelHandler * ks, message *
 
 int kernel_RequestIOServer(TD * t, request * r, kernelHandler * ks, message * m);
 
+int kernel_IdlePercentage(TD * t, kernelHandler * ks);
+
 void kernelTestRun();
 
 int processRequest(kernelHandler *ks, TD * t, request * r, message * m);

@@ -87,14 +87,14 @@ void displayGrid() {
     Exit();
 
 }
-
+/*
 #define COMMAND_DUMMY 21
 
 // GET RID OF THIS ONCE YOU IMPLEMENT PARSECOMMAND.
 int parseCommand(char * input, int * arg1, int * arg2) {
 	return COMMAND_DUMMY;
 }
-
+*/
 void displayUserPrompt() {
 	int iosTID = WhoIs("ioServer");
 	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
@@ -116,12 +116,25 @@ void displayUserPrompt() {
 	        switch (parseCommand(terminalInput, &arg1, &arg2)) {
 	            case COMMAND_Q:
 	            	// Change this to invoke Terminate() call here.
-	                Exit();
+			Quit();
+	                //Exit();
 	            
 	            case COMMAND_TR:
 	                for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
 	                terminalInputIndex = 0;
 	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KUpdated train %d's speed to %d.\033[34;1H>", arg1, arg2);
+	               	cursorCol = 2;
+	                break;
+	            case COMMAND_LI:
+	                for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
+	                terminalInputIndex = 0;
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KUpdated train %d's speed to 0, but turning on lights.\033[34;1H>", arg1);
+	               	cursorCol = 2;
+	                break;
+	            case COMMAND_PN:
+	                for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
+	                terminalInputIndex = 0;
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KPinging Sensors manually.\033[34;1H>");
 	               	cursorCol = 2;
 	                break;
 	            
@@ -137,13 +150,7 @@ void displayUserPrompt() {
 	                cursorCol = 2;
 	                break;
 
-	            case COMMAND_DUMMY: // Erase this once parser is implemented..
-	                terminalInputIndex = 0;
-	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KPrompt acknowledged.\033[34;1H>");
-	                cursorCol = 2;
-	                break;
-	            
-	            default:
+	             default:
 	                for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
 	                terminalInputIndex = 0;
 	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KIncorrect Command.\033[34;1H>");

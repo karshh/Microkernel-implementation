@@ -21,7 +21,9 @@ typedef enum requestType {
 	AWAITEVENT,
 	INTERRUPT,
 	CLOCK,
-	IO
+	IO,
+	IDLEPERCENTAGE,
+	QUIT
 } requestType;
 
 typedef struct request{
