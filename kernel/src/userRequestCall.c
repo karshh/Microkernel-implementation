@@ -78,6 +78,14 @@ void Exit(){
 	user_contextswitch(0xdeadbeef, &myRequest);
 }
 
+void Quit(){
+	
+	request myRequest;
+	myRequest.reqType = QUIT;
+	
+	user_contextswitch(0xdeadbeef, &myRequest);
+}
+
 int Send(int tid, char *msg, int msglen, char *reply, int rplen){
 	
 	request myRequest;

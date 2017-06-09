@@ -169,6 +169,10 @@ end diagnostic code
 					ks.idleTaskRunning = 0;
 		}
 
+		if (r->reqType == QUIT){
+			//hard quit for now
+			break;
+		}
 
 /*************************************
  diagnostic code

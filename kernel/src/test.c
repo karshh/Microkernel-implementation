@@ -438,8 +438,6 @@ void testTaskIO1() {
 void clockTest() {
 
     Create(1, (void *) FirstUserTask);
-
-
     Create(3, (void *) displayGrid);
     Create(5, (void *) displayUserPrompt);
 

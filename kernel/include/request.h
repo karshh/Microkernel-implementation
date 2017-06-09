@@ -22,7 +22,8 @@ typedef enum requestType {
 	INTERRUPT,
 	CLOCK,
 	IO,
-	IDLEPERCENTAGE
+	IDLEPERCENTAGE,
+	QUIT
 } requestType;
 
 typedef struct request{

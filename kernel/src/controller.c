@@ -13,7 +13,7 @@
 #define DFA_L_1 31
 #define DFA_L_2 32
 #define DFA_L_3 33
-
+#define DFA_SENSOR_PING 90
 
 
 int parseCommand(char * input, int * arg1, int * arg2){
@@ -26,11 +26,13 @@ int parseCommand(char * input, int * arg1, int * arg2){
 	char swd =0;
 	//if character is null terminator, its a empty string
 	if(input[0] == '\0') { return COMMAND_EMPTY;}
-	FOREVER{
+	while(1){
 		//if(input[counter] == '\0') { state = -2; break;}
 		state = nextState(state,input[counter], &terminator, &train, &speed, &sw, &swd);
-		if (state < 0 ) break;
-		if( input[counter+1] == '\0') break;
+		if(state < 0 ) 
+			break;
+		if(input[counter+1] == '\0')
+			 break;
 		counter ++;
 	}
 
@@ -38,7 +40,7 @@ int parseCommand(char * input, int * arg1, int * arg2){
 				//push_message(glbv, "VALID COMMAND! CHOO CHOO MOTHERFUCKA!!", MESSAGE_VALID);
 				switch(state){
 					case(DFA_QUIT_TERMINATOR):
-						return COMMAND_Q
+						return COMMAND_Q;
 					//	push_message(glbv, "Quiting!", MESSAGE_VALID);
 						
 						//glbv->kill =1;
@@ -55,7 +57,7 @@ int parseCommand(char * input, int * arg1, int * arg2){
 						ccbuff_push(&(glbv->train_command_ccb),train);
 						ccbuff_push(&(glbv->train_command_ccb),1);
 */
-						return COMMAND_L;
+						return COMMAND_LI;
 						break;
 					case(DFA_RV_1):
 					case(DFA_RV_2):

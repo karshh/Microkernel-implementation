@@ -21,6 +21,7 @@ int MyParentTid( );
 void Pass( );
 
 void Exit( );
+void Quit( );
 
 int Send(int tid, char *msg, int msglen, char *reply, int rplen);
 
