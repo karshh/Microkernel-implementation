@@ -5,7 +5,7 @@
 #include "td.h"
 
 
-#define BUFFER_CAPACITY 1024
+#define BUFFER_CAPACITY 4096
 #define BUFFER_TYPE int
 
 typedef struct circularBuffer {
