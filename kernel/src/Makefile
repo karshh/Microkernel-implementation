@@ -19,13 +19,19 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 ARFLAGS = rcs
 LDFLAGS = -init main -Map m.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
-all: clean bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o test.o test.elf install
+all: clean bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o ui.o test.o test.elf install
 
 # new file preable
 #.s: .c
 #	$(XCC) -S $(CFLAGS) .c
 #.o: .s
 #	$(AS) $(ASFLAGS) -o .o .s
+ui.s: ui.c
+	$(XCC) -S $(CFLAGS) ui.c
+
+ui.o: ui.s
+	$(AS) $(ASFLAGS) -o ui.o ui.s
+
 icu.s: icu.c
 	$(XCC) -S $(CFLAGS) icu.c
 
@@ -129,16 +135,16 @@ k3.o: k3.s
 	$(AS) $(ASFLAGS) -o k3.o k3.s
 
 test.elf:test.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o test.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o ui.o test.o -lgcc
 
 k1.elf: k1.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o k1.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o ui.o k1.o -lgcc
 
 k2.elf: k2.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o k2.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o ui.o k2.o -lgcc
 
 k3.elf: k3.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o k3.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o ui.o k3.o -lgcc
 
 install: test.elf k3.elf
 	cp test.elf /u/cs452/tftp/ARM/`whoami`/

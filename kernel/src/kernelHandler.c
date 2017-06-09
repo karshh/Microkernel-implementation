@@ -110,6 +110,7 @@ Timer clock speeds
 983 KHz
 */
 	startTimer(TIMER3_BASE, 508, 5084689,PERIODIC);//used to prevent clock skew every 10s
+	//startTimer(TIMER1_BASE, 508, 508469,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
 	startTimer(TIMER1_BASE, 508, 5085,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
 	//startTimer(TIMER1_BASE, 508, 5084,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
 	toggleTimer3Interrupt(1);//timer3 to keep timer 1 from clock skewing

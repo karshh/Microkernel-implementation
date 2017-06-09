@@ -7,6 +7,7 @@
 #include "server.h"
 #include "dictionary.h"
 #include "icu.h"
+#include "ui.h"
 
 void userTask3() {
     bwprintf(COM2, "USER TASK 3 EXIT, REQUESTING TID.\r\n");
@@ -395,7 +396,7 @@ void taskTestInt2(){
 
 // }
 void testTaskIO1() {
-    Create(3, (void *) FirstUserTask);
+    Create(1, (void *) FirstUserTask);
 
 
 
@@ -404,17 +405,17 @@ void testTaskIO1() {
      
     Printf(iosTID, COM2, "The trains controller switch should turn on and off 3 times now..\r\n");
     // testing UART1
-    Putc(iosTID, COM1 , 0x61);
-    Delay(csTID, 100);
-    Putc(iosTID, COM1 , 0x60);
-    Delay(csTID, 100);
-    Putc(iosTID, COM1 , 0x61);
-    Delay(csTID, 100);
-    Putc(iosTID, COM1 , 0x60);
-    Delay(csTID, 100);
-    Putc(iosTID, COM1 , 0x61);
-    Delay(csTID, 100);
-    Putc(iosTID, COM1 , 0x60);
+    // Putc(iosTID, COM1 , 0x61);
+    // Delay(csTID, 100);
+    // Putc(iosTID, COM1 , 0x60);
+    // Delay(csTID, 100);
+    // Putc(iosTID, COM1 , 0x61);
+    // Delay(csTID, 100);
+    // Putc(iosTID, COM1 , 0x60);
+    // Delay(csTID, 100);
+    // Putc(iosTID, COM1 , 0x61);
+    // Delay(csTID, 100);
+    // Putc(iosTID, COM1 , 0x60);
 
     Printf(iosTID, COM2, "\033[2J");
 
@@ -449,6 +450,16 @@ void testTaskIO1() {
 
 }
 
+void clockTest() {
+
+    Create(1, (void *) FirstUserTask);
+
+
+    Create(4, (void *) displayGrid);
+
+    Exit();
+}
+
 
 int main(void) {
     // turning on data and instruction cache.
@@ -458,6 +469,6 @@ int main(void) {
         "ORR r0, r0, #0x1 <<12 \n"
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
-    kernelRun(4,(int) testTaskIO1);
+    kernelRun(3,(int) clockTest);
 	return 0;
 }
