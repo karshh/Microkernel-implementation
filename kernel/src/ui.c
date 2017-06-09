@@ -87,14 +87,8 @@ void displayGrid() {
     Exit();
 
 }
-/*
-#define COMMAND_DUMMY 21
 
-// GET RID OF THIS ONCE YOU IMPLEMENT PARSECOMMAND.
-int parseCommand(char * input, int * arg1, int * arg2) {
-	return COMMAND_DUMMY;
-}
-*/
+
 void displayUserPrompt() {
 	int iosTID = WhoIs("ioServer");
 	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
@@ -116,7 +110,7 @@ void displayUserPrompt() {
 	        switch (parseCommand(terminalInput, &arg1, &arg2)) {
 	            case COMMAND_Q:
 	            	// Change this to invoke Terminate() call here.
-			Quit();
+					Quit();
 	                //Exit();
 	            
 	            case COMMAND_TR:
