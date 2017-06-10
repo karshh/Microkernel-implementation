@@ -647,6 +647,8 @@ void displayServer() {
     char c = 0;
     volatile int i = 0;
 
+    int switchLocation = 0;
+
 	while(1) {
 		msgLen = Receive(&_tid, msg, msgCap);
 		bwassert(msgLen >= 0, COM2, "<displayServer>: Receive error.\r\n");
@@ -673,6 +675,8 @@ void displayServer() {
 		    		break;
 
 	        	case COMMAND_SW:
+	        		switchLocation = msg[1] >= 153 ?  (msg[1] - 134) + 5 : msg[1] + 5;
+	        		Printf(iosTID, COM2, "\033[%d;11H%c", switchLocation, msg[2]);
 	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KSwitch %d is configured as %c now.\033[34;1H>", msg[1], msg[2]);
 		    		break;
 
