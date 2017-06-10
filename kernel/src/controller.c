@@ -1,4 +1,5 @@
 #include "controller.h"
+#include "userRequestCall.h"
 
 #define DFA_INIT 0
 #define DFA_ERROR -1
@@ -17,6 +18,8 @@
 
 
 int parseCommand(char * input, int * arg1, int * arg2){
+    	int trainTID = WhoIs("trainServer");
+    	int iosTID = WhoIs("ioServer");
 	int state = DFA_INIT;
 	int terminator = 0;
 	int counter = 0; //?
@@ -36,6 +39,8 @@ int parseCommand(char * input, int * arg1, int * arg2){
 		counter ++;
 	}
 
+ 	char msg[4] ;
+ 	char reply[2];
 	if(state > 0 && terminator == 1){
 				//push_message(glbv, "VALID COMMAND! CHOO CHOO MOTHERFUCKA!!", MESSAGE_VALID);
 				switch(state){
@@ -49,39 +54,30 @@ int parseCommand(char * input, int * arg1, int * arg2){
 					case(DFA_L_2):
 					case(DFA_L_3):
 						//turn on lights for train.
-						//assume train is at speed 0;
 						*arg1 = train;
-/*
-						ccbuff_push(&(glbv->train_command_ccb),'L');
-						ccbuff_push(&(glbv->train_command_ccb),16);
-						ccbuff_push(&(glbv->train_command_ccb),train);
-						ccbuff_push(&(glbv->train_command_ccb),1);
-*/
+						//assume train is at speed 0;
+						
+						msg[0] = 'L';
+						msg[1] = train;
+						msg[2] = '\0';
+						msg[3] = '\0';
+						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Lights command.\r\n");
+
 						return COMMAND_LI;
 						break;
 					case(DFA_RV_1):
 					case(DFA_RV_2):
 					case(DFA_RV_3):
 						//Reverses train
-						//go to speed 0
+						msg[0] = 'R';
+						msg[1] = train;
+						msg[2] = '\0';
+						msg[3] = '\0';
+						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Reverse command.\r\n");
+
+					//go to speed 0
 
 						*arg1 = train;
-/*
-						ccbuff_push(&(glbv->train_command_ccb),'T');
-						ccbuff_push(&(glbv->train_command_ccb),0);
-						ccbuff_push(&(glbv->train_command_ccb),train);
-						ccbuff_push(&(glbv->train_command_ccb),0); 
-						//reverse
-						ccbuff_push(&(glbv->train_command_ccb),'T');
-						ccbuff_push(&(glbv->train_command_ccb),15);
-						ccbuff_push(&(glbv->train_command_ccb),train);
-						ccbuff_push(&(glbv->train_command_ccb),0);
-						//return to previous speed
-						ccbuff_push(&(glbv->train_command_ccb),'T');
-						ccbuff_push(&(glbv->train_command_ccb),0);
-						ccbuff_push(&(glbv->train_command_ccb),train);
-						ccbuff_push(&(glbv->train_command_ccb),2);
-*/
 						return COMMAND_RV;
 						break;
 
@@ -90,13 +86,15 @@ int parseCommand(char * input, int * arg1, int * arg2){
 					case(DFA_TR_3):
 						//sets speed of train
 						*arg1 = train;
+						msg[0] = 'T';
+						msg[1] = speed;
+						msg[2] = train;
+						msg[3] = '\0';
+						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Trains command.\r\n");
+
+
 						*arg2 = speed;
-/*						
-						ccbuff_push(&(glbv->train_command_ccb),'T');
-						ccbuff_push(&(glbv->train_command_ccb),speed);
-						ccbuff_push(&(glbv->train_command_ccb),train);
-						ccbuff_push(&(glbv->train_command_ccb),1);
-*/
+
 						return COMMAND_TR;
 						break;
 					case(DFA_SW_1):

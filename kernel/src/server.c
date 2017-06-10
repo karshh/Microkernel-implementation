@@ -272,13 +272,15 @@ IOSERVER
 *****************************************************************************/
 
 void UART1Send_Notifier() {
-	int iosTID = MyParentTid();
+    int iosTID = MyParentTid();
+   int csTID = WhoIs("clockServer");
     char msg[3];
     int msgLen = 3;
 
     // Get the first character to block on before entering the loop.
 	bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART1Send_Notifier>: Error with send.\r\n");
 	while(1) {
+		Delay(csTID,5);
 		AwaitEvent(UART1_SEND);
 		if ((*UART1_FLAG & TXFE_MASK) && (*UART1_FLAG & CTS_MASK)) {
 			*UART1_DATA = msg[0];
@@ -460,6 +462,59 @@ void ioServer() {
 	}
 }
 
+void trainServer(){
+//keep track of train speeds, and sends instructions to ioserver
+	bwassert(!RegisterAs("trainServer"), COM2, "Failed to register trainServer.\r\n");
+	int iosTID = WhoIs("ioServer");
+	//keep track of train speeds
+	int trainSpeed[80];
+
+
+    int _tid = -1;
+    char msg[4];
+    int msgCap = 4;
+
+	volatile int i=0;
+	for (; i < 80; i++) trainSpeed[0] = 0;
+	int train;
+	int speed;
+
+   int csTID = WhoIs("clockServer");
+	while(1){
+		bwassert(Receive(&_tid, msg, msgCap) >= 0, COM2, "<trainServer>: Receive error.\r\n");
+		
+		switch(msg[0]){
+		case 'L':
+			train = msg[1];
+			trainSpeed[train] = 0;
+
+			Printf(iosTID,COM1,"%c%c",16+trainSpeed[train],train);
+	                Reply(_tid, "1", 2);
+	                break;
+		case 'T':
+			speed = msg[1];
+			train = msg[2];
+			trainSpeed[train] = speed;
+			Printf(iosTID,COM1,"%c%c",trainSpeed[train],train);
+	                Reply(_tid, "1", 2);
+	                break;
+		case 'R':
+			train = msg[1];
+			Printf(iosTID,COM1,"%c%c",0,train);
+			Delay(csTID,700);		
+			Printf(iosTID,COM1,"%c%c",15,train);
+			Printf(iosTID,COM1,"%c%c",trainSpeed[train],train);
+			//Printf(ioserver,COM1,"%c%c%c%c%c%c",0,train,15,train,trainSpeed[train],train);
+		//	Printf(ioserver,COM2,"\033[2;1Hreversing train %d ",train);
+			Printf(iosTID,COM1,"%c%c%c%c%c%c",0,train,15,train,trainSpeed[train],train);
+	                Reply(_tid, "1", 2);
+	                break;
+		default:
+	                bwassert(0, COM2, "<trainServer>: Illegal request code from userTask <%d>:[%s].\r\n", _tid,msg);
+		}
+	}
+
+}
 
 
 /****************************************************************************

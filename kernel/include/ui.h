@@ -8,4 +8,5 @@ void displayUserPrompt();
 
 void displaySensors();
 
+void displayClock();
 #endif
