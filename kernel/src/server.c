@@ -8,6 +8,22 @@
 #include "pkstring.h"
 #include "icu.h"
 #include "controller.h"
+/******************************************************************************
+FIRST USER TASK
+*****************************************************************************/
+
+
+void FirstUserTask() {
+	CreateNameServer(1, (void *) NameServerTask);
+	CreateClockServer(2, (void *) clockServer);
+	Create(31, (void *) idleTask);
+	CreateIOServer(2, (void *) ioServer);
+	Create(3, (void *) displayServer);
+	Create(2, (void *) commandServer);
+	Exit();
+}
+
+
 
 int nameServerInit(nameServer * ns) {
 	volatile int myTid = MyTid();
@@ -182,21 +198,8 @@ void clockServer() {
 	while(1) {
 		bwassert(Receive(&_tid, msg, msgCap) >= 0, COM2, "Invalid code received\r\n");
 		if (_tid == notifierTID) {
-	//		bwprintf(COM2, "clockServer: NOTIFIED BY THE GREAT NOTIFIER\r\n");
 			tick++;
-/*
-			//used to check timer speed. 
-			switch(tick %2){
-			case 0:
-				bwprintf(COM2,"\033[s\033[?25l\033[1;100H           \033[u\033[?25h");
-				break;
-			case 1:
-				bwprintf(COM2,"\033[s\033[?25l\033[1;100H >        \033[u\033[?25h");
-				break;
-			default:
-				break;
-			}
-*/
+
 			while(1) {
 				if (!deleteFromStorage(&t, &s)) break;
 				if (s.delayTime > tick) {
@@ -205,7 +208,6 @@ void clockServer() {
 				}
 				Reply(s.tid, "1", 2);
 			}
-	//		bwprintf(COM2, "clockServer: BACK TO RECEIVE MODE\r\n");
 			Reply(notifierTID, "1", 2);
 		} else {
 			volatile int requestCode = (int) msg[0];
@@ -254,23 +256,6 @@ void clockServer() {
 
 	}
 }
-/******************************************************************************
-FIRST USER TASK
-*****************************************************************************/
-
-
-void FirstUserTask() {
-	CreateNameServer(1, (void *) NameServerTask);
-	CreateClockServer(2, (void *) clockServer);
-	Create(31, (void *) idleTask);
-	CreateIOServer(2, (void *) ioServer);
-	Create(3, (void *) displayServer);
-	Create(2, (void *) commandServer);
-	Create(3, (void *) trainServer);
-	Exit();
-}
-
-
 
 /****************************************************************************
 IOSERVER
@@ -477,6 +462,7 @@ void trainServer(){
 	int commandServerTID = WhoIs("commandServer");
 	//keep track of train speeds
 	int trainSpeed[80];
+	int switch_states[22];
 
 
     int _tid = -1;
@@ -488,10 +474,12 @@ void trainServer(){
     int rpllen = 3;
 
 	volatile int i=0;
-	for (; i < 80; i++) trainSpeed[0] = 0;
+	for (; i < 80; i++) trainSpeed[i] = 0;
+	for (; i < 22; i++) switch_states[i] = 'C';//set it to curved
 	int train;
 	int speed;
-
+	int sw;
+	int swd;
 	while(1){
 		bwassert(Receive(&_tid, msg, msgCap) >= 0, COM2, "<trainServer>: Receive error.\r\n");
 		
@@ -533,6 +521,22 @@ void trainServer(){
 			commandMsg[5] = trainSpeed[train];
 			commandMsg[6] = train;
 			commandMsg[7] = 0;
+			bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+	        Reply(_tid, "1", 2);
+	        break;
+		case 'S':
+			sw = msg[1];
+			swd = msg[2];
+			if(sw <= 18)
+					switch_states[sw-1]= swd;
+			else
+					switch_states[sw-135]= swd;
+			update_switch(sw, swd, &switch_states[0]); //updates the display
+
+			commandMsg[0] = 'S';
+			commandMsg[1] = swd == 'S' ? 33 : 34;
+			commandMsg[2] = sw;
+			commandMsg[3] = 0;
 			bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 	        Reply(_tid, "1", 2);
 	        break;
@@ -633,6 +637,7 @@ void UserPrompt() {
 }
 
 void displayServer() {
+	bwassert(!RegisterAs("displayServer"), COM2, "Failed to register displayServer.\r\n");
 	int iosTID = WhoIs("ioServer");
 	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
 
@@ -640,6 +645,7 @@ void displayServer() {
 	int Prompt_TID = Create(4, (void *) UserPrompt);
 	int Sensors_TID = Create(4, (void *) displaySensors);
 	int Clock_TID = Create(4, (void *) displayClock);
+	int Train_TID = Create(4, (void *) trainServer);
 
 
     int _tid = -1;
@@ -679,8 +685,7 @@ void displayServer() {
 		    		break;
 
 	        	case COMMAND_SW:
-	        		switchLocation = msg[1] >= 153 ?  (msg[1] - 134) + 5 : msg[1] + 5;
-	        		Printf(iosTID, COM2, "\033[%d;11H%c", switchLocation, msg[2]);
+				//i this comming from trainserver not directly as a return from promt tid. 
 	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KSwitch %d is configured as %c now.\033[34;1H>", msg[1], msg[2]);
 		    		break;
 
@@ -715,6 +720,14 @@ void displayServer() {
 			Reply(_tid, "1", 2);
 		} else if (_tid == Sensors_TID){
 			for (i = 0; i < msgLen; i++) Printf(iosTID, COM2, "\033[%d;17H%c%d \033[?25l", i+6,((msg[i]-1)/16)+'A',((msg[i]-1)%16+1));
+			Reply(_tid, "1", 2);
+		} else if (_tid == Train_TID){
+	        		switchLocation = msg[2] + 5;
+	        		Printf(iosTID, COM2, "\033[%d;11H%c", switchLocation, msg[2]);
+			if (msg[0]==1)
+				Printf(iosTID, COM2, "\033[%d;5\033[31m\%c%d\033[?25l\033[0m", msg[2]+6,msg[1]);
+			else
+				Printf(iosTID, COM2, "\033[%d;5%c%d\033[?25l", msg[2]+6,msg[1]);
 			Reply(_tid, "1", 2);
 		} else if (_tid == Clock_TID){
 			switch((int) msg[0]) {
@@ -763,8 +776,8 @@ void commandServer() {
 			case 'S': // sensors
 				Putc(iosTID, COM1, msg[1]);
 				Putc(iosTID, COM1, msg[2]);
-				Delay(csTID, 15);
-				Putc(iosTID, COM1, 32);
+				Delay(csTID, 15);//wait 150 ms
+				Putc(iosTID, COM1, 32);//turn off solonoids
 				break;
 
 			case 'R': // reverse

@@ -267,7 +267,6 @@ void displayClock() {
 	int old_idle = 0;
 	int old_time = 0;
 	int parentTID = MyParentTid();
-	int iosTID = WhoIs("ioServer");
 	int csTID = WhoIs("clockServer");
 
 	char msg[8];

@@ -20,6 +20,21 @@
 #define DELAY_U				19 //change switch
 #define COMMAND_LOADING		20
 
+#define DFA_INIT 0
+#define DFA_ERROR -1
+#define DFA_QUIT_TERMINATOR 1
+#define DFA_TR_1 10
+#define DFA_TR_2 11
+#define DFA_TR_3 12
+#define DFA_RV_1 16
+#define DFA_RV_2 17
+#define DFA_RV_3 18
+#define DFA_SW_1 28
+#define DFA_L_1 31
+#define DFA_L_2 32
+#define DFA_L_3 33
+#define DFA_SENSOR_PING 90
+
 
 
 // This is the maximum number of recent sensor triggers that are to be returned.
@@ -41,6 +56,7 @@ int parseCommand(char * input, int * arg1, int * arg2);
 
 int nextState(int state, char c, int * terminator, int *train, int * speed, int *sw , char *swd);
 
+void update_switch(int sw,int swd, int * switch_states_current);
 #endif
 
 
