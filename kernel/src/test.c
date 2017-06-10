@@ -446,9 +446,11 @@ void kernelTest() {
 
     Create(1, (void *) FirstUserTask);
     Create(3, (void *) displayGrid);
+
+    Create(3, (void *) trainServer);
     Create(3, (void *) displayClock);
-    Create(4, (void *) displayUserPrompt);
-    Create(5, (void *) displaySensors); //this will fail if the computer has no train track
+    Create(5, (void *) displayUserPrompt);
+    Create(4, (void *) displaySensors); //this will fail if the computer has no train track
     Exit();
 }
 

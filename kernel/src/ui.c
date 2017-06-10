@@ -134,7 +134,7 @@ void displayUserPrompt() {
 	            case COMMAND_LI:
 	                for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
 	                terminalInputIndex = 0;
-	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KUpdated train %d's speed to 0, but turning on lights.\033[34;1H>", arg1);
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KSet Train's %d lights on.\033[34;1H>", arg1);
 	               	cursorCol = 2;
 	                break;
 	            case COMMAND_PN:

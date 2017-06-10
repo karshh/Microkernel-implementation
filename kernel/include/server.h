@@ -70,7 +70,7 @@ void UART2Receive_Notifier();
 
 void ioServer();
 
-
+void trainServer();
 
 #endif
 
