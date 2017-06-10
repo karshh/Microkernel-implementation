@@ -531,8 +531,8 @@ void trainServer(){
 			commandMsg[3] = 15;
 			commandMsg[4] = train;
 			commandMsg[5] = trainSpeed[train];
-			commandMsg[6] = 0;
-			commandMsg[7] = train;
+			commandMsg[6] = train;
+			commandMsg[7] = 0;
 			bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 	        Reply(_tid, "1", 2);
 	        break;
@@ -758,10 +758,19 @@ void commandServer() {
 				Delay(csTID, 15);
 				Putc(iosTID, COM1, 32);
 				break;
+
+			case 'R': // reverse
+				Putc(iosTID, COM1, msg[1]);
+				Putc(iosTID, COM1, msg[2]);
+				Delay(csTID, (msg[5] * 19) + 175);
+				Putc(iosTID, COM1, msg[3]);
+				Putc(iosTID, COM1, msg[4]);
+				Putc(iosTID, COM1, msg[5]);
+				Putc(iosTID, COM1, msg[6]);
+				break;
 			case 'P': // polling sensors
 			case 'T': // train speed
 			case 'L': 
-			case 'R': 
 			default:
 				for(i = 1; i < msgLen - 1; i++) Putc(iosTID, COM1, msg[i]);
 				break;
