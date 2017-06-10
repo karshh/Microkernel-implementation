@@ -210,6 +210,7 @@ void displaySensors() {
 		for (i = 0; recentSensors[i] != 0 && i < SENSOR_LIST_SIZE; i++) {
 			Printf(iosTID, COM2, "\033[%d;17H%d", i+6, recentSensors[i]);
 		}
+		Delay(csTID, 100);
 
 	}
 	Exit();
