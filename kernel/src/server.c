@@ -588,6 +588,10 @@ void UserPrompt() {
 	        int arg1;
 	        int arg2;
 
+	        msg[0] = COMMAND_LOADING;
+	        msg[1] = 0;
+	        bwassert(Send(parentTID, msg, 2, rpl, rpllen) >= 0, COM2, "<UserPrompt>: could not send prompt response to server. \r\n");
+
 	        msg[0] = parseCommand(terminalInput, &arg1, &arg2);
 	        msg[1] = arg1;
 	        msg[2] = arg2;
@@ -696,6 +700,10 @@ void displayServer() {
 	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KPinging Sensors manually.\033[34;1H>");
 	                break;
 
+	        	case COMMAND_LOADING:
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KExecuting, please wait.\033[34;1H>");
+	                break;
+
 	            case COMMAND_Q:
 	            	Quit();
 	            	break;
@@ -762,7 +770,7 @@ void commandServer() {
 			case 'R': // reverse
 				Putc(iosTID, COM1, msg[1]);
 				Putc(iosTID, COM1, msg[2]);
-				Delay(csTID, (msg[5] * 19) + 175);
+				Delay(csTID, (msg[5] * 19) + 170);
 				Putc(iosTID, COM1, msg[3]);
 				Putc(iosTID, COM1, msg[4]);
 				Putc(iosTID, COM1, msg[5]);

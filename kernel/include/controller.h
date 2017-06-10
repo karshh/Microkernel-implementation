@@ -18,6 +18,7 @@
 #define COMMAND_SWLOC		17 //change switch
 #define CLOCK_U 			18 //for displayServer purposes
 #define DELAY_U				19 //change switch
+#define COMMAND_LOADING		20
 
 
 
