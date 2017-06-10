@@ -18,8 +18,9 @@
 
 
 int parseCommand(char * input, int * arg1, int * arg2){
-    	int trainTID = WhoIs("trainServer");
-    	int iosTID = WhoIs("ioServer");
+	int trainTID = WhoIs("trainServer");
+    bwassert(trainTID >= 0, COM2, "<parseCommand>: trainServer has not been set up.\r\n");
+    	//int iosTID = WhoIs("ioServer");
 	int state = DFA_INIT;
 	int terminator = 0;
 	int counter = 0; //?
@@ -101,19 +102,15 @@ int parseCommand(char * input, int * arg1, int * arg2){
 
 						*arg1 = sw;
 						*arg2 = swd;
-/*
-						ccbuff_push(&(glbv->train_command_ccb),'S'); //flip switch
-						if(swd == 'C')
-						ccbuff_push(&(glbv->train_command_ccb),0x22);
-						else
-						ccbuff_push(&(glbv->train_command_ccb),0x21);
-						ccbuff_push(&(glbv->train_command_ccb),sw);
-						ccbuff_push(&(glbv->train_command_ccb),0);
-						ccbuff_push(&(glbv->train_command_ccb),'O'); //turn off solonoid
-						ccbuff_push(&(glbv->train_command_ccb),0x20);
-						ccbuff_push(&(glbv->train_command_ccb),0);
-						ccbuff_push(&(glbv->train_command_ccb),0);
-*/
+
+                        // Make sure to add a special case for this in trainServer.
+                        // msg[0] = 'S';
+                        // msg[1] = swd == 'S' ? 33 : 34;
+                        // msg[2] = sw;
+                        // msg[3] = 0;
+
+                        // bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Switch command.\r\n");
+
 						return COMMAND_SW;
 						break;
 					case(DFA_SENSOR_PING):
@@ -128,6 +125,8 @@ int parseCommand(char * input, int * arg1, int * arg2){
 		return COMMAND_INVALID;
 
 	}
+    // silencing warning.
+    return COMMAND_INVALID;
 }
 /********************************************************************************************************
 	DFA function

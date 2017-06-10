@@ -4,15 +4,19 @@
 #define _CONTROLLER_
 
 // Returns from parser
-#define COMMAND_Q 	10 //quit macro
-#define COMMAND_SW	11 //change switch
-#define COMMAND_RV 	12 //reverse train
-#define COMMAND_TR 	13 //set train speed   "
-#define COMMAND_LI 	14 //turn on lights    "l TR"
-#define COMMAND_PN 	15 //sensor ping       "p"
+#define COMMAND_BACKSPACE 	1
+#define COMMAND_CHAR	  	2
+#define COMMAND_INVALID 	3
+#define COMMAND_EMPTY		4
+#define COMMAND_Q 		  	10 //quit macro
+#define COMMAND_SW			11 //change switch
+#define COMMAND_RV 			12 //reverse train
+#define COMMAND_TR 			13 //set train speed   "
+#define COMMAND_LI 			14 //turn on lights    "l TR"
+#define COMMAND_PN 			15 //sensor ping       "p"
+#define DISPLAY_SENSORS 	16 //for displayServer purposes
+#define COMMAND_SWLOC		17 //change switch
 
-#define COMMAND_EMPTY	2
-#define COMMAND_INVALID 3
 
 
 // This is the maximum number of recent sensor triggers that are to be returned.

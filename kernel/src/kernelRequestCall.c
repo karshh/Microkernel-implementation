@@ -295,6 +295,9 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 	if ((tid > MAX_TID - 1) || tid < 0 || 
 		(ks->TDList[tid]).state == ZOMBIE || 
 		 (ks->TDList[tid]).state == FREE) {
+		bwassert(0, COM2, 
+			"ERROR: tid > MAX_TID - 1 = %d, tid < 0 = %d, ks->TDList[tid]).state == ZOMBIE = %d, (ks->TDList[tid]).state == FREE = %d\r\n",
+		tid > MAX_TID, tid < 0,  (ks->TDList[tid]).state == ZOMBIE, (ks->TDList[tid]).state == FREE);
 		t->reqVal = -2;
 		return 1;
 	}

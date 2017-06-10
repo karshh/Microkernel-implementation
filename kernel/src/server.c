@@ -4,8 +4,10 @@
 #include "userRequestCall.h"
 #include "bwio.h"
 #include "server.h"
+#include "ui.h"
 #include "pkstring.h"
 #include "icu.h"
+#include "controller.h"
 
 int nameServerInit(nameServer * ns) {
 	volatile int myTid = MyTid();
@@ -262,6 +264,9 @@ void FirstUserTask() {
 	CreateClockServer(2, (void *) clockServer);
 	Create(31, (void *) idleTask);
 	CreateIOServer(2, (void *) ioServer);
+	Create(3, (void *) displayServer);
+	Create(2, (void *) commandServer);
+	Create(3, (void *) trainServer);
 	Exit();
 }
 
@@ -462,10 +467,16 @@ void ioServer() {
 	}
 }
 
+
+
+/****************************************************************************
+TRAINSERVER
+*****************************************************************************/
+
 void trainServer(){
 //keep track of train speeds, and sends instructions to ioserver
 	bwassert(!RegisterAs("trainServer"), COM2, "Failed to register trainServer.\r\n");
-	int iosTID = WhoIs("ioServer");
+	int commandServerTID = WhoIs("commandServer");
 	//keep track of train speeds
 	int trainSpeed[80];
 
@@ -474,12 +485,15 @@ void trainServer(){
     char msg[4];
     int msgCap = 4;
 
+    char commandMsg[64];
+    char rpl[3];
+    int rpllen = 3;
+
 	volatile int i=0;
 	for (; i < 80; i++) trainSpeed[0] = 0;
 	int train;
 	int speed;
 
-   int csTID = WhoIs("clockServer");
 	while(1){
 		bwassert(Receive(&_tid, msg, msgCap) >= 0, COM2, "<trainServer>: Receive error.\r\n");
 		
@@ -488,29 +502,40 @@ void trainServer(){
 			train = msg[1];
 			trainSpeed[train] = 0;
 
-			Printf(iosTID,COM1,"%c%c",16+trainSpeed[train],train);
-	                Reply(_tid, "1", 2);
-	                break;
+			commandMsg[0] = 16+trainSpeed[train];
+			commandMsg[1] = train;
+			commandMsg[2] = 0;
+			bwassert(Send(commandServerTID, commandMsg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+	        Reply(_tid, "1", 2);
+	        break;
+
 		case 'T':
 			speed = msg[1];
 			train = msg[2];
 			trainSpeed[train] = speed;
-			Printf(iosTID,COM1,"%c%c",trainSpeed[train],train);
-	                Reply(_tid, "1", 2);
-	                break;
+
+			commandMsg[0] = trainSpeed[train];
+			commandMsg[1] = train;
+			commandMsg[2] = 0;
+			bwassert(Send(commandServerTID, commandMsg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+	        Reply(_tid, "1", 2);
+	        break;
+
 		case 'R':
 			train = msg[1];
-			Printf(iosTID,COM1,"%c%c",0,train);
-			Delay(csTID,700);		
-			Printf(iosTID,COM1,"%c%c",15,train);
-			Printf(iosTID,COM1,"%c%c",trainSpeed[train],train);
-			//Printf(ioserver,COM1,"%c%c%c%c%c%c",0,train,15,train,trainSpeed[train],train);
-		//	Printf(ioserver,COM2,"\033[2;1Hreversing train %d ",train);
-			Printf(iosTID,COM1,"%c%c%c%c%c%c",0,train,15,train,trainSpeed[train],train);
-	                Reply(_tid, "1", 2);
-	                break;
+
+			commandMsg[0] = 0;
+			commandMsg[1] = train;
+			commandMsg[2] = 15;
+			commandMsg[3] = train;
+			commandMsg[4] = trainSpeed[train];
+			commandMsg[5] = 0;
+			commandMsg[6] = train;
+			bwassert(Send(commandServerTID, commandMsg, 7, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+	        Reply(_tid, "1", 2);
+	        break;
 		default:
-	                bwassert(0, COM2, "<trainServer>: Illegal request code from userTask <%d>:[%s].\r\n", _tid,msg);
+	        bwassert(0, COM2, "<trainServer>: Illegal request code from userTask <%d>:[%s].\r\n", _tid,msg);
 		}
 	}
 
@@ -521,32 +546,194 @@ void trainServer(){
 DISPLAYSERVER
 *****************************************************************************/
 
-void DisplayNotifier() {
+
+
+void Grid() {
 	int iosTID = MyParentTid();
     char msg[3];
     int msgLen = 3;
 
-	while(1) bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART1Send_Notifier>: Error with send.\r\n");
+	bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART1Send_Notifier>: Error with send.\r\n");
+
+	Exit();
 }
 
-void Prompt() {
-	int iosTID = MyParentTid();
-    char msg[3];
-    int msgLen = 3;
+void UserPrompt() {
+	int parentTID = MyParentTid();
+	int iosTID = WhoIs("ioServer");
+	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
 
-    // Get the first character to block on before entering the loop.
-	bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART1Send_Notifier>: Error with send.\r\n");
-	while(1) {
-		AwaitEvent(UART1_SEND);
-		if ((*UART1_FLAG & TXFE_MASK) && (*UART1_FLAG & CTS_MASK)) {
-			*UART1_DATA = msg[0];
-			bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART1Send_Notifier>: Error with send.\r\n");
-		}
+
+	char terminalInput[1024];
+	int terminalInputIndex = 0;
+	int cursorCol = 2;
+	volatile char c = 0;
+	
+	// messaging purposes
+    char msg[64];
+
+    char rpl[3];
+    int rpllen = 3;
+
+	while (1) {
+		c = Getc(iosTID, COM2);
+
+	    if (c <= 0 || terminalInputIndex >= 1020) continue;
+	    else if (c == '\r') {
+	        int cleanup = 0;
+	        terminalInput[terminalInputIndex] = 0;
+	        int arg1;
+	        int arg2;
+
+	        msg[0] = parseCommand(terminalInput, &arg1, &arg2);
+	        msg[1] = arg1;
+	        msg[2] = arg2;
+	        msg[3] = 0;
+	        bwassert(Send(parentTID, msg, 4, rpl, rpllen) >= 0, COM2, "<DisplayPrompt>: could not send prompt response to server. \r\n");
+            for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
+            terminalInputIndex = 0;
+            cursorCol = 2;
+
+	    } else if (c == 8) { // backspace
+	        if (cursorCol <= 2) continue;
+	        terminalInputIndex -= 1;
+	        terminalInput[terminalInputIndex] = 0;
+	        cursorCol -= 1; 
+
+	        msg[0] = COMMAND_BACKSPACE;
+	        msg[1] = (cursorCol / 100);
+	        msg[2] = cursorCol % 100;
+	        msg[3] = 0;
+
+	        bwassert(Send(parentTID, msg, 4, rpl, rpllen) >= 0, COM2, "<DisplayPrompt>: could not send backspace to server. \r\n");
+	    } else {
+    
+		    terminalInput[terminalInputIndex] = c;
+		    terminalInputIndex += 1;
+
+	        msg[0] = COMMAND_CHAR;
+	        msg[1] = (cursorCol / 100);
+	        msg[2] = cursorCol % 100;
+	        msg[3] = c;
+	        msg[4] = 0;
+	        int err = Send(parentTID, msg, 5, rpl, rpllen);
+	        bwassert(err >= 0, COM2, "<DisplayPrompt>: could not send character to server.[%d] \r\n", err);
+		    cursorCol += 1;
+
+	    }
+
 	}
 }
 
-void DisplayServer() {
+void displayServer() {
+	int iosTID = WhoIs("ioServer");
+	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
+
+	int Grid_TID = Create(4, (void *) Grid);
+	int Prompt_TID = Create(4, (void *) UserPrompt);
+	int Sensors_TID = Create(4, (void *) displaySensors);
+
+
+    int _tid = -1;
+    char msg[64];
+    int msgCap = 64;
+    int msgLen = -1;
+
+    int cursorCol = 0;
+    char c = 0;
+    volatile int i = 0;
+
+	while(1) {
+		msgLen = Receive(&_tid, msg, msgCap);
+		bwassert(msgLen >= 0, COM2, "<displayServer>: Receive error.\r\n");
+
+		if (_tid == Grid_TID) {
+			displayGrid();
+			Reply(Grid_TID, "1", 2);
+
+		} else if (_tid == Prompt_TID) {
+			switch((int) msg[0]) {
+
+				case COMMAND_BACKSPACE: // backspace
+					cursorCol = (msg[1] * 100) + msg[2];
+	        		Printf(iosTID, COM2, "\033[34;%dH\033[K", cursorCol);
+	        		cursorCol = 0;
+	        		break;
+
+	        	case COMMAND_CHAR: // add a character
+					cursorCol = (msg[1] * 100) + msg[2];
+					c = msg[3];
+		    		Printf(iosTID, COM2, "\033[34;%dH%c", cursorCol, c);
+		    		cursorCol = 0;
+		    		c = 0;
+		    		break;
+
+	        	case COMMAND_SW:
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KSwitch %d is configured as %c now.\033[34;1H>", msg[1], msg[2]);
+		    		break;
+
+	        	case COMMAND_RV:
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KReversed train %d.\033[34;1H>",  msg[1], msg[2]);
+	                break;
+
+	        	case COMMAND_TR:
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KUpdated train %d's speed to %d.\033[34;1H>",  msg[1], msg[2]);
+	                break;
+
+	        	case COMMAND_LI:
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KSet Train's %d lights on.\033[34;1H>",  msg[1], msg[2]);
+	                break;
+
+	        	case COMMAND_PN:
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KPinging Sensors manually.\033[34;1H>");
+	                break;
+
+	            case COMMAND_Q:
+	            	Quit();
+	            	break;
+	        	default:
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KIncorrect Command.\033[34;1H>");
+	                break;
+			}
+
+			Reply(_tid, "1", 2);
+		} else if (_tid == Sensors_TID){
+			for (i = 0; i < msgLen; i++) Printf(iosTID, COM2, "\033[%d;17H%c%d ", i+6,((msg[i]-1)/16)+'A',((msg[i]-1)%16+1));
+			Reply(_tid, "1", 2);
+		} else {
+			Reply(_tid, "1", 2);
+		}
+	}
+
+	Exit();
 
 
 
 }
+
+
+void commandServer() {
+	bwassert(!RegisterAs("commandServer"), COM2, "Could not register as command server.\r\n");
+
+	int iosTID = WhoIs("ioServer");
+	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
+
+
+    int _tid = -1;
+    char msg[64];
+    int msgCap = 64;
+    int msgLen = -1;
+
+    volatile int i = 0;
+	while(1) {
+		msgLen = Receive(&_tid, msg, msgCap);
+		bwassert(msgLen >= 0, COM2, "<commandServer>: Receive error.\r\n");
+
+		// Send commands to io in batches.
+
+		for(i = 0; i < msgLen - 1; i++) Putc(iosTID, COM1, msg[i]);
+		Reply(_tid, "1", 2);
+
+	}
+}
+

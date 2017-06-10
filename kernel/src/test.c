@@ -449,7 +449,6 @@ void kernelTest() {
 
     Create(3, (void *) trainServer);
     Create(3, (void *) displayClock);
-    Create(5, (void *) displayUserPrompt);
     Create(4, (void *) displaySensors); //this will fail if the computer has no train track
     Exit();
 }
@@ -463,6 +462,6 @@ int main(void) {
         "ORR r0, r0, #0x1 <<12 \n"
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
-    kernelRun(3,(int) testTaskIO1);
+    kernelRun(2,(int) FirstUserTask);
 	return 0;
 }

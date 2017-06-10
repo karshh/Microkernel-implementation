@@ -94,97 +94,20 @@ void displayGrid() {
 	// Displaying the prompt here.
     Printf(iosTID, COM2, "\033[34;1H>");	
 
-    Exit();
-
 }
 
-
-void displayUserPrompt() {
-	//init ui tasks
-
-	int iosTID = WhoIs("ioServer");
-	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
-
-	char terminalInput[1024];
-	int terminalInputIndex = 0;
-	int cursorCol = 2;
-	volatile char c = 0;
-
-	while (1) {
-		c = Getc(iosTID, COM2);
-
-	    if (c <= 0) continue;
-	    else if (c == '\r') {
-	        int cleanup = 0;
-	        terminalInput[terminalInputIndex] = 0;
-	        int arg1;
-	        int arg2;
-	        switch (parseCommand(terminalInput, &arg1, &arg2)) {
-	            case COMMAND_Q:
-	            	// Change this to invoke Terminate() call here.
-					Quit();
-	                //Exit();
-	            
-	            case COMMAND_TR:
-	                for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
-	                terminalInputIndex = 0;
-	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KUpdated train %d's speed to %d.\033[34;1H>", arg1, arg2);
-	               	cursorCol = 2;
-	                break;
-	            case COMMAND_LI:
-	                for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
-	                terminalInputIndex = 0;
-	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KSet Train's %d lights on.\033[34;1H>", arg1);
-	               	cursorCol = 2;
-	                break;
-	            case COMMAND_PN:
-	                for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
-	                terminalInputIndex = 0;
-	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KPinging Sensors manually.\033[34;1H>");
-	               	cursorCol = 2;
-	                break;
-	            
-	            case COMMAND_RV:
-	                terminalInputIndex = 0;
-	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KReversed train %d.\033[34;1H>", arg1, arg2);
-	                cursorCol = 2;
-	                break;
-	            
-	            case COMMAND_SW:
-	                terminalInputIndex = 0;
-	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KSwitch %d is configured as %c now.\033[34;1H>", arg1, arg2);
-	                cursorCol = 2;
-	                break;
-
-	             default:
-	                for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
-	                terminalInputIndex = 0;
-	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KIncorrect Command.\033[34;1H>");
-	                cursorCol = 2;
-	                break;
-	        }
-	    } else if (c == 8) { // backspace
-	        if (cursorCol <= 2) continue;
-	        terminalInputIndex -= 1;
-	        terminalInput[terminalInputIndex] = 0;
-	        cursorCol -= 1;
-	        Printf(iosTID, COM2, "\033[34;%dH\033[K", cursorCol);
-	    } else {
-    
-		    terminalInput[terminalInputIndex] = c;
-		    terminalInputIndex += 1;
-		    Printf(iosTID, COM2, "\033[34;%dH%c", cursorCol, c);
-		    cursorCol += 1;
-
-	    }
-
-	}
-}
 void getSensorData(int * s){
 	//first send two bytes
 	int iosTID = WhoIs("ioServer");
+	int commandTID = WhoIs("commandServer");
+	char msg[2];
+	msg[0] = 0x85;
+	msg[1] = 0;
+	char rpl[3];
+	int rpllen = 3;
 
-	Putc(iosTID,COM1,0x85); //poll sensors
+	bwassert(Send(commandTID, msg, 2, rpl, rpllen) >= 0, COM2, "<getSensorData>: Polling sensors failed."); //poll sensors
+
 	int i = 0;
 	int counter=0;
 	for(i = 0; i< 5; i++){
@@ -259,16 +182,25 @@ void getSensorData(int * s){
 }
 
 void displaySensors() {
-	int iosTID = WhoIs("ioServer");
-    	int csTID = WhoIs("clockServer");
+	int parentTID = MyParentTid();
 	int recentSensors[64];
 	volatile int i = 0;
 	for (; i < 64; i++) recentSensors[i] = 0;
+
+	char msg[SENSOR_LIST_SIZE + 1];
+
+	int msgLen = 0;
+
+	char rpl[3];
+	int rpllen = 3;
+
+	int s[64];
+	int old[64]; 
 	
 	//volatile int num = 0;
 	while(1)  {
 
-
+		msgLen = 0;
 		/***************************************
 		  Start of block comment
 		****************************************/
@@ -280,8 +212,6 @@ void displaySensors() {
 		  THE ARRAY WITH.
 		*****************************************/
 
-		int s[64];
-		int old[64]; 
 		for (i=0; i < 64; i++) s[i] = 0;
 		for (i=0; i < 64; i++) old[i] = recentSensors[i];
 
@@ -313,14 +243,14 @@ void displaySensors() {
 		  End of block comment
 		****************************************/
 
-		for (i = 0; recentSensors[i] != 0 && i < SENSOR_LIST_SIZE; i++) {
-				
-			Printf(iosTID, COM2, "\033[%d;17H%c%d ", i+6,((recentSensors[i]-1)/16)+'A',((recentSensors[i]-1)%16+1));
-		}
-		Delay(csTID, 100);
+		for (msgLen = 0; 
+			recentSensors[msgLen] != 0 && msgLen < SENSOR_LIST_SIZE; 
+			msgLen++) msg[msgLen] = recentSensors[msgLen];
 
-		Delay(csTID, 10);
+		bwassert(Send(parentTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<displaySensors>: Displaying sensors failed."); 
+
 	}
+
 	Exit();
 
 }
