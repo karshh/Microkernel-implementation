@@ -461,6 +461,6 @@ int main(void) {
         "ORR r0, r0, #0x1 <<12 \n"
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
-    kernelRun(3,(int) kernelTest);
+    kernelRun(3,(int) testTaskIO1);
 	return 0;
 }

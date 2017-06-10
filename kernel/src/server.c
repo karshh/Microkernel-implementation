@@ -265,6 +265,8 @@ void FirstUserTask() {
 	Exit();
 }
 
+
+
 /****************************************************************************
 IOSERVER
 *****************************************************************************/
@@ -459,3 +461,37 @@ void ioServer() {
 }
 
 
+
+/****************************************************************************
+DISPLAYSERVER
+*****************************************************************************/
+
+void DisplayNotifier() {
+	int iosTID = MyParentTid();
+    char msg[3];
+    int msgLen = 3;
+
+	while(1) bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART1Send_Notifier>: Error with send.\r\n");
+}
+
+void Prompt() {
+	int iosTID = MyParentTid();
+    char msg[3];
+    int msgLen = 3;
+
+    // Get the first character to block on before entering the loop.
+	bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART1Send_Notifier>: Error with send.\r\n");
+	while(1) {
+		AwaitEvent(UART1_SEND);
+		if ((*UART1_FLAG & TXFE_MASK) && (*UART1_FLAG & CTS_MASK)) {
+			*UART1_DATA = msg[0];
+			bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART1Send_Notifier>: Error with send.\r\n");
+		}
+	}
+}
+
+void DisplayServer() {
+
+
+
+}
