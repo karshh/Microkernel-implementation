@@ -427,16 +427,14 @@ void ioServer() {
 	                break;
 
 	            case 11: // UART1 Putc
-	            	if (msg[1]) {
-		                bwassert(addToBuffer((BUFFER_TYPE) msg[1], &UART1_sendQ), COM2, "<IOServer>: Buffer full. Could not add %c[%d]\r\n", msg[1], msg[1]);
+	                bwassert(addToBuffer((BUFFER_TYPE) msg[1], &UART1_sendQ), COM2, "<IOServer>: Buffer full. Could not add %c[%d]\r\n", msg[1], msg[1]);
 
-		                if (UART1Send_blocked && getFromBuffer(&c, &UART1_sendQ)) {
-							reply[0] = (char) c;
-							reply[1] = 0;
-			            	Reply(UART1Send_TID, reply, 2);
-			            	UART1Send_blocked = 0;
-		                }
-	            	}
+	                if (UART1Send_blocked && getFromBuffer(&c, &UART1_sendQ)) {
+						reply[0] = (char) c;
+						reply[1] = 0;
+		            	Reply(UART1Send_TID, reply, 2);
+		            	UART1Send_blocked = 0;
+	                }
 	                Reply(_tid, "1", 2);
 	                break;
 
