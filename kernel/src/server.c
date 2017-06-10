@@ -697,7 +697,7 @@ void displayServer() {
 
 			Reply(_tid, "1", 2);
 		} else if (_tid == Sensors_TID){
-			for (i = 0; i < msgLen; i++) Printf(iosTID, COM2, "\033[%d;17H%c%d ", i+6,((msg[i]-1)/16)+'A',((msg[i]-1)%16+1));
+			for (i = 0; i < msgLen; i++) Printf(iosTID, COM2, "\033[%d;17H%c%d \033[?25l", i+6,((msg[i]-1)/16)+'A',((msg[i]-1)%16+1));
 			Reply(_tid, "1", 2);
 		} else if (_tid == Clock_TID){
 			switch((int) msg[0]) {
