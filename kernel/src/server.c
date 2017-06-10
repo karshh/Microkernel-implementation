@@ -559,7 +559,7 @@ void Grid() {
 void UserPrompt() {
 	int parentTID = MyParentTid();
 	int iosTID = WhoIs("ioServer");
-	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
+	bwassert(iosTID >= 0, COM2, "<UserPrompt>: IOServer has not been set up.\r\n");
 
 
 	char terminalInput[1024];
@@ -587,7 +587,7 @@ void UserPrompt() {
 	        msg[1] = arg1;
 	        msg[2] = arg2;
 	        msg[3] = 0;
-	        bwassert(Send(parentTID, msg, 4, rpl, rpllen) >= 0, COM2, "<DisplayPrompt>: could not send prompt response to server. \r\n");
+	        bwassert(Send(parentTID, msg, 4, rpl, rpllen) >= 0, COM2, "<UserPrompt>: could not send prompt response to server. \r\n");
             for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
             terminalInputIndex = 0;
             cursorCol = 2;
@@ -603,7 +603,7 @@ void UserPrompt() {
 	        msg[2] = cursorCol % 100;
 	        msg[3] = 0;
 
-	        bwassert(Send(parentTID, msg, 4, rpl, rpllen) >= 0, COM2, "<DisplayPrompt>: could not send backspace to server. \r\n");
+	        bwassert(Send(parentTID, msg, 4, rpl, rpllen) >= 0, COM2, "<UserPrompt>: could not send backspace to server. \r\n");
 	    } else {
     
 		    terminalInput[terminalInputIndex] = c;
@@ -615,7 +615,7 @@ void UserPrompt() {
 	        msg[3] = c;
 	        msg[4] = 0;
 	        int err = Send(parentTID, msg, 5, rpl, rpllen);
-	        bwassert(err >= 0, COM2, "<DisplayPrompt>: could not send character to server.[%d] \r\n", err);
+	        bwassert(err >= 0, COM2, "<UserPrompt>: could not send character to server.[%d] \r\n", err);
 		    cursorCol += 1;
 
 	    }
@@ -630,6 +630,7 @@ void displayServer() {
 	int Grid_TID = Create(4, (void *) Grid);
 	int Prompt_TID = Create(4, (void *) UserPrompt);
 	int Sensors_TID = Create(4, (void *) displaySensors);
+	int Clock_TID = Create(4, (void *) displayClock);
 
 
     int _tid = -1;
@@ -697,6 +698,18 @@ void displayServer() {
 			Reply(_tid, "1", 2);
 		} else if (_tid == Sensors_TID){
 			for (i = 0; i < msgLen; i++) Printf(iosTID, COM2, "\033[%d;17H%c%d ", i+6,((msg[i]-1)/16)+'A',((msg[i]-1)%16+1));
+			Reply(_tid, "1", 2);
+		} else if (_tid == Clock_TID){
+			switch((int) msg[0]) {
+				case CLOCK_U:
+ 	 				Printf(iosTID,COM2,"\033[s\033[?25l\033[1;125H%d%d:%d%d:%d%d.%d\033[u\033[?25h",msg[1],msg[2],msg[3],msg[4],msg[5],msg[6],msg[7]);
+ 	 				break;
+				case DELAY_U:
+		  			Printf(iosTID,COM2,"\033[s\033[?25l\033[1;68H%d%% \033[u\033[?25h",msg[1]);
+		  			break;
+				default:
+					break;
+			}
 			Reply(_tid, "1", 2);
 		} else {
 			Reply(_tid, "1", 2);

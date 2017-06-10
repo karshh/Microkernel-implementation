@@ -16,6 +16,8 @@
 #define COMMAND_PN 			15 //sensor ping       "p"
 #define DISPLAY_SENSORS 	16 //for displayServer purposes
 #define COMMAND_SWLOC		17 //change switch
+#define CLOCK_U 			18 //for displayServer purposes
+#define DELAY_U				19 //change switch
 
 
 

@@ -265,10 +265,16 @@ void displayClock() {
 	
 	int old_idle = 0;
 	int old_time = 0;
-    	int iosTID = WhoIs("ioServer");
-    	int csTID = WhoIs("clockServer");
+	int parentTID = MyParentTid();
+	int iosTID = WhoIs("ioServer");
+	int csTID = WhoIs("clockServer");
+
+	char msg[8];
+	char rpl[3];
+	int rpllen = 3;
+
 	while(1){
-		    		Delay(csTID, 10);
+		Delay(csTID, 10);
 		
 		int time = Time(csTID)/10; //get in 100 ms
 
@@ -278,7 +284,10 @@ void displayClock() {
 			if(old_idle - new_idle){
 			old_idle = new_idle;
 			//well modify when full interface is created
-		  	Printf(iosTID,COM2,"\033[s\033[?25l\033[1;68H%d%% \033[u\033[?25h",old_idle);
+			msg[0] = DELAY_U;
+			msg[1] = old_idle;
+			msg[2] = 0;
+	        bwassert(Send(parentTID, msg, 3, rpl, rpllen) >= 0, COM2, "<UserPrompt>: could not send backspace to server. \r\n");
 			}
 		}
 
@@ -287,31 +296,28 @@ void displayClock() {
 			old_time = time;
 			int MS = time % 10;
 			time = time /10; //get seconds
-			int SS = time %60; 
+			int SS1 = (time %60)%10; 
+			int SS10 = (time %60)/10; 
 			time = time /60; //get mins
-			int MI = time %60;
+			int MI1 = (time %60)%10; 
+			int MI10 = (time %60)/10; 
 			time = time /24; //get mins
-			int HR = time %24;
-			char HR_string[2];
-			char SS_string[2];
-			char MI_string[2];
-			HR_string[1] ='\0';
-			SS_string[1] ='\0';
-			MI_string[1] ='\0';
-			HR_string[0] ='\0';
-			SS_string[0] ='\0';
-			MI_string[0] ='\0';
-			if(HR < 10)
-				HR_string[0] ='0';
-			if(MI < 10)
-				MI_string[0] ='0';
-			if(SS < 10)
-				SS_string[0] ='0';
+			int HR1 = (time %24)%10;
+			int HR10 = (time %24)/10;
 		
 			//104
 			//104 m
 			//HH:MM:SS.m
-	 		Printf(iosTID,COM2,"\033[s\033[?25l\033[1;125H%s%d:%s%d:%s%d.%d\033[u\033[?25h",HR_string, HR, MI_string, MI, SS_string, SS, MS);
+			msg[0] = CLOCK_U;
+			msg[1] = HR10;
+			msg[2] = HR1;
+			msg[3] = MI10;
+			msg[4] = MI1;
+			msg[5] = SS10;
+			msg[6] = SS1;
+			msg[7] = MS;
+			msg[8] = 0;
+	        bwassert(Send(parentTID, msg, 9, rpl, rpllen) >= 0, COM2, "<UserPrompt>: could not send backspace to server. \r\n");
 		}
 	}
 		// 	}
