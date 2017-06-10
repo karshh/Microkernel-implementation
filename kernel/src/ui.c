@@ -100,13 +100,14 @@ void getSensorData(int * s){
 	//first send two bytes
 	int iosTID = WhoIs("ioServer");
 	int commandTID = WhoIs("commandServer");
-	char msg[2];
-	msg[0] = 0x85;
-	msg[1] = 0;
+	char msg[3];
+	msg[0] = 'P';
+	msg[1] = 0x85;
+	msg[2] = 0;
 	char rpl[3];
 	int rpllen = 3;
 
-	bwassert(Send(commandTID, msg, 2, rpl, rpllen) >= 0, COM2, "<getSensorData>: Polling sensors failed."); //poll sensors
+	bwassert(Send(commandTID, msg, 3, rpl, rpllen) >= 0, COM2, "<getSensorData>: Polling sensors failed."); //poll sensors
 
 	int i = 0;
 	int counter=0;

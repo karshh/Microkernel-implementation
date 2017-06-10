@@ -20,6 +20,8 @@
 int parseCommand(char * input, int * arg1, int * arg2){
 	int trainTID = WhoIs("trainServer");
     bwassert(trainTID >= 0, COM2, "<parseCommand>: trainServer has not been set up.\r\n");
+    int commandTID = WhoIs("commandServer");
+    bwassert(trainTID >= 0, COM2, "<parseCommand>: commandServer has not been set up.\r\n");
     	//int iosTID = WhoIs("ioServer");
 	int state = DFA_INIT;
 	int terminator = 0;
@@ -42,6 +44,7 @@ int parseCommand(char * input, int * arg1, int * arg2){
 
  	char msg[4] ;
  	char reply[2];
+
 	if(state > 0 && terminator == 1){
 				//push_message(glbv, "VALID COMMAND! CHOO CHOO MOTHERFUCKA!!", MESSAGE_VALID);
 				switch(state){
@@ -103,13 +106,13 @@ int parseCommand(char * input, int * arg1, int * arg2){
 						*arg1 = sw;
 						*arg2 = swd;
 
-                        // Make sure to add a special case for this in trainServer.
-                        // msg[0] = 'S';
-                        // msg[1] = swd == 'S' ? 33 : 34;
-                        // msg[2] = sw;
-                        // msg[3] = 0;
+                        //Make sure to add a special case for this in trainServer.
+                        msg[0] = 'S';
+                        msg[1] = swd == 'S' ? 33 : 34;
+                        msg[2] = sw;
+                        msg[3] = 0;
 
-                        // bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Switch command.\r\n");
+                        bwassert(Send(commandTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Switch command.\r\n");
 
 						return COMMAND_SW;
 						break;

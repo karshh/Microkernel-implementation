@@ -500,10 +500,12 @@ void trainServer(){
 			train = msg[1];
 			trainSpeed[train] = 0;
 
-			commandMsg[0] = 16+trainSpeed[train];
-			commandMsg[1] = train;
-			commandMsg[2] = 0;
-			bwassert(Send(commandServerTID, commandMsg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+
+			commandMsg[0] = 'L';
+			commandMsg[1] = 16+trainSpeed[train];
+			commandMsg[2] = train;
+			commandMsg[3] = 0;
+			bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 	        Reply(_tid, "1", 2);
 	        break;
 
@@ -512,26 +514,29 @@ void trainServer(){
 			train = msg[2];
 			trainSpeed[train] = speed;
 
-			commandMsg[0] = trainSpeed[train];
-			commandMsg[1] = train;
-			commandMsg[2] = 0;
-			bwassert(Send(commandServerTID, commandMsg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+			commandMsg[0] = 'T';
+			commandMsg[1] = trainSpeed[train];
+			commandMsg[2] = train;
+			commandMsg[3] = 0;
+			bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 	        Reply(_tid, "1", 2);
 	        break;
 
 		case 'R':
 			train = msg[1];
 
-			commandMsg[0] = 0;
-			commandMsg[1] = train;
-			commandMsg[2] = 15;
-			commandMsg[3] = train;
-			commandMsg[4] = trainSpeed[train];
-			commandMsg[5] = 0;
-			commandMsg[6] = train;
-			bwassert(Send(commandServerTID, commandMsg, 7, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+			commandMsg[0] = 'R';
+			commandMsg[1] = 0;
+			commandMsg[2] = train;
+			commandMsg[3] = 15;
+			commandMsg[4] = train;
+			commandMsg[5] = trainSpeed[train];
+			commandMsg[6] = 0;
+			commandMsg[7] = train;
+			bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 	        Reply(_tid, "1", 2);
 	        break;
+
 		default:
 	        bwassert(0, COM2, "<trainServer>: Illegal request code from userTask <%d>:[%s].\r\n", _tid,msg);
 		}
@@ -551,7 +556,7 @@ void Grid() {
     char msg[3];
     int msgLen = 3;
 
-	bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART1Send_Notifier>: Error with send.\r\n");
+	bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<Grid>: Error with send.\r\n");
 
 	Exit();
 }
@@ -726,8 +731,10 @@ void displayServer() {
 void commandServer() {
 	bwassert(!RegisterAs("commandServer"), COM2, "Could not register as command server.\r\n");
 
+	int csTID = WhoIs("clockServer");
 	int iosTID = WhoIs("ioServer");
-	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
+	bwassert(csTID >= 0, COM2, "<commandServer>: clockServer has not been set up.\r\n");
+	bwassert(iosTID >= 0, COM2, "<commandServer>: IOServer has not been set up.\r\n");
 
 
     int _tid = -1;
@@ -738,11 +745,25 @@ void commandServer() {
     volatile int i = 0;
 	while(1) {
 		msgLen = Receive(&_tid, msg, msgCap);
-		bwassert(msgLen >= 0, COM2, "<commandServer>: Receive error.\r\n");
 
+		bwassert(msgLen >= 0, COM2, "<commandServer>: Receive error.\r\n");
+		switch(msg[0]) {
+			case 'S': // sensors
+				Putc(iosTID, COM1, msg[1]);
+				Putc(iosTID, COM1, msg[2]);
+				Delay(csTID, 15);
+				Putc(iosTID, COM1, 32);
+				break;
+			case 'P': // polling sensors
+			case 'T': // train speed
+			case 'L': 
+			case 'R': 
+			default:
+				for(i = 1; i < msgLen - 1; i++) Putc(iosTID, COM1, msg[i]);
+				break;
+		}
 		// Send commands to io in batches.
 
-		for(i = 0; i < msgLen - 1; i++) Putc(iosTID, COM1, msg[i]);
 		Reply(_tid, "1", 2);
 
 	}
