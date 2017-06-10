@@ -435,12 +435,20 @@ void testTaskIO1() {
     Exit();
 }
 
-void clockTest() {
+void kernelTest() {
+    	//server priorities
+	//1 : name server,clock notifier,uart notifiers
+	//2 : clockserver, ioserver
+	//3 : display gird, clock display
+	//4 : command line
+ 	//5 : command display sensors
+	//31: idle task
 
     Create(1, (void *) FirstUserTask);
     Create(3, (void *) displayGrid);
-    Create(5, (void *) displayUserPrompt);
-    Create(5, (void *) displaySensors);
+    Create(3, (void *) displayClock);
+    Create(4, (void *) displayUserPrompt);
+    Create(5, (void *) displaySensors); //this will fail if the computer has no train track
     Exit();
 }
 
@@ -453,6 +461,6 @@ int main(void) {
         "ORR r0, r0, #0x1 <<12 \n"
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
-    kernelRun(3,(int) clockTest);
+    kernelRun(3,(int) kernelTest);
 	return 0;
 }

@@ -252,68 +252,6 @@ void clockServer() {
 
 	}
 }
-/*****************************************************************************
-CLOCK DISPLAY AND DIAGNOSTICS
-*****************************************************************************/
-void ClockDisplay() {
-	
-	int old_idle = 0;
-	int old_time = 0;
-    	int iosTID = WhoIs("ioServer");
-    	int csTID = WhoIs("clockServer");
-	while(1){
-		    		Delay(csTID, 10);
-		
-		int time = Time(csTID)/10; //get in 100 ms
-
-		if(time %10 == 0){
-		//every second print idle diplay...if it changed
-			int new_idle = IdlePercentage();
-			if(old_idle - new_idle){
-			old_idle = new_idle;
-			//well modify when full interface is created
-		  	Printf(iosTID,COM2,"\033[s\033[?25l\033[1;68H%d%% \033[u\033[?25h",old_idle);
-			}
-		}
-
-		if(old_time != time ){
-			//only print if changed
-			old_time = time;
-			
-
-			int MS = time % 10;
-			time = time /10; //get seconds
-			int SS = time %60; 
-			time = time /60; //get mins
-			int MI = time %60;
-			time = time /24; //get mins
-			int HR = time %24;
-			char HR_string[2];
-			char SS_string[2];
-			char MI_string[2];
-			HR_string[1] ='\0';
-			SS_string[1] ='\0';
-			MI_string[1] ='\0';
-			HR_string[0] ='\0';
-			SS_string[0] ='\0';
-			MI_string[0] ='\0';
-			if(HR < 10)
-				HR_string[0] ='0';
-			if(MI < 10)
-				MI_string[0] ='0';
-			if(SS < 10)
-				SS_string[0] ='0';
-		
-			//104
-			//104 m
-			//HH:MM:SS.m
-	 		Printf(iosTID,COM2,"\033[s\033[?25l\033[1;125H%s%d:%s%d:%s%d.%d\033[u\033[?25h",HR_string, HR, MI_string, MI, SS_string, SS, MS);
-		}
-	}
-		// 	}
-
-}
-
 /******************************************************************************
 FIRST USER TASK
 *****************************************************************************/
@@ -324,7 +262,6 @@ void FirstUserTask() {
 	CreateClockServer(2, (void *) clockServer);
 	Create(31, (void *) idleTask);
 	CreateIOServer(2, (void *) ioServer);
-	Create(3,(void *) ClockDisplay);
 	Exit();
 }
 
