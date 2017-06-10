@@ -4,6 +4,16 @@
 #include "server.h"
 #include "controller.h"
 
+#define SENSOR_BIT_MASK_1 0x80
+#define SENSOR_BIT_MASK_2 0x40
+#define SENSOR_BIT_MASK_3 0x20
+#define SENSOR_BIT_MASK_4 0x10
+#define SENSOR_BIT_MASK_5 0x08
+#define SENSOR_BIT_MASK_6 0x04
+#define SENSOR_BIT_MASK_7 0x02
+#define SENSOR_BIT_MASK_8 0x01
+
+
 void displayGrid() {
 
     int iosTID = WhoIs("ioServer");
@@ -90,6 +100,8 @@ void displayGrid() {
 
 
 void displayUserPrompt() {
+	//init ui tasks
+
 	int iosTID = WhoIs("ioServer");
 	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
 
@@ -101,7 +113,7 @@ void displayUserPrompt() {
 	while (1) {
 		c = Getc(iosTID, COM2);
 
-		if (c <= 0) continue;
+	    if (c <= 0) continue;
 	    else if (c == '\r') {
 	        int cleanup = 0;
 	        terminalInput[terminalInputIndex] = 0;
@@ -167,18 +179,93 @@ void displayUserPrompt() {
 	    }
 
 	}
-    
-    
+}
+void getSensorData(int * s){
+	//first send two bytes
+	int iosTID = WhoIs("ioServer");
+
+	Putc(iosTID,COM1,0x85); //poll sensors
+	int i = 0;
+	int counter=0;
+	for(i = 0; i< 5; i++){
+		volatile char b1 = Getc(iosTID,COM1); //get char for this module
+		volatile char b2 = Getc(iosTID,COM1); //get char for this module
+		if (b1 & SENSOR_BIT_MASK_1){ 
+			s[counter] = (i * 16) +1;
+			counter ++;
+	 	}
+		if (b1 & SENSOR_BIT_MASK_2){ 
+			s[counter] = (i * 16) +2;
+			counter ++;
+	 	}
+		if (b1 & SENSOR_BIT_MASK_3){ 
+			s[counter] = (i * 16) +3;
+			counter ++;
+	 	}
+		if (b1 & SENSOR_BIT_MASK_4){ 
+			s[counter] = (i * 16) +4;
+			counter ++;
+	 	}
+		if (b1 & SENSOR_BIT_MASK_5){ 
+			s[counter] = (i * 16) +5;
+			counter ++;
+	 	}
+		if (b1 & SENSOR_BIT_MASK_6){ 
+			s[counter] = (i * 16) +6;
+			counter ++;
+	 	}
+		if (b1 & SENSOR_BIT_MASK_7){ 
+			s[counter] = (i * 16) +7;
+			counter ++;
+	 	}
+		if (b1 & SENSOR_BIT_MASK_8){ 
+			s[counter] = (i * 16) +8;
+			counter ++;
+	 	}
+		if (b2 & SENSOR_BIT_MASK_1){ 
+			s[counter] = (i * 16) +9;
+			counter ++;
+	 	}
+		if (b2 & SENSOR_BIT_MASK_2){ 
+			s[counter] = (i * 16) +10;
+			counter ++;
+	 	}
+		if (b2 & SENSOR_BIT_MASK_3){ 
+			s[counter] = (i * 16) +11;
+			counter ++;
+	 	}
+		if (b2 & SENSOR_BIT_MASK_4){ 
+			s[counter] = (i * 16) +12;
+			counter ++;
+	 	}
+		if (b2 & SENSOR_BIT_MASK_5){ 
+			s[counter] = (i * 16) +13;
+			counter ++;
+	 	}
+		if (b2 & SENSOR_BIT_MASK_6){ 
+			s[counter] = (i * 16) +14;
+			counter ++;
+	 	}
+		if (b2 & SENSOR_BIT_MASK_7){ 
+			s[counter] = (i * 16) +15;
+			counter ++;
+	 	}
+		if (b2 & SENSOR_BIT_MASK_8){ 
+			s[counter] = (i * 16) +16;
+			counter ++;
+	 	}
+
+	}
 }
 
 void displaySensors() {
 	int iosTID = WhoIs("ioServer");
-	int csTID = WhoIs("clockServer");
+    	int csTID = WhoIs("clockServer");
 	int recentSensors[64];
 	volatile int i = 0;
 	for (; i < 64; i++) recentSensors[i] = 0;
 	
-	volatile int num = 0;
+	//volatile int num = 0;
 	while(1)  {
 
 
@@ -192,25 +279,46 @@ void displaySensors() {
 		  AS THE MAXIMUM NUMBER OF UPDATES YOU FILL
 		  THE ARRAY WITH.
 		*****************************************/
-		// void getSensorData(int * s);
 
+		int s[64];
+		int old[64]; 
+		for (i=0; i < 64; i++) s[i] = 0;
+		for (i=0; i < 64; i++) old[i] = recentSensors[i];
+
+		getSensorData(&s[0]);
+		//merge new data with old list
+		i = 0;
+		//if(!s[0] )
+		while(1){
+			if(!s[i]) break;
+			recentSensors[i] = s[i];
+			i++;
+		}
+		volatile int offset = i;
+		for (; i < 64; i++){ recentSensors[i] = old[i-offset];
+		}
+		
+	
 
 		/****************************************
 		  Dummy replacement for UI test purposes
 		*****************************************/
+/*
 		for (i = 0; i < SENSOR_LIST_SIZE; i++) {
 			recentSensors[i] = num;
 			num++;
 		}
-
+*/
 		/***************************************
 		  End of block comment
 		****************************************/
 
 		for (i = 0; recentSensors[i] != 0 && i < SENSOR_LIST_SIZE; i++) {
-			Printf(iosTID, COM2, "\033[%d;17H%d", i+6, recentSensors[i]);
+				
+			Printf(iosTID, COM2, "\033[%d;17H%c%d ", i+6,((recentSensors[i]-1)/16)+'A',((recentSensors[i]-1)%16+1));
 		}
 
+		Delay(csTID, 10);
 	}
 	Exit();
 
@@ -218,6 +326,66 @@ void displaySensors() {
 
 
 
+
+/*****************************************************************************
+CLOCK DISPLAY AND DIAGNOSTICS
+*****************************************************************************/
+void displayClock() {
+	
+	int old_idle = 0;
+	int old_time = 0;
+    	int iosTID = WhoIs("ioServer");
+    	int csTID = WhoIs("clockServer");
+	while(1){
+		    		Delay(csTID, 10);
+		
+		int time = Time(csTID)/10; //get in 100 ms
+
+		if(time %10 == 0){
+		//every second print idle diplay...if it changed
+			int new_idle = IdlePercentage();
+			if(old_idle - new_idle){
+			old_idle = new_idle;
+			//well modify when full interface is created
+		  	Printf(iosTID,COM2,"\033[s\033[?25l\033[1;68H%d%% \033[u\033[?25h",old_idle);
+			}
+		}
+
+		if(old_time != time ){
+			//only print if changed
+			old_time = time;
+			int MS = time % 10;
+			time = time /10; //get seconds
+			int SS = time %60; 
+			time = time /60; //get mins
+			int MI = time %60;
+			time = time /24; //get mins
+			int HR = time %24;
+			char HR_string[2];
+			char SS_string[2];
+			char MI_string[2];
+			HR_string[1] ='\0';
+			SS_string[1] ='\0';
+			MI_string[1] ='\0';
+			HR_string[0] ='\0';
+			SS_string[0] ='\0';
+			MI_string[0] ='\0';
+			if(HR < 10)
+				HR_string[0] ='0';
+			if(MI < 10)
+				MI_string[0] ='0';
+			if(SS < 10)
+				SS_string[0] ='0';
+		
+			//104
+			//104 m
+			//HH:MM:SS.m
+	 		Printf(iosTID,COM2,"\033[s\033[?25l\033[1;125H%s%d:%s%d:%s%d.%d\033[u\033[?25h",HR_string, HR, MI_string, MI, SS_string, SS, MS);
+		}
+	}
+		// 	}
+
+}
 
 
 
