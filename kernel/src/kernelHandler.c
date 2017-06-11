@@ -53,6 +53,11 @@ int initKernel(kernelHandler * ks, int priority, int code){
 	ks->nameServer = -1;
 	ks->clockServer = -1;
 	ks->ioServer = -1;
+	ks->ioServerUART1S = -1;//k4
+	ks->ioServerUART1R = -1;//k4
+	ks->ioServerUART2S = -1;//k4
+	ks->ioServerUART2R = -1;//k4
+
 	
 	//avait event tasks
 	ks->await_TIMER = -1;

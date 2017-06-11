@@ -58,7 +58,13 @@ void FirstUserTask();
 /*****************************************************************************
 IOSERVER
 *****************************************************************************/
-
+typedef enum IOSERVERType {
+	DEFAULTIOSERVER,
+	UART1S,
+	UART1R,
+	UART2S,
+	UART2R
+} IOSERVERType;
 void UART1Send_Notifier();
 
 void UART1Receive_Notifier();
@@ -69,6 +75,10 @@ void UART2Receive_Notifier();
 
 
 void ioServer();
+void UART1_SendServer();
+void UART1_ReceiveServer();
+void UART2_SendServer();
+void UART2_ReceiveServer();
 
 /*****************************************************************************
 TRAINSERVER

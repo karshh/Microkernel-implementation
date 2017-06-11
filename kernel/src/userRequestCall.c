@@ -35,11 +35,12 @@ int CreateClockServer( int priority, void (*code)){
 }
 
 
-int CreateIOServer( int priority, void (*code)){
+int CreateIOServer(int priority, void (*code), int ioserverType ){
 	request myRequest;
 	myRequest.reqType = CREATEIOSERVER;
 	myRequest.arg1 = (void *) priority;
 	myRequest.arg2 = code;
+	myRequest.arg3 = (void *) ioserverType;
 	return user_contextswitch(0xdeadbeef, &myRequest);
 }
 

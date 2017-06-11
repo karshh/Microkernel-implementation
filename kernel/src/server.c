@@ -17,7 +17,8 @@ void FirstUserTask() {
 	CreateNameServer(1, (void *) NameServerTask);
 	CreateClockServer(2, (void *) clockServer);
 	Create(31, (void *) idleTask);
-	CreateIOServer(2, (void *) ioServer);
+	CreateIOServer(2, (void *) ioServer, DEFAULTIOSERVER);
+	CreateIOServer(2, (void *) UART1_SendServer, UART1S);
 	Create(3, (void *) displayServer);
 	Create(2, (void *) commandServer);
 	Exit();
@@ -330,27 +331,77 @@ void UART2Receive_Notifier() {
 	}
 }
 
+void UART1_SendServer() {
+	bwassert(!RegisterAs("UART1SendServer"), COM2, "Failed to register Uart1SendServer.\r\n");
+	// create and init circular buffer queues.
+	circularBuffer UART1_sendQ;
+
+	circularBufferInit(&UART1_sendQ);
+	
+	// create notifier tasks
+	volatile int UART1Send_TID = Create(1, (void *) UART1Send_Notifier);
+
+	// variables to block notifiers
+	volatile int UART1Send_blocked = 0;
+	
+	// message passing required variables.
+    int _tid = -1;
+    char msg[7];
+    int msgCap = 7;
+    char reply[6];
+
+    // extra variables used.
+	int c = 0;
+
+	while(1) {
+		bwassert(Receive(&_tid, msg, msgCap) >= 0, COM2, "<UART1SendServer>: Receive error.\r\n");
+		if (_tid == UART1Send_TID) {
+			if (getFromBuffer(&c, &UART1_sendQ)) {
+				reply[0] = (char) c;
+				reply[1] = 0;
+            			Reply(UART1Send_TID, reply, 2);
+			} else {
+				UART1Send_blocked = 1;
+			}
+			c = 0;
+		} else {
+			 switch((int) msg[0]) {
+			    case 11: // UART1 Putc
+				bwassert(addToBuffer((BUFFER_TYPE) msg[1], &UART1_sendQ), COM2, "<UART1SendServer>: Buffer full. Could not add %c[%d]\r\n", msg[1], msg[1]);
+
+				if (UART1Send_blocked && getFromBuffer(&c, &UART1_sendQ)) {
+							reply[0] = (char) c;
+							reply[1] = 0;
+					Reply(UART1Send_TID, reply, 2);
+					UART1Send_blocked = 0;
+				}
+				Reply(_tid, "1", 2);
+				break;
+			    default:
+				bwassert(0, COM2, "<Uart1SendServer>: Illegal request code from userTask <%d>.\r\n", _tid);
+				break;
+        		}
+
+		}
+
+	}
+}
 void ioServer() {
 	bwassert(!RegisterAs("ioServer"), COM2, "Failed to register ioServer.\r\n");
 	// create and init circular buffer queues.
-	circularBuffer UART1_sendQ;
 	circularBuffer UART1_receiveTIDQ;
 	circularBuffer UART2_sendQ;
 	circularBuffer UART2_receiveTIDQ;
 
-	circularBufferInit(&UART1_sendQ);
 	circularBufferInit(&UART1_receiveTIDQ);
 	circularBufferInit(&UART2_sendQ);
 	circularBufferInit(&UART2_receiveTIDQ);
 	
 	// create notifier tasks
-	volatile int UART1Send_TID = Create(1, (void *) UART1Send_Notifier);
 	volatile int UART1Receive_TID = Create(1, (void *) UART1Receive_Notifier);
 	volatile int UART2Send_TID = Create(1, (void *) UART2Send_Notifier);
 	volatile int UART2Receive_TID = Create(1, (void *) UART2Receive_Notifier);
 
-	// variables to block notifiers
-	volatile int UART1Send_blocked = 0;
 	volatile int UART2Send_blocked = 0;
 	
 	// message passing required variables.
@@ -365,17 +416,7 @@ void ioServer() {
 
 	while(1) {
 		bwassert(Receive(&_tid, msg, msgCap) >= 0, COM2, "<ioServer>: Receive error.\r\n");
-		if (_tid == UART1Send_TID) {
-			if (getFromBuffer(&c, &UART1_sendQ)) {
-				reply[0] = (char) c;
-				reply[1] = 0;
-            	Reply(UART1Send_TID, reply, 2);
-			} else {
-				UART1Send_blocked = 1;
-			}
-			c = 0;
-		
-		} else if (_tid == UART1Receive_TID) {
+		if (_tid == UART1Receive_TID) {
 			if (getFromBuffer(&utid, &UART1_receiveTIDQ)) {
             	reply[0] = (char) msg[0];
             	reply[1] = 0;
@@ -411,18 +452,7 @@ void ioServer() {
 	                bwassert(addToBuffer(_tid, &UART1_receiveTIDQ), COM2, "<ioServer>: UART1_receiveTIDQ Buffer full. Cannot add <%d>.\r\n", _tid);
 	                break;
 
-	            case 11: // UART1 Putc
-	                bwassert(addToBuffer((BUFFER_TYPE) msg[1], &UART1_sendQ), COM2, "<IOServer>: Buffer full. Could not add %c[%d]\r\n", msg[1], msg[1]);
-
-	                if (UART1Send_blocked && getFromBuffer(&c, &UART1_sendQ)) {
-						reply[0] = (char) c;
-						reply[1] = 0;
-		            	Reply(UART1Send_TID, reply, 2);
-		            	UART1Send_blocked = 0;
-	                }
-	                Reply(_tid, "1", 2);
-	                break;
-
+	       
 	            case 20: // UART2 Getc
 	                bwassert(addToBuffer(_tid, &UART2_receiveTIDQ), COM2, "<ioServer>: UART2_receiveTIDQ Buffer full. Cannot add <%d>.\r\n", _tid);
 	                break;
@@ -828,9 +858,9 @@ void commandServer() {
 	bwassert(!RegisterAs("commandServer"), COM2, "Could not register as command server.\r\n");
 	int cDelTid =  Create(4, (void *) commandReverseDelayServer);
 	int csTID = WhoIs("clockServer");
-	int iosTID = WhoIs("ioServer");
+	int iosUS1TID = WhoIs("UART1SendServer");
 	bwassert(csTID >= 0, COM2, "<commandServer>: clockServer has not been set up.\r\n");
-	bwassert(iosTID >= 0, COM2, "<commandServer>: IOServer has not been set up.\r\n");
+	bwassert(iosUS1TID >= 0, COM2, "<commandServer>: UART1 Send IOServer has not been set up.\r\n");
 
 
     int _tid = -1;
@@ -844,16 +874,16 @@ void commandServer() {
 
 		bwassert(msgLen >= 0, COM2, "<commandServer>: Receive error.\r\n");
 		switch(msg[0]) {
-			case 'S': // sensors
-				Putc(iosTID, COM1, msg[1]);
-				Putc(iosTID, COM1, msg[2]);
+			case 'S': // switches
+				Putc(iosUS1TID, COM1, msg[1]);
+				Putc(iosUS1TID, COM1, msg[2]);
 				Delay(csTID, 15);//wait 150 ms //critical delay //cannot delay like reverse code.
-				Putc(iosTID, COM1, 32);//turn off solonoids
+				Putc(iosUS1TID, COM1, 32);//turn off solonoids
 				break;
 
 			case 'R': // reverse part 1
-				Putc(iosTID, COM1, 0);
-				Putc(iosTID, COM1, msg[1]);
+				Putc(iosUS1TID, COM1, 0);
+				Putc(iosUS1TID, COM1, msg[1]);
 				//since the delay is not critical (the reverse command can occur much longer than the delay time without consequence)
 				//the code is sent to a seperate task to delay
 				//thus sensors can still run even when waiting for a long delay for train to stop (max 4.36 seconds).
@@ -885,16 +915,16 @@ void commandServer() {
 				}
 				break;
 			case 'r': // reverse part 2
-				Putc(iosTID, COM1, 15);
-				Putc(iosTID, COM1, msg[1]);
-				Putc(iosTID, COM1, msg[2]);
-				Putc(iosTID, COM1, msg[1]);
+				Putc(iosUS1TID, COM1, 15);
+				Putc(iosUS1TID, COM1, msg[1]);
+				Putc(iosUS1TID, COM1, msg[2]);
+				Putc(iosUS1TID, COM1, msg[1]);
 				break;
 			case 'P': // polling sensors
 			case 'T': // train speed
 			case 'L': 
 			default:
-				for(i = 1; i < msgLen - 1; i++) Putc(iosTID, COM1, msg[i]);
+				for(i = 1; i < msgLen - 1; i++) Putc(iosUS1TID, COM1, msg[i]);
 				break;
 		}
 		// Send commands to io in batches.

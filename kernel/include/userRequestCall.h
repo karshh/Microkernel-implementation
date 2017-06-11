@@ -12,7 +12,7 @@ int CreateNameServer( int priority, void (*code));
 
 int CreateClockServer( int priority, void (*code));
 
-int CreateIOServer( int priority, void (*code));
+int CreateIOServer( int priority, void (*code), int ioserverType);
 
 int MyTid( );
 

@@ -5,6 +5,7 @@
 #include "time.h"
 #include "kernelMacros.h"
 #include "ts7200.h"
+#include "server.h"
 
 
 int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
@@ -37,6 +38,10 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 	case(EXIT):
 		if( t->TID == ks->nameServer) ks->nameServer = -1;
 		if( t->TID == ks->ioServer) ks->ioServer = -1;
+		if( t->TID == ks->ioServerUART1S) ks->ioServerUART1S = -1;
+		if( t->TID == ks->ioServerUART2S) ks->ioServerUART2S = -1;
+		if( t->TID == ks->ioServerUART1R) ks->ioServerUART1R = -1;
+		if( t->TID == ks->ioServerUART2R) ks->ioServerUART2R = -1;
 		if( t->TID == ks->clockServer) ks->clockServer = -1;
 		return kernel_Exit(t);
 		break;
@@ -92,12 +97,21 @@ int kernel_RequestClockServer(TD * t, request * r, kernelHandler * ks, message *
 }
 
 int kernel_RequestIOServer(TD * t, request * r, kernelHandler * ks, message * m) {
-	if (ks->ioServer == -1 || (ks->ioServer != ((int) r->arg1))) {
-		t->reqVal = -1;
-		return 1;
-	}
-
-	return kernel_Send(t, r, ks, m);
+	
+	if(ks->ioServer != -1 && ks->ioServer == (int) r->arg1)
+		return kernel_Send(t, r, ks, m);
+	else if	(ks->ioServerUART1S != -1 && ks->ioServerUART1S == (int) r->arg1)
+		return kernel_Send(t, r, ks, m);
+	else if	(ks->ioServerUART1R != -1 && ks->ioServerUART1R == (int) r->arg1)
+		return kernel_Send(t, r, ks, m);
+	else if	(ks->ioServerUART2S != -1 && ks->ioServerUART2S == (int) r->arg1)
+		return kernel_Send(t, r, ks, m);
+	else if	(ks->ioServerUART2R != -1 && ks->ioServerUART2R == (int) r->arg1)
+		return kernel_Send(t, r, ks, m);
+	
+	//else
+	t->reqVal = -1;
+	return 1;
 }
 
 
@@ -197,12 +211,28 @@ int kernel_CreateClockServer(TD * t, request * r, kernelHandler * ks){
 
 int kernel_CreateIOServer(TD * t, request * r, kernelHandler * ks) {
 	int priority =(int) r->arg1;
+	int ioserverType =(int) r->arg3;
 	if (priority <0 || priority >31){
 		 //change to 
 		t->reqVal = -1;
-	}else if(ks->ioServer != -1 && ks->TDList[ks->ioServer].state != ZOMBIE){
+	}else if(ioserverType == DEFAULTIOSERVER && ks->ioServer != -1 && ks->TDList[ks->ioServer].state != ZOMBIE){
 		t->reqVal = -3; //-3 if clock servre exists
 		//check if there exists a living clockserver;
+	}else if(ioserverType == UART1S && ks->ioServerUART1S != -1 && ks->TDList[ks->ioServerUART1S].state != ZOMBIE){
+		t->reqVal = -3; //-3 if clock servre exists
+		//check if there exists a living clockserver;
+	}else if(ioserverType == UART1R && ks->ioServerUART1R != -1 && ks->TDList[ks->ioServerUART1R].state != ZOMBIE){
+		t->reqVal = -3; //-3 if clock servre exists
+		//check if there exists a living clockserver;
+	}else if(ioserverType == UART2S && ks->ioServerUART2S != -1 && ks->TDList[ks->ioServerUART2S].state != ZOMBIE){
+		t->reqVal = -3; //-3 if clock servre exists
+		//check if there exists a living clockserver;
+
+	}else if(ioserverType == UART2R && ks->ioServerUART2R != -1 && ks->TDList[ks->ioServerUART2R].state != ZOMBIE){
+		t->reqVal = -3; //-3 if clock servre exists
+		//check if there exists a living clockserver;
+	}else if(ioserverType != DEFAULTIOSERVER &&ioserverType != UART1S &&ioserverType != UART1R&& ioserverType != UART2S&& ioserverType != UART2R ){
+		t->reqVal = -4; //-3 invalid uart server type
 	}else{
 	
 		int TID  =0;
@@ -212,19 +242,34 @@ int kernel_CreateIOServer(TD * t, request * r, kernelHandler * ks) {
 		if (err) 
 		{ t->reqVal  = -2;}
 		else{
-		t->reqVal= TID;
-		int code =(int) r->arg2;
-			
-		int PTID = t->TID;
-		TD * childTD = setTask(ks,TID, PTID,priority,code);   //if TID == , it is created by kernel
-	//	kernel_queuePush(ks, childTD);
-		 kernel_queuePush(ks, childTD);
-		//set name sever;
-		ks->ioServer = TID;
+			t->reqVal= TID;
+			int code =(int) r->arg2;
+				
+			int PTID = t->TID;
+			TD * childTD = setTask(ks,TID, PTID,priority,code);   //if TID == , it is created by kernel
+		//	kernel_queuePush(ks, childTD);
+			 kernel_queuePush(ks, childTD);
+			//set name sever;
+			switch (ioserverType){
+				case DEFAULTIOSERVER:
+					ks->ioServer = TID;
+					break;
+				case UART1S:
+					ks->ioServerUART1R = TID;
+					break;
+				case UART1R:
+					ks->ioServerUART1R = TID;
+					break;
+				case UART2S:
+					ks->ioServerUART2S = TID;
+					break;
+				case UART2R:
+					ks->ioServerUART2R = TID;
+					break;
+			}
 		}
 	}
 	return 1;
-
 
 }
 
