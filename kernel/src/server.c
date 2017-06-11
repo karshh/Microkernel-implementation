@@ -571,15 +571,17 @@ void trainServer(){
 			train = msg[1];
 
 			commandMsg[0] = 'R';
-			commandMsg[1] = 0;
-			commandMsg[2] = train;
-			commandMsg[3] = 15;
-			commandMsg[4] = train;
-			commandMsg[5] = trainSpeed[train];
-			commandMsg[6] = train;
-			commandMsg[7] = 0;
+			commandMsg[1] = train;
+			commandMsg[2] = trainSpeed[train];
+			commandMsg[3] = 0;
 			bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-	        Reply(_tid, "1", 2);
+			{ char c[2];
+			 c[0] = trainSpeed[train];
+			 c[1] = 0;
+			
+	        	Reply(_tid, &c[0], 2);
+			}
+
 	        break;
 		case 'S':
 			sw = msg[1];
@@ -588,7 +590,6 @@ void trainServer(){
 					switch_states[sw-1]= swd;
 			else
 					switch_states[sw-135]= swd;
-			update_switch(sw, swd, &switch_states[0]); //updates the display
 
 			commandMsg[0] = 'S';
 			commandMsg[1] = swd == 'S' ? 33 : 34;
@@ -596,6 +597,7 @@ void trainServer(){
 			commandMsg[3] = 0;
 			bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 	        Reply(_tid, "1", 2);
+			update_switch(sw, swd, &switch_states[0]); //updates the display
 	        break;
 
 		default:
@@ -748,7 +750,7 @@ void displayServer() {
 		    		break;
 
 	        	case COMMAND_RV:
-	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KReversed train %d.\033[34;1H>",  msg[1], msg[2]);
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KReversed train %d at speed %d\033[34;1H>",  msg[1], msg[2]);
 	                break;
 
 	        	case COMMAND_TR:
@@ -756,7 +758,7 @@ void displayServer() {
 	                break;
 
 	        	case COMMAND_LI:
-	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KSet Train's %d lights on.\033[34;1H>",  msg[1], msg[2]);
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KSet Train's %d lights on.\033[34;1H>",  msg[1]);
 	                break;
 
 	        	case COMMAND_PN:
@@ -777,25 +779,26 @@ void displayServer() {
 
 			Reply(_tid, "1", 2);
 		} else if (_tid == Sensors_TID){
-			for (i = 0; i < msgLen; i++) Printf(iosTID, COM2, "\033[%d;17H%c%d \033[?25l", i+6,((msg[i]-1)/16)+'A',((msg[i]-1)%16+1));
+			for (i = 0; i < msgLen; i++) Printf(iosTID, COM2, "\033[?25l\033[%d;17H%c%d \033[u\033[?25h", i+6,((msg[i]-1)/16)+'A',((msg[i]-1)%16+1));
 			Reply(_tid, "1", 2);
 		} else if (_tid == Train_TID){
 	       		switchLocation = msg[2] + 6;
-			if (msg[0] == 2){
+			if (msg[0] == 2){ //2 used for initiliziation code
 				if(msg[1] == 0)
-	                		Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KInitializing Trains %d.\033[34;1H>",msg[2]);
+	                		Printf(iosTID, COM2, "\033[s\033[?25l\033[34;1H\033[K\033[35;1H\033[KInitializing Trains %d.\033[34;1H>\033[u\033[?25h",msg[2]);
 				else if(msg[1] == 1)
-	                		Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KInitializing Switches.\033[34;1H>");
+	                		Printf(iosTID, COM2, "\033[s\033[?25l\033[34;1H\033[K\033[35;1H\033[KInitializing Switches.\033[34;1H>\033[u\033[?25h");
 				else{
-	                		Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[K\033[34;1H>");
+	                		Printf(iosTID, COM2, "\033[s\033[?25l\033[34;1H\033[K\033[35;1H\033[K\033[34;1H>\033[u\033[?25h");
 					Prompt_TID = Create(4, (void *) UserPrompt);
 				}
 					
 			}
-			else if (msg[0] == 1)
-       				Printf(iosTID, COM2, "\033[%d;11H\033[1m\033[31m%c\033[0m", switchLocation, msg[1]);
+			else if (msg[0] == 1)//1 is switch mode warning
+       				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;11H\033[1m\033[31m%c\033[0m\033[u\033[?25h", switchLocation, msg[1]);
 			else
-       				Printf(iosTID, COM2, "\033[%d;11H%c", switchLocation, msg[1]);
+				//0 is for switch mode normal text
+       				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;11H%c\033[u\033[?25h", switchLocation, msg[1]);
 			Reply(_tid, "1", 2);
 		} else if (_tid == Clock_TID){
 			switch((int) msg[0]) {
@@ -823,7 +826,7 @@ void displayServer() {
 
 void commandServer() {
 	bwassert(!RegisterAs("commandServer"), COM2, "Could not register as command server.\r\n");
-
+	int cDelTid =  Create(4, (void *) commandReverseDelayServer);
 	int csTID = WhoIs("clockServer");
 	int iosTID = WhoIs("ioServer");
 	bwassert(csTID >= 0, COM2, "<commandServer>: clockServer has not been set up.\r\n");
@@ -844,18 +847,48 @@ void commandServer() {
 			case 'S': // sensors
 				Putc(iosTID, COM1, msg[1]);
 				Putc(iosTID, COM1, msg[2]);
-				Delay(csTID, 15);//wait 150 ms
+				Delay(csTID, 15);//wait 150 ms //critical delay //cannot delay like reverse code.
 				Putc(iosTID, COM1, 32);//turn off solonoids
 				break;
 
-			case 'R': // reverse
+			case 'R': // reverse part 1
+				Putc(iosTID, COM1, 0);
+				Putc(iosTID, COM1, msg[1]);
+				//since the delay is not critical (the reverse command can occur much longer than the delay time without consequence)
+				//the code is sent to a seperate task to delay
+				//thus sensors can still run even when waiting for a long delay for train to stop (max 4.36 seconds).
+				//might change when we start train specific realtime speeds.
+				//note the reverse server does the delay.
+				//proper code is that the reverse server has its own notifier, allowing it to queue up multiple delays.
+				//delays use delayUntil, not delay. to minimize number of delays
+			
+				{
+					char delMsg[10];
+					char rep[2];
+
+					int delayReverse = Time(csTID) + (msg[2]*19)+170;
+					//calculate the time (in ticks, based on a 24 hr time period, when the delay should end
+					delMsg[0] = msg[1]; //set train
+					delMsg[1] = msg[2]; //set trainspeed
+					
+					delMsg[2] = (delayReverse/10000000)%10; //set delay
+					delMsg[3] = (delayReverse/1000000)%10; //set delay
+					delMsg[4] = (delayReverse/100000)%10; //set delay
+					delMsg[5] = (delayReverse/10000)%10; //set delay
+					delMsg[6] = (delayReverse/1000)%10; //set delay
+					delMsg[7] = (delayReverse/100)%10; //set delay
+					delMsg[8] = (delayReverse/10)%10; //set delay
+					delMsg[9] = delayReverse %10; //set delay
+					delMsg[10] = 0; //set train
+					int err = Send(cDelTid, delMsg, 10, rep, 2);
+					bwassert(err >= 0, COM2, "<Command Server>: could not send second part of reverse to reverse delay server.[%d] \r\n", err);
+				}
+				break;
+			case 'r': // reverse part 2
+				Putc(iosTID, COM1, 15);
 				Putc(iosTID, COM1, msg[1]);
 				Putc(iosTID, COM1, msg[2]);
-				Delay(csTID, (msg[5] * 19) + 170);
-				Putc(iosTID, COM1, msg[3]);
-				Putc(iosTID, COM1, msg[4]);
-				Putc(iosTID, COM1, msg[5]);
-				Putc(iosTID, COM1, msg[6]);
+				Putc(iosTID, COM1, msg[1]);
 				break;
 			case 'P': // polling sensors
 			case 'T': // train speed
@@ -867,6 +900,55 @@ void commandServer() {
 		// Send commands to io in batches.
 
 		Reply(_tid, "1", 2);
+
+	}
+}
+void commandReverseDelayServer() {
+//problem is when you have
+
+
+	int csTID = WhoIs("clockServer");
+	bwassert(csTID >= 0, COM2, "<commandReverseDelayServer>: clockServer has not been set up.\r\n");
+	int parent = MyParentTid();
+
+
+    int _tid = -1;
+    char msg[10];
+    int msgCap = 10;
+    int msgLen = -1;
+
+	int train =0;
+	int trainspeed =0;
+	int delayReverse = 0;
+
+    char commandMsg[64];
+    char rpl[3];
+    int rpllen = 3;
+
+
+	while(1) {
+		msgLen = Receive(&_tid, msg, msgCap);
+
+		bwassert(msgLen >= 0, COM2, "<commandReverseDelayServer>: Receive error.\r\n");
+		train = msg[0];
+		trainspeed = msg[1];
+		delayReverse =  msg[2]*10000000;
+		delayReverse += msg[3]*1000000;
+		delayReverse += msg[4]*100000;
+		delayReverse += msg[5]*10000;
+		delayReverse += msg[6]*1000;
+		delayReverse += msg[7]*100;
+		delayReverse += msg[8]*10;
+		delayReverse += msg[9]*1;
+
+	        Reply(_tid, "1", 2);
+		DelayUntil(csTID,delayReverse);
+
+		commandMsg[0] = 'r';
+		commandMsg[1] = train;
+		commandMsg[2] = trainspeed;
+		commandMsg[3] = 0;
+		bwassert(Send(parent, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<commandReverseDelayServer>: Error sending message to CommandServer.\r\n");
 
 	}
 }

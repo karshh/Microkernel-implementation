@@ -147,6 +147,7 @@ int parseCommand(char * input, int * arg1, int * arg2){
 					//go to speed 0
 
 						*arg1 = train;
+						*arg2 = reply[0];
 						return COMMAND_RV;
 						break;
 

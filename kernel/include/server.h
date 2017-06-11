@@ -90,6 +90,7 @@ void displayServer();
 
 void commandServer();
 
+void commandReverseDelayServer();
 
 #endif
 
