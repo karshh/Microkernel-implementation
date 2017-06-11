@@ -104,11 +104,12 @@ int kernel_RequestIOServer(TD * t, request * r, kernelHandler * ks, message * m)
 		return kernel_Send(t, r, ks, m);
 	else if	(ks->ioServerUART1R != -1 && ks->ioServerUART1R == (int) r->arg1)
 		return kernel_Send(t, r, ks, m);
+
 	else if	(ks->ioServerUART2S != -1 && ks->ioServerUART2S == (int) r->arg1)
 		return kernel_Send(t, r, ks, m);
+
 	else if	(ks->ioServerUART2R != -1 && ks->ioServerUART2R == (int) r->arg1)
 		return kernel_Send(t, r, ks, m);
-	
 	//else
 	t->reqVal = -1;
 	return 1;
@@ -232,7 +233,7 @@ int kernel_CreateIOServer(TD * t, request * r, kernelHandler * ks) {
 		t->reqVal = -3; //-3 if clock servre exists
 		//check if there exists a living clockserver;
 	}else if(ioserverType != DEFAULTIOSERVER && ioserverType != UART1S && ioserverType != UART1R && ioserverType != UART2S && ioserverType != UART2R ){
-		t->reqVal = -4; //-3 invalid uart server type
+		t->reqVal = -4; //-4 invalid uart server type
 	}else{
 	
 		int TID  =0;
@@ -255,7 +256,7 @@ int kernel_CreateIOServer(TD * t, request * r, kernelHandler * ks) {
 					ks->ioServer = TID;
 					break;
 				case UART1S:
-					ks->ioServerUART1R = TID;
+					ks->ioServerUART1S = TID;
 					break;
 				case UART1R:
 					ks->ioServerUART1R = TID;

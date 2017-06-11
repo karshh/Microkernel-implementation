@@ -98,7 +98,8 @@ void displayGrid() {
 
 void getSensorData(int * s){
 	//first send two bytes
-	int iosTID = WhoIs("ioServer");
+	int iosTID = WhoIs("UART1ReceiveServer");
+	bwassert(iosTID >= 0, COM2, "<UserPrompt>: UART1ReceiveServer has not been set up.\r\n");
 	int commandTID = WhoIs("commandServer");
 	char msg[3];
 	msg[0] = 'P';
@@ -113,6 +114,7 @@ void getSensorData(int * s){
 	int counter=0;
 	for(i = 0; i< 5; i++){
 		volatile char b1 = Getc(iosTID,COM1); //get char for this module
+
 		volatile char b2 = Getc(iosTID,COM1); //get char for this module
 		if (b1 & SENSOR_BIT_MASK_1){ 
 			s[counter] = (i * 16) +1;
