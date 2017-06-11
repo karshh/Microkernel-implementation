@@ -87,7 +87,6 @@ void update_switch(int sw,int swd, int * switch_states_current){
 int parseCommand(char * input, int * arg1, int * arg2){
 	int trainTID = WhoIs("trainServer");
     bwassert(trainTID >= 0, COM2, "<parseCommand>: trainServer has not been set up.\r\n");
-    	//int iosTID = WhoIs("ioServer");
 	int state = DFA_INIT;
 	int terminator = 0;
 	int counter = 0; //?

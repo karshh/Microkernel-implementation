@@ -16,7 +16,7 @@
 
 void displayGrid() {
 
-    int iosTID = WhoIs("ioServer");
+    int iosTID = WhoIs("UART2SendServer");
 	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
     
     // since this is the first function called, clear the damn screen!

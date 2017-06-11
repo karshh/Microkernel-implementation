@@ -390,7 +390,6 @@ void taskTestInt2(){
 
 // void testTaskReceive() {
 
-//     int iosTID = WhoIs("ioServer");
 
 //     Exit( );
 

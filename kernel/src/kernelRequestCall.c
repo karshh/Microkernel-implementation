@@ -231,7 +231,7 @@ int kernel_CreateIOServer(TD * t, request * r, kernelHandler * ks) {
 	}else if(ioserverType == UART2R && ks->ioServerUART2R != -1 && ks->TDList[ks->ioServerUART2R].state != ZOMBIE){
 		t->reqVal = -3; //-3 if clock servre exists
 		//check if there exists a living clockserver;
-	}else if(ioserverType != DEFAULTIOSERVER &&ioserverType != UART1S &&ioserverType != UART1R&& ioserverType != UART2S&& ioserverType != UART2R ){
+	}else if(ioserverType != DEFAULTIOSERVER && ioserverType != UART1S && ioserverType != UART1R && ioserverType != UART2S && ioserverType != UART2R ){
 		t->reqVal = -4; //-3 invalid uart server type
 	}else{
 	

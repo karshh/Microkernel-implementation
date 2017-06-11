@@ -19,6 +19,7 @@ void FirstUserTask() {
 	Create(31, (void *) idleTask);
 	CreateIOServer(2, (void *) ioServer, DEFAULTIOSERVER);
 	CreateIOServer(2, (void *) UART1_SendServer, UART1S);
+	CreateIOServer(2, (void *) UART2_SendServer, UART2S);
 	Create(3, (void *) displayServer);
 	Create(2, (void *) commandServer);
 	Exit();
@@ -386,23 +387,77 @@ void UART1_SendServer() {
 
 	}
 }
+
+void UART2_SendServer() {
+	bwassert(!RegisterAs("UART2SendServer"), COM2, "Failed to register Uart2SendServer.\r\n");
+	// create and init circular buffer queues.
+	circularBuffer UART2_sendQ;
+
+	circularBufferInit(&UART2_sendQ);
+	
+	// create notifier tasks
+	volatile int UART2Send_TID = Create(1, (void *) UART2Send_Notifier);
+
+	// variables to block notifiers
+	volatile int UART2Send_blocked = 0;
+	
+	// message passing required variables.
+    int _tid = -1;
+    char msg[7];
+    int msgCap = 7;
+    char reply[6];
+
+    // extra variables used.
+	int c = 0;
+
+	while(1) {
+		bwassert(Receive(&_tid, msg, msgCap) >= 0, COM2, "<UART2SendServer>: Receive error.\r\n");
+		if (_tid == UART2Send_TID) {
+			if (getFromBuffer(&c, &UART2_sendQ)) {
+				reply[0] = (char) c;
+				reply[1] = 0;
+            			Reply(UART2Send_TID, reply, 2);
+			} else {
+				UART2Send_blocked = 1;
+			}
+			c = 0;
+		} else {
+			switch((int) msg[0]) {
+	     			case 21: // UART2 Putc
+					if (msg[1]) {
+						bwassert(addToBuffer((BUFFER_TYPE) msg[1], &UART2_sendQ), COM2, "<UART2Server>: Buffer full. Could not add %c[%d]\r\n", msg[1], msg[1]);
+						if (UART2Send_blocked && getFromBuffer(&c, &UART2_sendQ)) {
+									reply[0] = (char) c;
+									reply[1] = 0;
+							Reply(UART2Send_TID, reply, 2);
+							UART2Send_blocked = 0;
+						}
+					}
+					Reply(_tid, "1", 2);
+					break;
+
+			    default:
+				bwassert(0, COM2, "<Uart2SendServer>: Illegal request code from userTask <%d>.\r\n", _tid);
+				break;
+        		}
+
+		}
+
+	}
+}
+
 void ioServer() {
 	bwassert(!RegisterAs("ioServer"), COM2, "Failed to register ioServer.\r\n");
 	// create and init circular buffer queues.
 	circularBuffer UART1_receiveTIDQ;
-	circularBuffer UART2_sendQ;
 	circularBuffer UART2_receiveTIDQ;
 
 	circularBufferInit(&UART1_receiveTIDQ);
-	circularBufferInit(&UART2_sendQ);
 	circularBufferInit(&UART2_receiveTIDQ);
 	
 	// create notifier tasks
 	volatile int UART1Receive_TID = Create(1, (void *) UART1Receive_Notifier);
-	volatile int UART2Send_TID = Create(1, (void *) UART2Send_Notifier);
 	volatile int UART2Receive_TID = Create(1, (void *) UART2Receive_Notifier);
-
-	volatile int UART2Send_blocked = 0;
 	
 	// message passing required variables.
     int _tid = -1;
@@ -426,17 +481,8 @@ void ioServer() {
             utid = -1;
             Reply(UART1Receive_TID, "1", 2);
 
-		} else if (_tid == UART2Send_TID) {
-			if (getFromBuffer(&c, &UART2_sendQ)) {
-				reply[0] = (char) c;
-				reply[1] = 0;
-            	Reply(UART2Send_TID, reply, 2);
-			} else {
-				UART2Send_blocked = 1;
-			}
-			c = 0;
-
-		} else if (_tid == UART2Receive_TID) {
+		}
+		else if (_tid == UART2Receive_TID) {
 			if (getFromBuffer(&utid, &UART2_receiveTIDQ)) {
             	reply[0] = (char) msg[0];
             	reply[1] = 0;
@@ -457,20 +503,7 @@ void ioServer() {
 	                bwassert(addToBuffer(_tid, &UART2_receiveTIDQ), COM2, "<ioServer>: UART2_receiveTIDQ Buffer full. Cannot add <%d>.\r\n", _tid);
 	                break;
 
-	            case 21: // UART2 Putc
-	            	if (msg[1]) {
-		                bwassert(addToBuffer((BUFFER_TYPE) msg[1], &UART2_sendQ), COM2, "<IOServer>: Buffer full. Could not add %c[%d]\r\n", msg[1], msg[1]);
-		                if (UART2Send_blocked && getFromBuffer(&c, &UART2_sendQ)) {
-							reply[0] = (char) c;
-							reply[1] = 0;
-			            	Reply(UART2Send_TID, reply, 2);
-			            	UART2Send_blocked = 0;
-		                }
-	            	}
-	                Reply(_tid, "1", 2);
-	                break;
-
-	            default:
+	       	            default:
 	                bwassert(0, COM2, "<ioServer>: Illegal request code from userTask <%d>.\r\n", _tid);
 	                break;
         }
@@ -657,7 +690,7 @@ void Grid() {
 void UserPrompt() {
 	int parentTID = MyParentTid();
 	int iosTID = WhoIs("ioServer");
-	bwassert(iosTID >= 0, COM2, "<UserPrompt>: IOServer has not been set up.\r\n");
+	bwassert(iosTID >= 0, COM2, "<UserPrompt>: ioServer has not been set up.\r\n");
 
 
 	char terminalInput[1024];
@@ -727,8 +760,8 @@ void UserPrompt() {
 
 void displayServer() {
 	bwassert(!RegisterAs("displayServer"), COM2, "Failed to register displayServer.\r\n");
-	int iosTID = WhoIs("ioServer");
-	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
+	int iosTID = WhoIs("UART2SendServer");
+	bwassert(iosTID >= 0, COM2, "<displayGrid>: UART2SendServer has not been set up.\r\n");
 
 	int Grid_TID = Create(4, (void *) Grid);
 	//int Prompt_TID = Create(4, (void *) UserPrompt);
