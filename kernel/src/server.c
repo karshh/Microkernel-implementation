@@ -460,6 +460,7 @@ void trainServer(){
 //keep track of train speeds, and sends instructions to ioserver
 	bwassert(!RegisterAs("trainServer"), COM2, "Failed to register trainServer.\r\n");
 	int commandServerTID = WhoIs("commandServer");
+	int csTID = WhoIs("clockServer");
 	//keep track of train speeds
 	int trainSpeed[80];
 	int switch_states[22];
@@ -474,8 +475,64 @@ void trainServer(){
     int rpllen = 3;
 
 	volatile int i=0;
-	for (; i < 80; i++) trainSpeed[i] = 0;
-	for (; i < 22; i++) switch_states[i] = 'C';//set it to curved
+	int msgLen = 4;
+	int dspTID = WhoIs("displayServer");
+
+	
+	for (i=0; i < 80; i++){
+ 			trainSpeed[i] = 0;
+			commandMsg[0] = 'T';
+			commandMsg[1] = trainSpeed[i];
+			commandMsg[2] = i;
+			commandMsg[3] = 0;
+			bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+			//send message to display thaat trains are initilizaing
+			msg[0] = 2; //no warning
+			msg[1] = 0;
+			msg[2] = i;//position (0..17)
+			msg[3] = 0;
+			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+
+			//Delay(csTID, (14 * 19) + 170);
+			Delay(csTID, 5);
+	}
+
+			//send message to display thaat switches are initilizaing
+			msg[0] = 2; //no warning
+			msg[1] = 1;
+			msg[2] = 0;//position (0..17)
+			msg[3] = 0;
+			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+
+
+	//init switches
+	for (i=1; i <= 18; i++){
+		 switch_states[i-1] = 'C';//set it to curved
+			commandMsg[0] = 'S';
+			commandMsg[1] = switch_states[i-1] == 'S' ? 33 : 34;
+			commandMsg[2] = i;
+			commandMsg[3] = 0;
+			bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+			update_switch(i, switch_states[i-1], &switch_states[0]); //updates the display
+	}
+
+	for (i=153; i <= 156; i++){
+		 switch_states[i-135] = i%2? 'C':'S';//set it to curved
+			commandMsg[0] = 'S';
+			commandMsg[1] = switch_states[i-135] == 'S' ? 33 : 34;
+			commandMsg[2] = i;
+			commandMsg[3] = 0;
+			bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+			update_switch(i, switch_states[i-135], &switch_states[0]); //updates the display
+		
+	}
+			//send message to display that init is done. allow command line input
+			msg[0] = 2; //no warning
+			msg[1] = 2;
+			msg[2] = 0;//position (0..17)
+			msg[3] = 0;
+			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+
 	int train;
 	int speed;
 	int sw;
@@ -642,7 +699,8 @@ void displayServer() {
 	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
 
 	int Grid_TID = Create(4, (void *) Grid);
-	int Prompt_TID = Create(4, (void *) UserPrompt);
+	//int Prompt_TID = Create(4, (void *) UserPrompt);
+	int Prompt_TID = -1;
 	int Sensors_TID = Create(4, (void *) displaySensors);
 	int Clock_TID = Create(4, (void *) displayClock);
 	int Train_TID = Create(4, (void *) trainServer);
@@ -722,12 +780,22 @@ void displayServer() {
 			for (i = 0; i < msgLen; i++) Printf(iosTID, COM2, "\033[%d;17H%c%d \033[?25l", i+6,((msg[i]-1)/16)+'A',((msg[i]-1)%16+1));
 			Reply(_tid, "1", 2);
 		} else if (_tid == Train_TID){
-	        		switchLocation = msg[2] + 5;
-	        		Printf(iosTID, COM2, "\033[%d;11H%c", switchLocation, msg[2]);
-			if (msg[0]==1)
-				Printf(iosTID, COM2, "\033[%d;5\033[31m\%c%d\033[?25l\033[0m", msg[2]+6,msg[1]);
+	       		switchLocation = msg[2] + 6;
+			if (msg[0] == 2){
+				if(msg[1] == 0)
+	                		Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KInitializing Trains %d.\033[34;1H>",msg[2]);
+				else if(msg[1] == 1)
+	                		Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KInitializing Switches.\033[34;1H>");
+				else{
+	                		Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[K\033[34;1H>");
+					Prompt_TID = Create(4, (void *) UserPrompt);
+				}
+					
+			}
+			else if (msg[0] == 1)
+       				Printf(iosTID, COM2, "\033[%d;11H\033[1m\033[31m%c\033[0m", switchLocation, msg[1]);
 			else
-				Printf(iosTID, COM2, "\033[%d;5%c%d\033[?25l", msg[2]+6,msg[1]);
+       				Printf(iosTID, COM2, "\033[%d;11H%c", switchLocation, msg[1]);
 			Reply(_tid, "1", 2);
 		} else if (_tid == Clock_TID){
 			switch((int) msg[0]) {

@@ -19,13 +19,14 @@ void update_switch(int sw,int swd, int * switch_states_current){
 		bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
 	}
 	else if(sw <= 154){
+		//warns the user if we have a double curve switch
 		if (switch_states_current[18] == switch_states_current[19] && swd == 'C'){
-			msg[0] = '1'; // warning
+			msg[0] = 1; // warning
 			msg[1] = 'C';
 			msg[2] = 18;
 			msg[3] = 0;
 			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
-			msg[0] = '1'; // warning
+			msg[0] = 1; // warning
 			msg[1] = 'C';
 			msg[2] = 19;
 			msg[3] = 0;
@@ -50,13 +51,14 @@ void update_switch(int sw,int swd, int * switch_states_current){
 	//	pie_printf(COM2, glbv, "\033[%d;%dH             ", 11, 22 + 10 , c);
 	}
 	else if(sw <= 156){
+		//warns the user if we have a double curve switch
 		if (switch_states_current[20] == switch_states_current[21] && swd == 'C'){
-			msg[0] = '1'; // warning
+			msg[0] = 1; // warning
 			msg[1] = 'C';
 			msg[2] = 20;
 			msg[3] = 0;
 			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
-			msg[0] = '1'; // warning
+			msg[0] = 1; // warning
 			msg[1] = 'C';
 			msg[2] = 21;
 			msg[3] = 0;
@@ -169,13 +171,12 @@ int parseCommand(char * input, int * arg1, int * arg2){
 						*arg1 = sw;
 						*arg2 = swd;
 
-                        //Make sure to add a special case for this in switchServer.
-                        msg[0] = 'S';
-                        msg[1] = sw;
-                        msg[2] = swd;
-                        msg[3] = '\0';
-		
-                        bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Switch command.\r\n");
+                        			msg[0] = 'S';
+						msg[1] = sw;
+						msg[2] = swd;
+						msg[3] = '\0';
+					
+						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Switch command.\r\n");
 
 						return COMMAND_SW;
 						break;
