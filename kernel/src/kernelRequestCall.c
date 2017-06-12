@@ -35,6 +35,10 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 	case(PASS):
 		return kernel_Pass(t);
 		break;
+	case(QUIT):
+
+		return kernel_Quit( t, ks); 
+		break;
 	case(EXIT):
 		if( t->TID == ks->nameServer) ks->nameServer = -1;
 		if( t->TID == ks->ioServer) ks->ioServer = -1;
@@ -84,6 +88,11 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 }
 
 
+int kernel_Quit(TD * t, kernelHandler * ks){ 
+		ks->KernelState = KERQUIT;
+		t->reqVal = 1;
+		return 1;
+}
 // Extra error case added:
 // 		-3 : The send-recieve-reply transmission could not be completed.
 //
@@ -341,9 +350,9 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 	if ((tid > MAX_TID - 1) || tid < 0 || 
 		(ks->TDList[tid]).state == ZOMBIE || 
 		 (ks->TDList[tid]).state == FREE) {
-		bwassert(0, COM2, 
-			"ERROR: tid > MAX_TID - 1 = %d, tid < 0 = %d, ks->TDList[tid]).state == ZOMBIE = %d, (ks->TDList[tid]).state == FREE = %d\r\n",
-		tid > MAX_TID, tid < 0,  (ks->TDList[tid]).state == ZOMBIE, (ks->TDList[tid]).state == FREE);
+		//bwassert(0, COM2, 
+		//"ERROR: tid > MAX_TID - 1 = %d, tid < 0 = %d, ks->TDList[tid]).state == ZOMBIE = %d, (ks->TDList[tid]).state == FREE = %d\r\n",
+		//tid > MAX_TID, tid < 0,  (ks->TDList[tid]).state == ZOMBIE, (ks->TDList[tid]).state == FREE);
 		t->reqVal = -2;
 		return 1;
 	}

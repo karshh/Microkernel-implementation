@@ -298,7 +298,9 @@ void UART1Receive_Notifier() {
 		if (*UART1_FLAG & RXFF_MASK) {
 			msg[0] = *UART1_DATA;
 			msg[1] = 0;
-			bwassert(Send(iosTID, msg, 2, rpl, rplLen) >= 0, COM2, "<UART1Receive_Notifier>: Error with send.\r\n");
+			
+			if(!Send(iosTID, msg, 2, rpl, rplLen)) Exit();
+			//bwassert(Send(iosTID, msg, 2, rpl, rplLen) >= 0, COM2, "<UART1Receive_Notifier>: Error with send.\r\n");
 		}
 	}
 }
@@ -332,7 +334,8 @@ void UART2Receive_Notifier() {
 		if (*UART2_FLAG & RXFF_MASK) {
 			msg[0] = *UART2_DATA;
 			msg[1] = 0;
-			bwassert(Send(iosTID, msg, 2, rpl, rplLen) >= 0, COM2, "<UART2Receive_Notifier>: Error with send.\r\n");
+			if(!Send(iosTID, msg, 2, rpl, rplLen)) Exit();
+			//bwassert(Send(iosTID, msg, 2, rpl, rplLen) >= 0, COM2, "<UART2Receive_Notifier>: Error with send.\r\n");
 		}
 	}
 }
@@ -349,7 +352,8 @@ void UART1_SendServer() {
 
 	// variables to block notifiers
 	volatile int UART1Send_blocked = 0;
-	
+	volatile int alive = 1;
+	volatile int death_tid=-1;
 	// message passing required variables.
     int _tid = -1;
     char msg[7];
@@ -368,20 +372,35 @@ void UART1_SendServer() {
             			Reply(UART1Send_TID, reply, 2);
 			} else {
 				UART1Send_blocked = 1;
+				if(alive != 1){
+					//once all characters in output queue is cleared, exit
+					Reply(death_tid,"1",2);
+					Exit();
+				}
 			}
 			c = 0;
 		} else {
 			 switch((int) msg[0]) {
-			    case 11: // UART1 Putc
-				bwassert(addToBuffer((BUFFER_TYPE) msg[1], &UART1_sendQ), COM2, "<UART1SendServer>: Buffer full. Could not add %c[%d]\r\n", msg[1], msg[1]);
-
-				if (UART1Send_blocked && getFromBuffer(&c, &UART1_sendQ)) {
-							reply[0] = (char) c;
-							reply[1] = 0;
-					Reply(UART1Send_TID, reply, 2);
-					UART1Send_blocked = 0;
+			    case 'Q': // Angel of Death
+				death_tid = _tid;
+				alive = 0;
+				if(UART1Send_blocked){
+					Reply(death_tid,"1",2);
+					Exit();
 				}
-				Reply(_tid, "1", 2);
+			    case 11: // UART1 Putc
+				if(alive){
+				//if dead rplyblck
+					bwassert(addToBuffer((BUFFER_TYPE) msg[1], &UART1_sendQ), COM2, "<UART1SendServer>: Buffer full. Could not add %c[%d]\r\n", msg[1], msg[1]);
+
+					if (UART1Send_blocked && getFromBuffer(&c, &UART1_sendQ)) {
+								reply[0] = (char) c;
+								reply[1] = 0;
+						Reply(UART1Send_TID, reply, 2);
+						UART1Send_blocked = 0;
+					}
+					Reply(_tid, "1", 2);
+				}
 				break;
 			    default:
 				bwassert(0, COM2, "<Uart1SendServer>: Illegal request code from userTask <%d>.\r\n", _tid);
@@ -405,6 +424,8 @@ void UART2_SendServer() {
 
 	// variables to block notifiers
 	volatile int UART2Send_blocked = 0;
+	volatile int alive = 1;
+	volatile int death_tid=-1;
 	
 	// message passing required variables.
     int _tid = -1;
@@ -424,21 +445,37 @@ void UART2_SendServer() {
             			Reply(UART2Send_TID, reply, 2);
 			} else {
 				UART2Send_blocked = 1;
+				if(alive != 1){
+					//once all characters in output queue is cleared, exit
+					Reply(death_tid,"1",2);
+					Exit();
+				}
+
 			}
 			c = 0;
 		} else {
 			switch((int) msg[0]) {
+				case 'Q': // Angel of Death
+				death_tid = _tid;
+				alive = 0;
+				if(UART2Send_blocked){
+					Reply(death_tid,"1",2);
+					Exit();
+				}
+
 	     			case 21: // UART2 Putc
-					if (msg[1]) {
-						bwassert(addToBuffer((BUFFER_TYPE) msg[1], &UART2_sendQ), COM2, "<UART2Server>: Buffer full. Could not add %c[%d]\r\n", msg[1], msg[1]);
-						if (UART2Send_blocked && getFromBuffer(&c, &UART2_sendQ)) {
-									reply[0] = (char) c;
-									reply[1] = 0;
-							Reply(UART2Send_TID, reply, 2);
-							UART2Send_blocked = 0;
+					if(alive){
+						if (msg[1]) {
+							bwassert(addToBuffer((BUFFER_TYPE) msg[1], &UART2_sendQ), COM2, "<UART2Server>: Buffer full. Could not add %c[%d]\r\n", msg[1], msg[1]);
+							if (UART2Send_blocked && getFromBuffer(&c, &UART2_sendQ)) {
+										reply[0] = (char) c;
+										reply[1] = 0;
+								Reply(UART2Send_TID, reply, 2);
+								UART2Send_blocked = 0;
+							}
 						}
+						Reply(_tid, "1", 2);
 					}
-					Reply(_tid, "1", 2);
 					break;
 
 			    default:
@@ -485,11 +522,18 @@ void UART2_ReceiveServer() {
 		} else {
 			 switch((int) msg[0]) {
 			    case 20: // UART2 Getc
-				bwassert(addToBuffer(_tid, &UART2_receiveTIDQ), COM2, "<ioServer>: UART2_receiveTIDQ Buffer full. Cannot add <%d>.\r\n", _tid);
+				bwassert(addToBuffer(_tid, &UART2_receiveTIDQ), COM2, "<UART2ReceiveServer>: UART2_receiveTIDQ Buffer full. Cannot add <%d>.\r\n", _tid);
 				break;
+				case 'Q':// Death Command.
+					//just quit
+		
+					Reply(_tid,"1",2);
+					Exit();
+					break;
+	
 
 				    default:
-				bwassert(0, COM2, "<ioServer>: Illegal request code from userTask <%d>.\r\n", _tid);
+				bwassert(0, COM2, "<UART2ReceiveServer>: Illegal request code from userTask <%d>.\r\n", _tid);
 				break;
         		}
 
@@ -532,13 +576,18 @@ void UART1_ReceiveServer() {
 		    	Reply(UART1Receive_TID, "1", 2);
 		} else {
 			 switch((int) msg[0]) {
-			    case 10: // UART1 Getc
+				case 10: // UART1 Getc
 				bwassert(addToBuffer(_tid, &UART1_receiveTIDQ), COM2, "<UART1ReceiveServer>: UART1_receiveTIDQ Buffer full. Cannot add <%d>.\r\n", _tid);
 				break;
-
-		       
-			    default:
-				bwassert(0, COM2, "<UART1ReceiveServer>: Illegal request code from userTask <%d>.\r\n", _tid);
+				case 'Q':// Death Command.
+					//just quit
+		
+					Reply(_tid,"1",2);
+					Exit();
+					break;
+	
+				default:
+				bwassert(0, COM2, "<UART1ReceiveServer>: Illegal request code from userTask <%d> :%d.\r\n", _tid,msg[0]);
 				break;
         		}
 
@@ -736,7 +785,6 @@ void UserPrompt() {
 
     char rpl[3];
     int rpllen = 3;
-
 	while (1) {
 		c = Getc(iosTID, COM2);
 
@@ -751,7 +799,7 @@ void UserPrompt() {
 	        msg[1] = 0;
 	        bwassert(Send(parentTID, msg, 2, rpl, rpllen) >= 0, COM2, "<UserPrompt>: could not send prompt response to server. \r\n");
 
-	        msg[0] = parseCommand(terminalInput, &arg1, &arg2);
+		msg[0] = parseCommand(terminalInput, &arg1, &arg2);
 	        msg[1] = arg1;
 	        msg[2] = arg2;
 	        msg[3] = 0;
@@ -759,6 +807,7 @@ void UserPrompt() {
             for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
             terminalInputIndex = 0;
             cursorCol = 2;
+		if(msg[0] == COMMAND_Q) Exit();
 
 	    } else if (c == 8) { // backspace
 	        if (cursorCol <= 2) continue;
@@ -795,10 +844,13 @@ void displayServer() {
 	bwassert(!RegisterAs("displayServer"), COM2, "Failed to register displayServer.\r\n");
 	int iosTID = WhoIs("UART2S");
 	bwassert(iosTID >= 0, COM2, "<displayGrid>: UART2SendServer has not been set up.\r\n");
+	int iorTID = WhoIs("UART2R");
+	bwassert(iorTID >= 0, COM2, "<displayGrid>: UART2SReceiveServer has not been set up.\r\n");
 
 	int Grid_TID = Create(4, (void *) Grid);
 	//int Prompt_TID = Create(4, (void *) UserPrompt);
 	int Prompt_TID = -1;
+	int Death_TID = -1;
 	int Sensors_TID = Create(4, (void *) displaySensors);
 	int Clock_TID = Create(4, (void *) displayClock);
 	int Train_TID = Create(4, (void *) trainServer);
@@ -865,15 +917,36 @@ void displayServer() {
 	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KExecuting, please wait.\033[34;1H>");
 	                break;
 
-	            case COMMAND_Q:
-	            	Quit();
+	            	case COMMAND_Q:
+				{
+	                		Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KQuiting Kernel.\033[34;1H>");
+					Death_TID = Create(0,(void*) DeathServer);
+				}
 	            	break;
+
 	        	default:
 	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KIncorrect Command.\033[34;1H>");
 	                break;
 			}
 
 			Reply(_tid, "1", 2);
+		} else if (_tid == Death_TID){
+			char delMsg[2];
+			char rep[2];
+
+
+			delMsg[0] = msg[0]; 
+			delMsg[1] = 0; 
+			Send(iorTID, delMsg, 2, rep, 2);
+
+			delMsg[0] = msg[0]; 
+			delMsg[1] = 0; 
+			Send(iosTID, delMsg, 2, rep, 2);
+			//Putc(iosUS1TID, COM1, msg[0]);
+			//inform angel of death that uart1 servers are dead
+			Reply(_tid, "1", 2);
+			//Command server dies
+			Exit();
 		} else if (_tid == Sensors_TID){
 			for (i = 0; i < msgLen; i++) Printf(iosTID, COM2, "\033[?25l\033[%d;17H%c%d \033[u\033[?25h", i+6,((msg[i]-1)/16)+'A',((msg[i]-1)%16+1));
 			Reply(_tid, "1", 2);
@@ -925,8 +998,10 @@ void commandServer() {
 	int cDelTid =  Create(4, (void *) commandReverseDelayServer);
 	int csTID = WhoIs("clockServer");
 	int iosUS1TID = WhoIs("UART1S");
+	int iosUR1TID = WhoIs("UART1R");
 	bwassert(csTID >= 0, COM2, "<commandServer>: clockServer has not been set up.\r\n");
 	bwassert(iosUS1TID >= 0, COM2, "<commandServer>: UART1 Send IOServer has not been set up.\r\n");
+	bwassert(iosUR1TID >= 0, COM2, "<commandServer>: UART1 Receive IOServer has not been set up.\r\n");
 
 
     int _tid = -1;
@@ -940,6 +1015,30 @@ void commandServer() {
 
 		bwassert(msgLen >= 0, COM2, "<commandServer>: Receive error.\r\n");
 		switch(msg[0]) {
+			case 'Q': // Call of Death
+				{
+					//Angel of Death has appeated
+
+					char delMsg[2];
+					char rep[2];
+
+
+					delMsg[0] = msg[0]; 
+					delMsg[1] = 0; 
+					Send(iosUR1TID, delMsg, 2, rep, 2);
+
+					delMsg[0] = msg[0]; 
+					delMsg[1] = 0; 
+					Send(iosUS1TID, delMsg, 2, rep, 2);
+					//Putc(iosUS1TID, COM1, msg[0]);
+					//inform angel of death that uart1 servers are dead
+					Reply(_tid, "1", 2);
+					//Command server dies
+					Exit();
+					break;
+				}
+				
+			
 			case 'S': // switches
 				Putc(iosUS1TID, COM1, msg[1]);
 				Putc(iosUS1TID, COM1, msg[2]);
@@ -1049,3 +1148,30 @@ void commandReverseDelayServer() {
 	}
 }
 
+
+
+
+/*****************************************************************************
+Death Server: Angel of Death
+*****************************************************************************/
+
+void DeathServer(){
+	int disTID = MyParentTid();
+	int cmTID = WhoIs("commandServer");
+    	char commandMsg[64];
+    	char rpl[3];
+    	int rpllen = 3;
+
+	commandMsg[0] = 'Q';
+	commandMsg[1] = 'Q';
+	bwassert(Send(cmTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<DeathServer>: Error sending message to CommandServer.\r\n");
+	//return when UART1 Servers and Command Server is dead
+	commandMsg[0] = 'Q';
+	commandMsg[1] = 'Q';
+	bwassert(Send(disTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<DeathServer>: Error sending message to CommandServer.\r\n");
+
+
+	//now safe to quit
+	Quit();
+
+}

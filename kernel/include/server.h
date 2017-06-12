@@ -101,6 +101,11 @@ void displayServer();
 void commandServer();
 
 void commandReverseDelayServer();
+/*****************************************************************************
+Death Server: Angel of Death
+*****************************************************************************/
+
+void DeathServer();
 
 #endif
 

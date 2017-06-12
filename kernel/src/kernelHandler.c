@@ -25,12 +25,13 @@ void exitKernel(kernelHandler * ks){
 }
 int initKernel(kernelHandler * ks, int priority, int code){
 	//reset previous IRQ state, in case if last run state is bad
+	ks->KernelState = KERINIT;
 	disableInterrupts();
 	// make sure speed and fifo are set IN THE RIGHT ORDER!!! MY MAN WHY YA GWANNIN BARE WASTE, MANZ SPENT TOO LONG FIXING RELATED BUG 
-    bwsetspeed(COM1, 2400);
-    bwsetfifo(COM1, OFF);
-    bwsetspeed(COM2, 115200);
-    bwsetfifo(COM2, OFF);
+    	bwsetspeed(COM1, 2400);
+    	bwsetfifo(COM1, OFF);
+    	bwsetspeed(COM2, 115200);
+    	bwsetfifo(COM2, OFF);
 	initHandlers();
 	ks->activeTask = 0;
 	int TID = 0;
@@ -129,6 +130,7 @@ Timer clock speeds
 
 	//everthing good by this point
 
+	ks->KernelState = KERACTIVE;
 
 	return 0;
 }
@@ -148,6 +150,13 @@ void kernelRun(int priority, int code) {
 	volatile TD * task =0;
 	//int old_idle = 0;
 	while(kernel_queuePop(&ks, &task)) {
+
+		if (ks.KernelState == KERQUIT){
+			//hard quit for now
+			break;
+		}
+
+
 		task->state = ACTIVE;
 		ks.activeTask = task;
 		TD *td = (TD *)task;
@@ -172,11 +181,6 @@ end diagnostic code
 		if(ks.idleTaskRunning ){
 					ks.totalIdleRunningTime += getTicks4(0) -ks.lastIdleRunningTime;
 					ks.idleTaskRunning = 0;
-		}
-
-		if (r->reqType == QUIT){
-			//hard quit for now
-			break;
 		}
 
 /*************************************

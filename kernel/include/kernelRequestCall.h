@@ -33,6 +33,8 @@ int kernel_Pass(TD * t);
 
 int kernel_Exit(TD * t); 
 
+int kernel_Quit(TD * t, kernelHandler * ks); 
+
 int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m);
 
 int kernel_WhoIs(TD * t, request * r, kernelHandler * ks, message * m);

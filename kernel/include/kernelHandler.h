@@ -8,6 +8,12 @@
 #include "td.h"
 #include "kernelMacros.h"
 
+typedef enum KERNELSTATEtype {
+	KERINIT,
+	KERACTIVE,
+	KERQUIT
+} KERNELSTATEtype ;
+
 
 
 typedef struct kernelHandler{
@@ -57,6 +63,7 @@ typedef struct kernelHandler{
 	volatile int await_UART2SEND;
 	volatile int await_UART2RECEIVE; 
 
+	volatile int KernelState;
 	//memm offset for user task space
 	int memOffset;
 	//an idea from ben to safely allocate space is to have 
