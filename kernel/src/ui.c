@@ -85,18 +85,16 @@ void displayGrid() {
 
     // Recent sensor pointer. It's ugliness is observer-dependent. Remove if not desired.
 	Printf(iosTID, COM2, "\033[6;13H-->");
-	Printf(iosTID, COM2, "\033[7;13H->");
-	Printf(iosTID, COM2, "\033[8;13H>");
 	Printf(iosTID, COM2, "\033[6;21H<--");
-	Printf(iosTID, COM2, "\033[7;22H<-");
-	Printf(iosTID, COM2, "\033[8;23H<");
 
 	// Displaying the prompt here.
     Printf(iosTID, COM2, "\033[34;1H>");	
 
 }
 
-void getSensorData(int * s){
+
+
+int getSensorData(char * s){
 	//first send two bytes
 	int iosTID = WhoIs("UART1R");
 	bwassert(iosTID >= 0, COM2, "<UserPrompt>: UART1ReceiveServer has not been set up.\r\n");
@@ -110,7 +108,7 @@ void getSensorData(int * s){
 
 	bwassert(Send(commandTID, msg, 3, rpl, rpllen) >= 0, COM2, "<getSensorData>: Polling sensors failed."); //poll sensors
 
-	int i = 0;
+	char i = 0;
 	int counter=0;
 	for(i = 0; i< 5; i++){
 		volatile char b1 = Getc(iosTID,COM1); //get char for this module
@@ -182,75 +180,26 @@ void getSensorData(int * s){
 	 	}
 
 	}
+	return counter;
 }
 
 void displaySensors() {
 	int parentTID = MyParentTid();
-	int recentSensors[64];
+	char recentSensors[64];
 	volatile int i = 0;
 	for (; i < 64; i++) recentSensors[i] = 0;
+	int recentSensorsLen = 0;
 
-	char msg[SENSOR_LIST_SIZE + 1];
-
-	int msgLen = 0;
 
 	char rpl[3];
 	int rpllen = 3;
 
-	int s[64];
-	int old[64]; 
 	
 	//volatile int num = 0;
 	while(1)  {
 
-		msgLen = 0;
-		/***************************************
-		  Start of block comment
-		****************************************/
-
-		/****************************************
-		  The actual command that must be run.
-		  MAKE SURE TO USE THE MACRO SNESOR_LIST_SIZE
-		  AS THE MAXIMUM NUMBER OF UPDATES YOU FILL
-		  THE ARRAY WITH.
-		*****************************************/
-
-		for (i=0; i < 64; i++) s[i] = 0;
-		for (i=0; i < 64; i++) old[i] = recentSensors[i];
-
-		getSensorData(&s[0]);
-		//merge new data with old list
-		i = 0;
-		//if(!s[0] )
-		while(1){
-			if(!s[i]) break;
-			recentSensors[i] = s[i];
-			i++;
-		}
-		volatile int offset = i;
-		for (; i < 64; i++){ recentSensors[i] = old[i-offset];
-		}
-		
-	
-
-		/****************************************
-		  Dummy replacement for UI test purposes
-		*****************************************/
-/*
-		for (i = 0; i < SENSOR_LIST_SIZE; i++) {
-			recentSensors[i] = num;
-			num++;
-		}
-*/
-		/***************************************
-		  End of block comment
-		****************************************/
-
-		for (msgLen = 0; 
-			recentSensors[msgLen] != 0 && msgLen < SENSOR_LIST_SIZE; 
-			msgLen++) msg[msgLen] = recentSensors[msgLen];
-
-		bwassert(Send(parentTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<displaySensors>: Displaying sensors failed."); 
+		recentSensorsLen = getSensorData(recentSensors);
+		if (recentSensorsLen) bwassert(Send(parentTID, recentSensors, recentSensorsLen, rpl, rpllen) >= 0, COM2, "<displaySensors>: Displaying sensors failed."); 
 
 	}
 

@@ -862,6 +862,14 @@ void displayServer() {
     int msgLen = -1;
 
     int cursorCol = 0;
+    // sensor variables'
+    const int maxCursor = SENSOR_LIST_SIZE + 5;
+    const int minCursor = 6;
+    int prevSensorCursor = maxCursor;
+    int sensorCursor = minCursor;
+    //int sensorTimer = getTicks4(0);
+
+
     char c = 0;
     volatile int i = 0;
 
@@ -917,11 +925,9 @@ void displayServer() {
 	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KExecuting, please wait.\033[34;1H>");
 	                break;
 
-	            	case COMMAND_Q:
-				{
-	                		Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KQuiting Kernel.\033[34;1H>");
+            	case COMMAND_Q:
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KQuiting Kernel.\033[34;1H>");
 					Death_TID = Create(0,(void*) DeathServer);
-				}
 	            	break;
 
 	        	default:
@@ -948,8 +954,17 @@ void displayServer() {
 			//Command server dies
 			Exit();
 		} else if (_tid == Sensors_TID){
-			for (i = 0; i < msgLen; i++) Printf(iosTID, COM2, "\033[?25l\033[%d;17H%c%d \033[u\033[?25h", i+6,((msg[i]-1)/16)+'A',((msg[i]-1)%16+1));
+
+
+			for (i = 0; i < msgLen; i++) {
+
+				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;13H--->%c%d%d<---\033[u\033[?25h", sensorCursor,((msg[i]-1)/16)+'A',((msg[i]-1)%16+1)/10, ((msg[i]-1)%16+1)%10);
+				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;13H    \033[%d;20H    \033[u\033[?25h", prevSensorCursor, prevSensorCursor);
+				prevSensorCursor = sensorCursor;
+				sensorCursor = sensorCursor + 1 > maxCursor ? minCursor : sensorCursor + 1;
+			} 
 			Reply(_tid, "1", 2);
+
 		} else if (_tid == Train_TID){
 	       		switchLocation = msg[2] + 6;
 			if (msg[0] == 2){ //2 used for initiliziation code

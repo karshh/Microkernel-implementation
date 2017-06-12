@@ -4,8 +4,6 @@
 
 void displayGrid();
 
-void displayUserPrompt();
-
 void displaySensors();
 
 void displayClock();
