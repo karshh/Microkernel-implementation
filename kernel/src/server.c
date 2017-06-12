@@ -17,12 +17,13 @@ void FirstUserTask() {
 	CreateNameServer(1, (void *) NameServerTask);
 	CreateClockServer(2, (void *) clockServer);
 	Create(31, (void *) idleTask);
-	//CreateIOServer(2, (void *) ioServer, DEFAULTIOSERVER);
-	CreateIOServer(2, (void *) UART1_ReceiveServer, UART1R);
 
-	CreateIOServer(2, (void *) UART1_SendServer, UART1S);
-	CreateIOServer(2, (void *) UART2_ReceiveServer, UART2R);
-	CreateIOServer(2, (void *) UART2_SendServer, UART2S);
+	bwassert(CreateIOServer(2, (void *) UART1_ReceiveServer, UART1R)>=0, COM2, "Failed Create UART1TR Server.\n\r");
+	bwassert(CreateIOServer(2, (void *) UART2_ReceiveServer, UART2R)>=0, COM2, "Failed Create UART2TR Server.\n\r");
+	bwassert(CreateIOServer(2, (void *) UART1_SendServer, UART1S)>=0, COM2, "Failed Create UART1TS Server.\n\r");
+	bwassert(CreateIOServer(2, (void *) UART2_SendServer, UART2S)>=0, COM2, "Failed Create UART2TS Server.\n\r");
+
+
 
 	Create(3, (void *) commandServer);
 	Create(3, (void *) displayServer);
@@ -337,7 +338,7 @@ void UART2Receive_Notifier() {
 }
 
 void UART1_SendServer() {
-	bwassert(!RegisterAs("UART1SendServer"), COM2, "Failed to register Uart1SendServer.\r\n");
+	bwassert(!RegisterAs("UART1S"), COM2, "Failed to register Uart1SendServer.\r\n");
 	// create and init circular buffer queues.
 	circularBuffer UART1_sendQ;
 
@@ -393,7 +394,7 @@ void UART1_SendServer() {
 }
 
 void UART2_SendServer() {
-	bwassert(!RegisterAs("UART2SendServer"), COM2, "Failed to register Uart2SendServer.\r\n");
+	bwassert(!RegisterAs("UART2S"), COM2, "Failed to register Uart2SendServer.\r\n");
 	// create and init circular buffer queues.
 	circularBuffer UART2_sendQ;
 
@@ -451,7 +452,7 @@ void UART2_SendServer() {
 }
 
 void UART2_ReceiveServer() {
-	bwassert(!RegisterAs("UART2ReceiveServer"), COM2, "Failed to register UART2ReceiveServer.\r\n");
+	bwassert(!RegisterAs("UART2R"), COM2, "Failed to register UART2ReceiveServer.\r\n");
 	// create and init circular buffer queues.
 	circularBuffer UART2_receiveTIDQ;
 
@@ -498,7 +499,7 @@ void UART2_ReceiveServer() {
 }
 
 void UART1_ReceiveServer() {
-	bwassert(!RegisterAs("UART1ReceiveServer"), COM2, "Failed to register UART1ReceiveServer.\r\n");
+	bwassert(!RegisterAs("UART1R"), COM2, "Failed to register UART1ReceiveServer.\r\n");
 	//bwassert(1, COM2, "ASSERT CHECK.\r\n");
 	// create and init circular buffer queues.
 	circularBuffer UART1_receiveTIDQ;
@@ -721,7 +722,7 @@ void Grid() {
 
 void UserPrompt() {
 	int parentTID = MyParentTid();
-	int iosTID = WhoIs("UART2ReceiveServer");
+	int iosTID = WhoIs("UART2R");
 	bwassert(iosTID >= 0, COM2, "<UserPrompt>: UART2ReceiveServer has not been set up.\r\n");
 
 
@@ -792,7 +793,7 @@ void UserPrompt() {
 
 void displayServer() {
 	bwassert(!RegisterAs("displayServer"), COM2, "Failed to register displayServer.\r\n");
-	int iosTID = WhoIs("UART2SendServer");
+	int iosTID = WhoIs("UART2S");
 	bwassert(iosTID >= 0, COM2, "<displayGrid>: UART2SendServer has not been set up.\r\n");
 
 	int Grid_TID = Create(4, (void *) Grid);
@@ -923,7 +924,7 @@ void commandServer() {
 	bwassert(!RegisterAs("commandServer"), COM2, "Could not register as command server.\r\n");
 	int cDelTid =  Create(4, (void *) commandReverseDelayServer);
 	int csTID = WhoIs("clockServer");
-	int iosUS1TID = WhoIs("UART1SendServer");
+	int iosUS1TID = WhoIs("UART1S");
 	bwassert(csTID >= 0, COM2, "<commandServer>: clockServer has not been set up.\r\n");
 	bwassert(iosUS1TID >= 0, COM2, "<commandServer>: UART1 Send IOServer has not been set up.\r\n");
 

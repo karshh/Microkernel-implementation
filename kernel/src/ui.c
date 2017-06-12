@@ -16,7 +16,7 @@
 
 void displayGrid() {
 
-    int iosTID = WhoIs("UART2SendServer");
+    int iosTID = WhoIs("UART2S");
 	bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
     
     // since this is the first function called, clear the damn screen!
@@ -98,7 +98,7 @@ void displayGrid() {
 
 void getSensorData(int * s){
 	//first send two bytes
-	int iosTID = WhoIs("UART1ReceiveServer");
+	int iosTID = WhoIs("UART1R");
 	bwassert(iosTID >= 0, COM2, "<UserPrompt>: UART1ReceiveServer has not been set up.\r\n");
 	int commandTID = WhoIs("commandServer");
 	char msg[3];
