@@ -19,7 +19,7 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 ARFLAGS = rcs
 LDFLAGS = -init main -Map m.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
-all: clean bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o test.o test.elf k4.elf install
+all: clean bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o test.o test.elf trackA.elf trackB.elf install
 
 # new file preable
 #.s: .c
@@ -145,6 +145,18 @@ k4.s: k4.c
 k4.o: k4.s
 	$(AS) $(ASFLAGS) -o k4.o k4.s
 
+trackA.s: trackA.c
+	$(XCC) -S $(CFLAGS) trackA.c
+
+trackA.o: trackA.s
+	$(AS) $(ASFLAGS) -o trackA.o trackA.s
+
+trackB.s: trackB.c
+	$(XCC) -S $(CFLAGS) trackB.c
+
+trackB.o: trackB.s
+	$(AS) $(ASFLAGS) -o trackB.o trackB.s
+
 test.elf:test.o
 	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o test.o -lgcc
 
@@ -160,10 +172,17 @@ k3.elf: k3.o
 k4.elf: k4.o
 	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o k4.o -lgcc
 
+trackA.elf: trackA.o
+	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o trackA.o -lgcc
 
-install: test.elf k4.elf
+trackB.elf: trackB.o
+	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o trackB.o -lgcc
+
+
+install: test.elf trackA.elf trackB.elf
 	cp test.elf /u/cs452/tftp/ARM/`whoami`/
-	cp k4.elf /u/cs452/tftp/ARM/`whoami`/
+	cp trackA.elf /u/cs452/tftp/ARM/`whoami`/
+	cp trackB.elf /u/cs452/tftp/ARM/`whoami`/
 
 clean:
 	-rm -f *.s *.a *.o *.map *.elf

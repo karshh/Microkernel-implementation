@@ -14,6 +14,7 @@
 #define SENSOR_BIT_MASK_8 0x01
 
 
+
 void displayGrid() {
 
     int iosTID = WhoIs("UART2S");
@@ -48,6 +49,10 @@ void displayGrid() {
 		Printf(iosTID, COM2, "\033[%d;84H|", i);
 		Printf(iosTID, COM2, "\033[%d;134H|", i);
 	}
+
+	// sensor graph.
+
+	displayTrack();
 
 	// table headers
 	Printf(iosTID, COM2,  "\033[3;4HSwitch\033[4;3HPosition");

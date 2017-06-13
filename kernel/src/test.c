@@ -9,6 +9,10 @@
 #include "icu.h"
 #include "ui.h"
 
+void displayTrack() {
+    
+}
+
 void userTask3() {
     bwprintf(COM2, "USER TASK 3 EXIT, REQUESTING TID.\r\n");
     int tid = MyTid();
