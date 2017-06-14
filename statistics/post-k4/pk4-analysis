@@ -1,0 +1,69 @@
+Group	Length	Caches	SB4R	Opt	Time(micro seconds)
+PK	4	off	yes	off	462.87	
+PK	64	off	yes	off	1981.38
+PK	4	on	yes	off	61.03
+PK	64	on	yes	off	91.56
+
+PK	4	off	yes	on	230.93
+PK	64	off	yes	on	735.50
+PK	4	on	yes	on	30.51
+PK	64	on	yes	on	52.899
+
+
+Note each message pass (SRR or RSR) has a cost, which is defined as a function of F: x-> overhead + cost_byte *x 
+
+for 4  bytes, F(4)  = overhead + 4 *  cost_byte
+for 64 bytes, F(64) = overhead + 64 * cost_byteA
+
+note f(64) - F(4) = 60 * cost_byte;
+so cost_byte = (F(64)- F(4) /60)
+Thus overhead can be calculated: F(4) - 4 *(F(4) - F(64)/60)
+
+Group	Length	Caches	SB4R	Opt	Time(micro seconds)  overhead	c/b
+PK	4	off	yes	off	462.87			361.34	25.31
+PK	64	off	yes	off	1981.38			361.34	25.31
+
+PK	4	on	yes	off	61.03			58.99	0.51
+PK	64	on	yes	off	91.56			58.99	0.51
+
+PK	4	off	yes	on	230.93			197.29	8.41
+PK	64	off	yes	on	735.50			197.29	8.41
+
+PK	4	on	yes	on	30.51			29.02	.37
+PK	64	on	yes	on	52.899			29.02	.37
+
+Note: turning off caches increase overhead by a factor of 6.12~6.79
+                                  C/b 	   by a factor of 22.73~49.627
+
+Note: Turning off optimizations increase overhead by a factor of 1.83~2.03
+				  	 C/B      By a factor of 1.37~3.01
+
+
+
+
+Class and ideal Statistics:
+----------------------------------
+ideal factors:
+Cache factor = 13.5 On overhead , 15.4 on cpy
+Optimization factor:  2.5 on overhead, 3.2 on cpy
+Order factor (SRR or RSR) : 1.02Opt
+
+K2 Class Statistics (from what we implimented) (optimizations and caches)
+Overhead: Max 54 microseconds(pk k2) .......median 12.7 microseconds ...... min 3 microseconds
+					ideal <10 microseconds
+cpy/byte: Max 1.0 microseconds ...... median 0.14 microseconds...... min 0.00 microseconds
+
+
+Pie's nagging based on analysis
+-------------------------------
+3 things.
+
+1) printf
+on just SSR, we are loosing 29 microseconds on overhead for every SRR we do.
+when we do a printf of 128 characters, 
+if its one single msg in SSR, thats 76.38 microseconds
+if printf calls putc for everycharacter 3761.92 microseconds, or about 1/3 a clock tick.
+
+2)we need to tighten our SRR/ RSR. is there anyplace we are copying data, such as the reply? is it character by character or a memcpy? how efficient is the mem-cpy? perhaps we need to ease up on some of the volatile commands, as that can effect our stats as well.I'll be focusing on this.
+
+3) From the K2 info, our RSR/SSR is between 1~ 1.01 which is good.
