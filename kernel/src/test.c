@@ -10,7 +10,7 @@
 #include "ui.h"
 
 void displayTrack() {
-    
+
 }
 
 void userTask3() {
@@ -300,82 +300,39 @@ void userTask11(void) {
 }
 
 
-// MAKE SURE TO PLACE SENDTIMER IN RECEIVE TASK WHEN YOU TEST RSR.
-void testTaskSend64() {
-    char _msg[64];
-    Send(1, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 64, _msg, 64);
-    Exit();
-}
 
-void testTaskReceive64() {
-    int _tid = 0;
-    char _msg[64];
-    if (Receive(&_tid, _msg, 64) >= 0) {
-        Reply(_tid, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 64);
+
+void userinfinitiPass(){
+    //bwprintf(COM2, "\033[2J\033[H infini task running \r\n");
+    int i=0;
+    //while(1){
+    for(i=0; i<10000; i++){
+        bwprintf(COM2, "%d\r\n" ,i);
     }
     Exit();
 }
 
-void testTaskGod64() {
-    Create(6, (void*) testTaskSend64);
-    Create(6, (void*) testTaskReceive64);
-    Exit( );
-}
-
-
-void testTaskSend4() {
-    char _msg[4];
-    Send(2, "bbb", 4, _msg, 4);
-    Exit();
-
-
-}
-
-void testTaskReceive4() {
-    int _tid = 0;
-    char _msg[4];
-    Receive(&_tid, _msg, 4);
-    Reply(_tid, "aaa", 4);
-    Exit();
-}
-
-void testTaskGod4() {
-    Create(6, (void*) testTaskSend4);
-    Create(6, (void*) testTaskReceive4);
-    Exit( );
-}
-
-void userinfinitiPass(){
-	//bwprintf(COM2, "\033[2J\033[H infini task running \r\n");
-	int i=0;
-	//while(1){
-	for(i=0; i<10000; i++){
-		bwprintf(COM2, "%d\r\n" ,i);
-	}
-	Exit();
-}
-
 
 void taskTestInt(){
-	//bwprintf(COM2, "\033[2J\033[H  \r\n");
-	bwprintf(COM2,"creating infiniPass \n\r");
+    //bwprintf(COM2, "\033[2J\033[H  \r\n");
+    bwprintf(COM2,"creating infiniPass \n\r");
     Create(31, (void*) userinfinitiPass);
-	volatile int c;
-	asm volatile(
-	"mrs %[c], cpsr"
-	:[c] "=r" (c));
-	bwprintf(COM2,"CPSR :%x\n\r",c);
-	int a = 100;
-	bwprintf(COM2,"a :%d\n\r",a);
-	MyParentTid(); //sabotaging code to add interupt to check if things worked.
-	bwprintf(COM2,"a :%d\n\r",a);
-	int i = 0;
-	for(i=0; i < 2; i++){
-		bwprintf(COM2,"taskTest try:%d\n\r",i);
-		int j = AwaitEvent(TIMER_TICK);
-		bwprintf(COM2,"returned from await:%d\n\r",j);
-	}
-	Exit();
+    volatile int c;
+    asm volatile(
+    "mrs %[c], cpsr"
+    :[c] "=r" (c));
+    bwprintf(COM2,"CPSR :%x\n\r",c);
+    int a = 100;
+    bwprintf(COM2,"a :%d\n\r",a);
+    MyParentTid(); //sabotaging code to add interupt to check if things worked.
+    bwprintf(COM2,"a :%d\n\r",a);
+    int i = 0;
+    for(i=0; i < 2; i++){
+        bwprintf(COM2,"taskTest try:%d\n\r",i);
+        int j = AwaitEvent(TIMER_TICK);
+        bwprintf(COM2,"returned from await:%d\n\r",j);
+    }
+    Exit();
 }
 
 
@@ -439,13 +396,13 @@ void testTaskIO1() {
 }
 
 void kernelTest() {
-    	//server priorities
-	//1 : name server,clock notifier,uart notifiers
-	//2 : clockserver, ioserver
-	//3 : display gird, clock display
-	//4 : command line
- 	//5 : command display sensors
-	//31: idle task
+        //server priorities
+    //1 : name server,clock notifier,uart notifiers
+    //2 : clockserver, ioserver
+    //3 : display gird, clock display
+    //4 : command line
+    //5 : command display sensors
+    //31: idle task
 
     Create(1, (void *) FirstUserTask);
     Create(3, (void *) displayGrid);
@@ -457,6 +414,79 @@ void kernelTest() {
 }
 
 
+
+
+// MAKE SURE TO PLACE SENDTIMER IN RECEIVE TASK WHEN YOU TEST RSR.
+void testTaskSend64() {
+    char _msg[64];
+    startTimer(TIMER4_BASE, 0,0,0);
+    unsigned int initTick;
+    unsigned int endTick;
+    Pass();
+
+    initTick = getTicks4us(0);
+    bwassert(Send(2, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 64, _msg, 64)>= 0, COM2, "TEST FAILED!\r\n");
+    endTick = getTicks4us(0);
+
+    bwprintf(COM2, "Ticks taken to complete: %d\r\n", endTick - initTick);
+    Exit();
+}
+
+void testTaskReceive64() {
+    int _tid = 0;
+    char _msg[64];
+
+    if (Receive(&_tid, _msg, 64) >= 0) {
+        Reply(_tid, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 64);
+    }
+    Exit();
+}
+
+void testTaskGod64() {
+    Create(6, (void*) testTaskSend64);
+    Create(6, (void*) testTaskReceive64);
+    Exit( );
+}
+
+
+void testTaskSend4() {
+    bwprintf(COM2, "My tid is %d\r\n", MyTid());
+    char _msg[4];
+    startTimer(TIMER4_BASE, 0,0,0);
+    unsigned int initTick;
+    unsigned int endTick;
+    Pass();
+
+
+    initTick = getTicks4us(0);
+    bwassert(Send(2, "bbb", 4, _msg, 4) >= 0, COM2, "TEST FAILED!\r\n");
+    endTick = getTicks4us(0);
+
+
+    bwprintf(COM2, "Ticks taken to complete: %d\r\n", endTick - initTick);
+    Exit();
+
+
+}
+
+void testTaskReceive4() {
+    bwprintf(COM2, "My tid is %d\r\n", MyTid());
+    int _tid = 0;
+    char _msg[4];
+    Pass();
+
+    if (Receive(&_tid, _msg, 4) >= 0) {
+        Reply(_tid, "aaa", 4);
+    }
+    Exit();
+}
+
+void testTaskGod4() {
+    Create(6, (void*) testTaskSend4);
+    Create(6, (void*) testTaskReceive4);
+    Exit( );
+}
+
 int main(void) {
     // turning on data and instruction cache.
 
@@ -465,6 +495,6 @@ int main(void) {
         "ORR r0, r0, #0x1 <<12 \n"
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
-    kernelRun(2,(int) FirstUserTask);
+    kernelRun(2,(int) testTaskGod64);
 	return 0;
 }

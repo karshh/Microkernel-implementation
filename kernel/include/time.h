@@ -18,6 +18,7 @@ void stopTimer(int base);
 
 unsigned int getTicks(int base, int offset);
 unsigned long getTicks4(long offset);
+unsigned long getTicks4us(long offset);
 
 void clearTimerInterrupt(int base);
 

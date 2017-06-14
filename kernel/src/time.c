@@ -64,3 +64,10 @@ unsigned long getTicks4(long offset) {
 
 
 }
+
+unsigned long getTicks4us(long offset) {
+		//Returns clock tick
+		return (unsigned long) (*((unsigned long*) (TIMER4_VALUE)) - offset) ;
+
+
+}
