@@ -1,7 +1,7 @@
 #include "userRequestCall.h"
 #include "request.h"
 #include "pkstring.h"
-
+//SWI caller
 int user_contextswitch(int dummy, request * r) {
 	asm ("swi 0");
 	register int r_ asm("r0");	
@@ -9,7 +9,7 @@ int user_contextswitch(int dummy, request * r) {
 	
 }
 
-
+//Creation
 int Create( int priority, void (*code)){
 	request myRequest;
 	myRequest.reqType = CREATE;
@@ -44,7 +44,7 @@ int CreateIOServer(int priority, void (*code), int ioserverType ){
 	return user_contextswitch(0xdeadbeef, &myRequest);
 }
 
-
+//Basic primitives
 int MyTid(){
 	
 	request myRequest;
@@ -100,6 +100,30 @@ int Send(int tid, char *msg, int msglen, char *reply, int rplen){
 	return user_contextswitch(0xdeadbeef, &myRequest);
 }
 
+int Receive(int *tid, char *msg, int msglen){
+	
+	request myRequest;
+	myRequest.reqType = RECEIVE;
+	myRequest.arg1 = (void *) tid;
+	myRequest.arg2 = (void *) msg;
+	myRequest.arg3 = (void *) msglen;
+	
+	return user_contextswitch(0xdeadbeef, &myRequest);
+}
+
+
+int Reply(int tid, char *reply, int rplen){
+	
+	request myRequest;
+	myRequest.reqType = REPLY;
+	myRequest.arg1 = (void *) tid;
+	myRequest.arg2 = (void *) reply;
+	myRequest.arg3 = (void *) rplen;
+	
+	return user_contextswitch(0xdeadbeef, &myRequest);
+}
+
+
 int WhoIs(char *name){
 	volatile char * name2 = (volatile char *) name;
 	volatile char name1[18];
@@ -151,30 +175,6 @@ int RegisterAs(char *name){
 
 	if(_reply[0] > 127) return _reply[0] -256;
 	return _reply[0];
-}
-
-
-int Receive(int *tid, char *msg, int msglen){
-	
-	request myRequest;
-	myRequest.reqType = RECEIVE;
-	myRequest.arg1 = (void *) tid;
-	myRequest.arg2 = (void *) msg;
-	myRequest.arg3 = (void *) msglen;
-	
-	return user_contextswitch(0xdeadbeef, &myRequest);
-}
-
-
-int Reply(int tid, char *reply, int rplen){
-	
-	request myRequest;
-	myRequest.reqType = REPLY;
-	myRequest.arg1 = (void *) tid;
-	myRequest.arg2 = (void *) reply;
-	myRequest.arg3 = (void *) rplen;
-	
-	return user_contextswitch(0xdeadbeef, &myRequest);
 }
 
 int AwaitEvent( int eventid){

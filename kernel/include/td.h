@@ -34,9 +34,7 @@ typedef struct TD {
 	int* sp;	 // stack pointer.
 	
 	volatile int reqVal;	
-	volatile int r1Val;	
-	volatile int r2Val;	
-	volatile int r3Val;	
+
 	volatile int interupted;	
 	
 	volatile int spsr;	 // for the same reasons above, we must store it's CPSR here when it

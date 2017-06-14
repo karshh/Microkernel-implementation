@@ -59,9 +59,6 @@ int initTD( TD * td, int TID, int memOffset){
 	td->priority = 4; //highest priority.. can change later
 	td->state = FREE; 
 	td->reqVal = 0;
-	td->r1Val = 0;
-	td->r2Val = 0;
-	td->r3Val = 0;
 	td->interupted = 0;
 	td->sp = (int *) memOffset;
 	//td->spsr = 0xd0; //set SPSR to just user mode
