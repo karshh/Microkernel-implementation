@@ -8,6 +8,7 @@
 #include "pkstring.h"
 #include "icu.h"
 #include "controller.h"
+#include "time.h"
 /******************************************************************************
 FIRST USER TASK
 *****************************************************************************/
@@ -865,8 +866,11 @@ void displayServer() {
     // sensor variables'
     const int maxCursor = SENSOR_LIST_SIZE + 5;
     const int minCursor = 6;
+    int prevSensor = 0; 
     int prevSensorCursor = maxCursor;
     int sensorCursor = minCursor;
+    unsigned int sensorPingLast = getTicks4(0);
+    unsigned int sensorPingCurrent = 0;
     //int sensorTimer = getTicks4(0);
 
 
@@ -958,10 +962,16 @@ void displayServer() {
 
 			for (i = 0; i < msgLen; i++) {
 
+				if (prevSensor != msg[i]) {
+					sensorPingCurrent = getTicks4(0);
+					Printf(iosTID,COM2,"\033[s\033[?25l\033[1;10HSensor ping elapse:%dms \033[u\033[?25h",sensorPingCurrent-sensorPingLast);
+				}
+				prevSensor = msg[i];
 				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;13H--->%c%d%d<---\033[u\033[?25h", sensorCursor,((msg[i]-1)/16)+'A',((msg[i]-1)%16+1)/10, ((msg[i]-1)%16+1)%10);
 				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;13H    \033[%d;20H    \033[u\033[?25h", prevSensorCursor, prevSensorCursor);
 				prevSensorCursor = sensorCursor;
 				sensorCursor = sensorCursor + 1 > maxCursor ? minCursor : sensorCursor + 1;
+				sensorPingLast = getTicks4(0);
 			} 
 			Reply(_tid, "1", 2);
 

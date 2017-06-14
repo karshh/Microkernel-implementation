@@ -64,5 +64,3 @@ unsigned long getTicks4(long offset) {
 
 
 }
-
-
