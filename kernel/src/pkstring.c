@@ -3,6 +3,7 @@
 #include "bwio.h"
 
 void pkmemcpy2(void *dest, const void *source, unsigned int size) {
+	//old. there to compare
 	//one byte at a time
 	char *cdest = (char *) dest;
 	char *csource = (char *) source;
@@ -21,6 +22,13 @@ void pkmemcpy(void *dest, const void *source, unsigned int size) {
 //r2 = *size
 //code based on http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.faqs/ka13544.html
 	asm volatile (
+	".pkmemmodcheck:\n"
+	"	AND	r3, r0, #3\n"
+	"	cmp	r3, #0\n"
+	"	BGT	.pkmem1\n"//if size >= 32 loop
+	"	AND	r3, r1, #3\n"
+	"	cmp	r3, #0\n"
+	"	BGT	.pkmem1\n"//if size >= 32 loop
 	".pkmem32:\n"
 	"	cmp	r2, #32\n" //if size < 32 (8 words)
 	"	BLT	.pkmem4\n" //go to pkmem4

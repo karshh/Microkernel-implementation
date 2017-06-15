@@ -6,6 +6,7 @@
 #include "kernelMacros.h"
 #include "ts7200.h"
 #include "server.h"
+#include "pkstring.h"
 
 
 int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
@@ -430,10 +431,14 @@ int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
 		return 1;
 	}
     //bwprintf(COM2, "Kernel: Case 31.\r\n");
+	pkmemcpy((void*) sender->compose, (void*) r->arg2, replylen <= sender->composelen ? replylen : sender->composelen);
+/*
 	volatile int i = 0;
 	for (i = 0; i < replylen && i < sender->composelen; i++) {
+	
                 sender->compose[i] = ((char*) (r->arg2))[i];
         }
+*/
 
 	if (replylen > sender->composelen) {
 		sender->compose[sender->composelen - 1] = 0;
@@ -454,12 +459,6 @@ int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
 	
 }
 
-int kernel_IdlePercentage(TD * t, kernelHandler * ks) {
-	t->reqVal = 100 * ks->totalIdleRunningTime / getTicks4(0);
-	return 1;
-}
-
-
 // this is called AFTER task requests a mail receiver.
 int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue) {
 	TD * receiverTD = &(ks->TDList[receiver]);
@@ -475,11 +474,13 @@ int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue
     // bwprintf(COM2, "Kernel: Case 211.\r\n");
 	//if there was a mail, the m pointer would be assigned that within the if statement parameter. 
 	
+	pkmemcpy((void*) receiverTD->compose, (void*) m->msg, m->msglen  <= receiverTD->composelen ? m->msglen : receiverTD->composelen);
+/*
 	volatile int i = 0;
 	for (i = 0; i < m->msglen && i < receiverTD->composelen; i++) {
 		receiverTD->compose[i] = m->msg[i];
 	}
-
+*/
     //bwprintf(COM2, "Kernel: Case 212.\r\n");
 	if (m->msglen > receiverTD->composelen) {
 		receiverTD->compose[receiverTD->composelen - 1] = 0;
@@ -497,6 +498,12 @@ int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue
 	return 1;
 	
 }
+
+int kernel_IdlePercentage(TD * t, kernelHandler * ks) {
+	t->reqVal = 100 * ks->totalIdleRunningTime / getTicks4(0);
+	return 1;
+}
+
 
 int processInterrupt(kernelHandler *ks){
 	//bwprintf(COM2,"Processing request \n\r");

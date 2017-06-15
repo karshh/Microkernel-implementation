@@ -451,7 +451,6 @@ void testTaskGod64() {
 
 
 void testTaskSend4() {
-    bwprintf(COM2, "My tid is %d\r\n", MyTid());
     char _msg[4];
     startTimer(TIMER4_BASE, 0,0,0);
     unsigned int initTick;
@@ -471,7 +470,6 @@ void testTaskSend4() {
 }
 
 void testTaskReceive4() {
-    bwprintf(COM2, "My tid is %d\r\n", MyTid());
     int _tid = 0;
     char _msg[4];
     Pass();
@@ -518,59 +516,87 @@ void TESTold(char * a1, char * b1){
 
 }
 void TESTnew(char * a1, char * b1){
-	bwprintf(COM2,"stringa:[%s]\n\r",a1);
-	bwprintf(COM2,"stringb:[%s]\n\r",b1);
+//	bwprintf(COM2,"stringa:[%s]\n\r",a1);
+//	bwprintf(COM2,"stringb:[%s]\n\r",b1);
 	pkmemcpy(b1,a1,0);
-	bwprintf(COM2,"stringa:[%s]\n\r",a1);
-	bwprintf(COM2,"stringb:[%s]\n\r",b1);
+//	bwprintf(COM2,"stringa:[%s]\n\r",a1);
+//	bwprintf(COM2,"stringb:[%s]\n\r",b1);
     	int startTick = getTicks4us(0);
 	pkmemcpy(b1,a1,1);
     	int endTick = getTicks4us(0);
 	bwprintf(COM2,"stringb:1 bytes:[%d]\n\r",endTick-startTick);
-	bwprintf(COM2,"stringa:[%s]\n\r",a1);
-	bwprintf(COM2,"stringb:[%s]\n\r",b1);
+//	bwprintf(COM2,"stringa:[%s]\n\r",a1);
+//	bwprintf(COM2,"stringb:[%s]\n\r",b1);
+	pkmemcpy(b1,a1,3);
+//	bwprintf(COM2,"stringa:[%s]\n\r",a1);
+//	bwprintf(COM2,"stringb:[%s]\n\r",b1);
+	pkmemcpy(b1,a1,4);
+//	bwprintf(COM2,"stringa:[%s]\n\r",a1);
+//	bwprintf(COM2,"stringb:[%s]\n\r",b1);
 	pkmemcpy(b1,a1,12);
-	bwprintf(COM2,"stringa:[%s]\n\r",a1);
-	bwprintf(COM2,"stringb:[%s]\n\r",b1);
+//	bwprintf(COM2,"stringa:[%s]\n\r",a1);
+//	bwprintf(COM2,"stringb:[%s]\n\r",b1);
 	pkmemcpy(b1,a1,24);
-	bwprintf(COM2,"stringa:[%s]\n\r",a1);
-	bwprintf(COM2,"stringb:[%s]\n\r",b1);
+//	bwprintf(COM2,"stringa:[%s]\n\r",a1);
+//	bwprintf(COM2,"stringb:[%s]\n\r",b1);
 	pkmemcpy(b1,a1,50);
-	bwprintf(COM2,"stringa:[%s]\n\r",a1);
-	bwprintf(COM2,"stringb:[%s]\n\r",b1);
+//	bwprintf(COM2,"stringa:[%s]\n\r",a1);
+//	bwprintf(COM2,"stringb:[%s]\n\r",b1);
     	startTick = getTicks4us(0);
 	pkmemcpy(b1,a1,63);
     	endTick = getTicks4us(0);
-	bwprintf(COM2,"stringa:[%s]\n\r",a1);
-	bwprintf(COM2,"stringb:[%s]\n\r",b1);
+	//bwprintf(COM2,"stringa:[%s]\n\r",a1);
+//	bwprintf(COM2,"stringb:[%s]\n\r",b1);
 	bwprintf(COM2,"stringb:64 bytes[%d]\n\r",endTick-startTick);
 }
 
 void testMemCpy(){
 	char * a = "123456789012345678901234567890123456789012345678901234567890ABCD";
-	char * b = "                                                                ";
 
-	char C1[66];
-	char C2[66];
+	char C1[76];
 	int i =0;
-	for(i = 0; i< 65; i++){
+	for(i = 0; i< 75; i++){
 		C1[i] = ' ';
-		C2[i] = ' ';
 	}
-		C1[65] = 0;
-		C2[65] = 0;
+		C1[75] = 0;
 	
 	
-
+	char * c1  = &C1[1];
+	char * c0  = &C1[0];
     	startTimer(TIMER4_BASE, 0,0,0);  
-	bwprintf(COM2,"stringa:[%s]\n\r",C1);
-	bwprintf(COM2,"stringa:[%s]\n\r",C2);
-	TESTold(a,&C1);
-	bwprintf(COM2,"stringa:[%s]\n\r",C1);
-	bwprintf(COM2,"stringa:[%s]\n\r",C2);
-	TESTnew(a,&C2);
-	bwprintf(COM2,"stringa:[%s]\n\r",C1);
-	bwprintf(COM2,"stringa:[%s]\n\r",C2);
+	bwprintf(COM2,"stringa:[%d]\n\r",c0);
+	bwprintf(COM2,"stringa:[%d]\n\r",c1);
+	TESTnew(a+1,c0+0);
+	bwprintf(COM2,"stringa:[%s]\n\r",c0);
+	for(i = 0; i< 75; i++){
+		C1[i] = ' ';
+	}
+		C1[75] = 0;
+	
+	TESTnew(a+1,c0+1);
+	bwprintf(COM2,"stringa:[%s]\n\r",c0);
+	for(i = 0; i< 75; i++){
+		C1[i] = ' ';
+	}
+		C1[75] = 0;
+	
+	TESTnew(a+1,c0+2);
+	bwprintf(COM2,"stringa:[%s]\n\r",c0);
+	for(i = 0; i< 75; i++){
+		C1[i] = ' ';
+	}
+		C1[75] = 0;
+	
+	TESTnew(a+1,c0+3);
+
+	bwprintf(COM2,"stringa:[%s]\n\r",c0);
+	//bwprintf(COM2,"stringa:[%s]\n\r",a+1);
+	//bwprintf(COM2,"stringa:[%s]\n\r",C1);
+	//bwprintf(COM2,"stringa:[%s]\n\r",C2);
+
+//	TESTnew(a,&C2[0]);
+//	bwprintf(COM2,"stringa:[%s]\n\r",C1);
+//	bwprintf(COM2,"stringa:[%s]\n\r",C2);
 	//bwprintf(COM2,"stringa:[%s]\n\r",b1);
 	//bwprintf(COM2,"stringa:[%s]\n\r",C2);
 	//pkmemcpy(b2,a1,62);
@@ -586,8 +612,16 @@ int main(void) {
         "ORR r0, r0, #0x1 <<12 \n"
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
- //   kernelRun(2,(int) FirstUserTask);
-	testMemCpy();
+    //kernelRun(2,(int) FirstUserTask);
+    if(0){
+	//bwprintf(COM2,"God4\n\r");
+    kernelRun(2,(int) testTaskGod4);
+	}
+	else{
+	//bwprintf(COM2,"God64\n\r");
+    kernelRun(2,(int) testTaskGod64);
+	}
+	//testMemCpy();
 	return 0;
 }
 

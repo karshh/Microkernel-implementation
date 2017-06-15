@@ -55,6 +55,16 @@ typedef struct TD {
 	volatile char* compose;
 	volatile int composelen;
 	volatile int* tidBuffer;
+
+	volatile char* sendMsg;
+	volatile int sendMsgen;
+	volatile char* replyMsg;
+	volatile int replyMsglen;
+	volatile char* recieveMsg;
+	volatile int recieveLen;
+	volatile int inboxCount;
+	volatile struct TD * inboxHead;
+	volatile struct TD * inboxTail;
 	
 } TD;
 

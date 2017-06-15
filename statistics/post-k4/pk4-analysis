@@ -67,3 +67,17 @@ if printf calls putc for everycharacter 3761.92 microseconds, or about 1/3 a clo
 2)we need to tighten our SRR/ RSR. is there anyplace we are copying data, such as the reply? is it character by character or a memcpy? how efficient is the mem-cpy? perhaps we need to ease up on some of the volatile commands, as that can effect our stats as well.I'll be focusing on this.
 
 3) From the K2 info, our RSR/SSR is between 1~ 1.01 which is good.
+
+
+Group	Length	Caches	SB4R	Opt	Time(micro seconds) newmem	newc/b newOverhead
+PK	4	off	yes	off	462.87	
+PK	64	off	yes	off	1981.38
+PK	4	on	yes	off	61.03
+PK	64	on	yes	off	91.56
+
+PK	4	off	yes	on	230.93
+PK	64	off	yes	on	735.50
+PK	4	on	yes	on	30.51		    25.6	0.01	25.2
+PK	64	on	yes	on	52.899		    26.2	0.01	25.2
+
+
