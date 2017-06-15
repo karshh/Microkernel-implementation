@@ -17,6 +17,25 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 	
 	
 	switch(r->reqType){
+//14/6/17 (pie): changed order of switch so more often called events have less (if equal branch assembly instructions to run)
+	case(AWAITEVENT):
+		return kernel_AwaitEvent(t,r,ks);
+		break;
+	case(SEND):
+		return kernel_Send(t, r, ks, m);
+		break;
+	case(RECEIVE):
+		return kernel_Receive(t, r, ks, m);
+		break;
+	case (REPLY):
+		return kernel_Reply(t, r, ks, m);
+		break;
+	case(CLOCK):
+		return kernel_RequestClockServer(t,r,ks,m);
+		break;
+	case(IO):
+		return kernel_RequestIOServer(t,r,ks,m);
+		break;
 	case(MYTID):
 		return kernel_MyTid(t);
 		break;
@@ -36,7 +55,6 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 		return kernel_Pass(t);
 		break;
 	case(QUIT):
-
 		return kernel_Quit( t, ks); 
 		break;
 	case(EXIT):
@@ -49,32 +67,14 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 		if( t->TID == ks->clockServer) ks->clockServer = -1;
 		return kernel_Exit(t);
 		break;
-	case(SEND):
-		return kernel_Send(t, r, ks, m);
-		break;
 	case(WHOIS):
 		return kernel_WhoIs(t, r, ks, m);
 		break;
 	case(REGISTER):
 		return kernel_RegisterAs(t, r, ks, m);
 		break;
-	case(RECEIVE):
-		return kernel_Receive(t, r, ks, m);
-		break;
-	case (REPLY):
-		return kernel_Reply(t, r, ks, m);
-		break;
 	case(CREATECLOCKSERVER):
 		return kernel_CreateClockServer(t,r,ks);
-		break;
-	case(AWAITEVENT):
-		return kernel_AwaitEvent(t,r,ks);
-		break;
-	case(CLOCK):
-		return kernel_RequestClockServer(t,r,ks,m);
-		break;
-	case(IO):
-		return kernel_RequestIOServer(t,r,ks,m);
 		break;
 	case(IDLEPERCENTAGE):
 		return kernel_IdlePercentage(t,ks);

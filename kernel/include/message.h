@@ -3,7 +3,7 @@
 
 typedef struct message {
 	int senderTID;
-	char * msg;
+	char * msg;//ptr to msg
 	int msglen;
 
 } message;

@@ -11,8 +11,8 @@
 
 typedef struct Inbox {
 	message mail[MAIL_CAPACITY];
- 	int mailIncr;
-	int mailSeen;
+ 	int mailIncr ;
+	int mailSeen; //??
 
 } Inbox;
 
@@ -28,7 +28,6 @@ typedef enum State {
 	REPLY_BLOCKED,
 	EVENT_BLOCKED
 } State;
-
 
 typedef struct TD {
 	int* sp;	 // stack pointer.
