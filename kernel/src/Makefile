@@ -19,7 +19,7 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 ARFLAGS = rcs
 LDFLAGS = -init main -Map m.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
-all: clean bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o test.o test.elf trackA.elf trackB.elf install
+all: clean bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o trackGraph.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o test.o test.elf trackA.elf trackB.elf install
 
 # new file preable
 #.s: .c
@@ -30,6 +30,11 @@ controller.s: controller.c
 	$(XCC) -S $(CFLAGS) controller.c
 controller.o: controller.s
 	$(AS) $(ASFLAGS) -o controller.o controller.s
+
+trackGraph.s: trackGraph.c
+	$(XCC) -S $(CFLAGS) trackGraph.c
+trackGraph.o: trackGraph.s
+	$(AS) $(ASFLAGS) -o trackGraph.o trackGraph.s
 
 ui.s: ui.c
 	$(XCC) -S $(CFLAGS) ui.c
@@ -158,25 +163,25 @@ trackB.o: trackB.s
 	$(AS) $(ASFLAGS) -o trackB.o trackB.s
 
 test.elf:test.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o test.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o trackGraph.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o test.o -lgcc
 
 k1.elf: k1.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o k1.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o trackGraph.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o k1.o -lgcc
 
 k2.elf: k2.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o k2.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o trackGraph.o  td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o k2.o -lgcc
 
 k3.elf: k3.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o k3.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o trackGraph.o  td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o k3.o -lgcc
 
 k4.elf: k4.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o k4.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o trackGraph.o  td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o k4.o -lgcc
 
 trackA.elf: trackA.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o trackA.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o trackGraph.o  td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o trackA.o -lgcc
 
 trackB.elf: trackB.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o trackB.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o trackGraph.o  td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o trackB.o -lgcc
 
 
 install: test.elf trackA.elf trackB.elf
