@@ -32,7 +32,7 @@ typedef enum State {
 typedef struct TD {
 	int* sp;	 // stack pointer.
 	
-	volatile int reqVal;	
+ int reqVal;	
 
 	volatile int interupted;	
 	
@@ -43,37 +43,42 @@ typedef struct TD {
 	volatile int TID; 
 	volatile int parentTID; //will use for getMyparentTid for now
 	volatile struct TD * parent; //pointer to parent if null, then ptid is first_task
-	volatile int priority;
-	volatile State state;
+	int priority;
+	State state;
 
 	volatile struct TD * nextTD; //used for priority queues and free list
 		//when pop, next means the task after the poped task
 	volatile struct TD * prevTD; 
-
+/*
 	// message passing
 	volatile Inbox inbox;
 	volatile char* compose;
 	volatile int composelen;
+*/
 	volatile int* tidBuffer;
-
+	//new vars to replace inbox
 	volatile char* sendMsg;
-	volatile int sendMsgen;
+	volatile int sendMsgLen;
 	volatile char* replyMsg;
-	volatile int replyMsglen;
-	volatile char* recieveMsg;
-	volatile int recieveLen;
+	volatile int replyMsgLen;
+	volatile char* receiveMsg;
+	volatile int receiveMsgLen;
 	volatile int inboxCount;
-	volatile struct TD * inboxHead;
-	volatile struct TD * inboxTail;
+	struct TD * inboxHead;
+	struct TD * inboxTail;
 	
 } TD;
 
 
 int initTD( TD * td, int TID, int memOffset);//sets upmemory allocation for tasks
-
+/*
 int checkMail(TD * td, message * m);
 
 int putMail(TD * td, message * m);
+*/
+int inbox_Push(TD * inboxOwner, TD * inboxEntry);
+int inbox_Pop(TD * inboxOwner,TD ** inboxEntry);
+
 
 #endif
 

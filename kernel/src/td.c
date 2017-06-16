@@ -18,7 +18,7 @@ int initInbox(volatile Inbox * i) {
 	return 1;
 }
 
-
+/*
 int checkMail(TD * td, message * m) {
     volatile Inbox * i = &(td->inbox);
     
@@ -50,7 +50,7 @@ int putMail(TD * td, message * m) {
 
 }
 
-
+*/
 
 int initTD( TD * td, int TID, int memOffset){
 	td->TID = TID;
@@ -68,11 +68,71 @@ int initTD( TD * td, int TID, int memOffset){
 	//not getting free list yet so init to 0.
 	td->nextTD = 0;
 	td->prevTD = 0;
-	
+	/*
 	if (!initInbox(&(td->inbox))) return 0;
 	td->compose = 0;
 	td->composelen = 0;
+*/
 	td->tidBuffer = 0;	
+
+	td->inboxCount = 0;
+	td->inboxHead = 0;
+	td->inboxTail = 0;
+	td->sendMsg = 0;
+	td->receiveMsg = 0;
+	td->replyMsg = 0;
+	td->sendMsgLen = 0;
+	td->receiveMsgLen = 0;
+	td->replyMsgLen = 0;
+	return 1;
+}
+
+
+
+int inbox_Push(TD * inboxOwner, TD * inboxEntry){
+	//puts or priority queue at task's priority
+
+	if(inboxOwner->inboxHead == 0){
+		//this priority is empty
+		//will modify to modify bitstring later
+		inboxOwner->inboxHead = inboxEntry;
+		inboxOwner->inboxTail = inboxEntry;
+		inboxEntry->nextTD = 0;
+		inboxEntry->prevTD = 0;
+		inboxEntry->state = RECEIVE_BLOCKED;
+	}else{
+		TD * prevHead = inboxOwner->inboxHead;
+		prevHead->nextTD = inboxEntry;
+		inboxEntry->prevTD = prevHead;
+		inboxEntry->nextTD = 0;
+		inboxEntry->state = RECEIVE_BLOCKED;
+		inboxOwner->inboxHead = inboxEntry;
+	}
+	inboxOwner->inboxCount ++;
+	return 1;
+	
+}
+
+
+int inbox_Pop(TD * inboxOwner,TD ** inboxEntry){
+	if (!inboxOwner->inboxTail || !inboxOwner->inboxCount ) return 0;
+	
+	TD * poppedtask =  inboxOwner->inboxTail;
+	TD * nextTail = poppedtask->nextTD;
+
+	if(nextTail == 0){
+		inboxOwner->inboxTail = 0;
+		inboxOwner->inboxHead = 0;
+	}
+	else{
+		nextTail->prevTD = 0;
+		inboxOwner->inboxTail = nextTail;
+	}
+
+	poppedtask->nextTD = 0;
+	poppedtask->prevTD = 0;
+	*inboxEntry = poppedtask;
+	inboxOwner->inboxCount --;
 	return 1;
 }
 

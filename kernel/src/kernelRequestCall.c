@@ -369,23 +369,29 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 	}
 	
 	//put request information in message.
-	m->senderTID = t->TID;
-	m->msglen = msglen;
-	m->msg = (char *) r->arg2;
+	//m->senderTID = t->TID;
+	//m->msglen = msglen;
+	//m->msg = (char *) r->arg2;
 
 	//point task's compose to reply buffer.
-	t->compose = (char *) r->arg4;
-	t->composelen = replylen;
+	t->sendMsg = (char *) r->arg2;
+	t->sendMsgLen = msglen;
+	t->replyMsg = (char *) r->arg4;
+	t->replyMsgLen = replylen;
 
     //bwprintf(COM2, "Kernel: Case 12[TID:%d, Msg:%s, Msglen:%d, reqVal:%d]\r\n",
     //	m->receiverTID, m->msg, m->msglen, 0xdeadbeef);
 	
 	//If the mail isn't sent, just return an error code that the transaction couldn't be completed.
+
+	inbox_Push(&(ks->TDList[tid]),t);
+
+/*
 	if (!putMail(&(ks->TDList[tid]), m)) {
 		t->reqVal = -3;
 		return 1;
 	}
-
+*/
     ////bwprintf(COM2, "Kernel: Case 13.\r\n");
 	if ((ks->TDList[tid]).state == SEND_BLOCKED) {
 		// push into queue during this statement execution.
@@ -404,12 +410,13 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 int kernel_Receive(TD * t, request * r, kernelHandler * ks, message * m) {
 	
 	// point compose and tid to the buffer.
-	t->compose = (char*) r->arg2;
-	t->composelen = (int) r->arg3;
+	t->receiveMsg = (char*) r->arg2;
+	t->receiveMsgLen = (int) r->arg3;
 	t->tidBuffer = (int*) r->arg1;
 	
     //bwprintf(COM2, "Kernel: Case 21.\r\n");
 	// we don't push into queue here during this statement execution.
+
 	return processMail(t->TID, ks, m, 0);
 	
 
@@ -431,17 +438,10 @@ int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
 		return 1;
 	}
     //bwprintf(COM2, "Kernel: Case 31.\r\n");
-	pkmemcpy((void*) sender->compose, (void*) r->arg2, replylen <= sender->composelen ? replylen : sender->composelen);
-/*
-	volatile int i = 0;
-	for (i = 0; i < replylen && i < sender->composelen; i++) {
-	
-                sender->compose[i] = ((char*) (r->arg2))[i];
-        }
-*/
+	pkmemcpy((void*) sender->replyMsg, (void*) r->arg2, replylen <= sender->replyMsgLen ? replylen : sender->replyMsgLen);
 
-	if (replylen > sender->composelen) {
-		sender->compose[sender->composelen - 1] = 0;
+	if (replylen > sender->replyMsgLen) {
+		sender->replyMsg[sender->replyMsgLen - 1] = 0;
 		t->reqVal = -1;
 		sender->reqVal = -1;
 	} else {
@@ -463,18 +463,28 @@ int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
 int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue) {
 	TD * receiverTD = &(ks->TDList[receiver]);
    // bwprintf(COM2, "Kernel: Case 210.\r\n");
+
+	if(!receiverTD->inboxCount){
+		receiverTD->state = SEND_BLOCKED;
+		return 1;
+	}
+
+	TD * task = 0;
+
+	inbox_Pop(receiverTD,&task);
+	task->state = REPLY_BLOCKED;	
+/*
 	if (!checkMail(receiverTD, m)) {
 		// no mail, just block.
 		receiverTD->state = SEND_BLOCKED;
 		return 1;
 	}
-
-	(ks->TDList[m->senderTID]).state = REPLY_BLOCKED;
-	
+*/
+	//(ks->TDList[m->senderTID]).state = REPLY_BLOCKED;	
     // bwprintf(COM2, "Kernel: Case 211.\r\n");
 	//if there was a mail, the m pointer would be assigned that within the if statement parameter. 
 	
-	pkmemcpy((void*) receiverTD->compose, (void*) m->msg, m->msglen  <= receiverTD->composelen ? m->msglen : receiverTD->composelen);
+	pkmemcpy((void*) receiverTD->receiveMsg, (void*) task->sendMsg, task->sendMsgLen  <= receiverTD->receiveMsgLen ? task->sendMsgLen : receiverTD->receiveMsgLen);
 /*
 	volatile int i = 0;
 	for (i = 0; i < m->msglen && i < receiverTD->composelen; i++) {
@@ -482,14 +492,14 @@ int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue
 	}
 */
     //bwprintf(COM2, "Kernel: Case 212.\r\n");
-	if (m->msglen > receiverTD->composelen) {
-		receiverTD->compose[receiverTD->composelen - 1] = 0;
+	if (task->sendMsgLen > receiverTD->receiveMsgLen){
+		receiverTD->receiveMsg[receiverTD->receiveMsgLen - 1] = 0;
 		receiverTD->reqVal = -1;
 	} else {
-		receiverTD->reqVal = m->msglen;	
+		receiverTD->reqVal = task->sendMsgLen;	
 	}
 
-	*(receiverTD->tidBuffer) = m->senderTID;
+	*(receiverTD->tidBuffer) = task->TID;
 	
     // bwprintf(COM2, "Kernel: Case 213[TID:%d, Msg:%s, Msglen:%d, reqVal:%d].\r\n", 
     	// receiverTD->TID, receiverTD->compose, receiverTD->composelen, receiverTD->reqVal);

@@ -23,6 +23,7 @@ void pkmemcpy(void *dest, const void *source, unsigned int size) {
 //code based on http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.faqs/ka13544.html
 	asm volatile (
 	".pkmemmodcheck:\n"
+	//first check if source or dest are word alligned. if not fast copy wont work
 	"	AND	r3, r0, #3\n"
 	"	cmp	r3, #0\n"
 	"	BGT	.pkmem1\n"//if size >= 32 loop

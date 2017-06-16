@@ -1,6 +1,8 @@
 #include "userRequestCall.h"
 #include "request.h"
 #include "pkstring.h"
+#include "time.h"
+#include "bwio.h"
 //SWI caller
 int user_contextswitch(int dummy, request * r) {
 	asm ("swi 0");
@@ -63,11 +65,19 @@ int MyParentTid(){
 }
 
 void Pass(){
-	
+unsigned int initTick=0;
+unsigned int endTick=0;
+	stopTimer(TIMER4_BASE);
+startTimer(TIMER4_BASE, 0,0,0);
+initTick = getTicks4us(0);
+
+
 	request myRequest;
 	myRequest.reqType = PASS;
 
 	user_contextswitch(0xdeadbeef, &myRequest);
+endTick = getTicks4us(0);
+bwprintf(COM2, "Ticks taken to complete PASS: %d %d\r\n", endTick , initTick);
 }
 
 

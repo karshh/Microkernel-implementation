@@ -115,12 +115,13 @@ Timer clock speeds
 1.9939 KHz
 983 KHz
 */
+/*
 	startTimer(TIMER3_BASE, 508, 5084689,PERIODIC);//used to prevent clock skew every 10s
 	//startTimer(TIMER1_BASE, 508, 508469,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
 	startTimer(TIMER1_BASE, 508, 5085,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
 	//startTimer(TIMER1_BASE, 508, 5084,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
 	toggleTimer3Interrupt(1);//timer3 to keep timer 1 from clock skewing
-	
+*/	
 	startTimer(TIMER4_BASE, 0,0,0); //TIMER 4 cares not for other arguments
 	ks->idleTaskRunning = 0;
 	ks->clockTaskRunning = 0;
@@ -149,6 +150,12 @@ void kernelRun(int priority, int code) {
 	message m;
 	volatile TD * task =0;
 	//int old_idle = 0;
+
+
+/*
+*/
+
+
 	while(kernel_queuePop(&ks, &task)) {
 
 		if (ks.KernelState == KERQUIT){
@@ -163,6 +170,7 @@ void kernelRun(int priority, int code) {
 /*************************************
  diagnostic code
 *************************************/
+/*
 	  	if(ks.activeTask->priority ==31){
 		// 	 //makes assumption a 31 prioty task is an idle task
 		 	ks.idleTaskRunning = 1;
@@ -176,8 +184,7 @@ end diagnostic code
 
 
 		r = activate(ks.activeTask);
-
-
+/*
 		if(ks.idleTaskRunning ){
 					ks.totalIdleRunningTime += getTicks4(0) -ks.lastIdleRunningTime;
 					ks.idleTaskRunning = 0;
@@ -202,10 +209,6 @@ end diagnostic code
 /*************************************
 end diagnostic code
 *************************************/
-
-
-
-
 
 		if(!processRequest(&ks, td, r, &m)){
 			bwprintf(COM2,"PROCESS request failed[TID:%d]!\n\r", td->TID);
@@ -344,7 +347,6 @@ int free_Pop(kernelHandler * ks, volatile TD ** task){
 	return 1;
 }
 int kernel_queuePop(kernelHandler * ks, volatile TD ** task){
-
 	unsigned int v = ks->priotiyBitLookup;     // 32-bit word input to count zero bits on right
 	unsigned int c;     // c will be the number of zero bits on the right,
 			    // so if v is 1101000 (base 2), then c will be 3
@@ -352,6 +354,7 @@ int kernel_queuePop(kernelHandler * ks, volatile TD ** task){
 	//bit hack to count trailing zeroes. # of trailing zeroes are the first free priority queue
 	//33% faster than 3 * lg(N) + 4 for N bit words
 	// NOTE: if 0 == v, then c = 31.dd
+
 	if (v & 0x1) 
 	{
 	  // special case for odd v (assumed to happen half of the time)

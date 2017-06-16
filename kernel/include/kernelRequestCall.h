@@ -37,13 +37,14 @@ int kernel_Quit(TD * t, kernelHandler * ks);
 
 int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m);
 
-int kernel_WhoIs(TD * t, request * r, kernelHandler * ks, message * m);
-
-int kernel_RegisterAs(TD * t, request * r, kernelHandler * ks, message * m);
-
 int kernel_Receive(TD * t, request * r, kernelHandler * ks, message * m);
 
 int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m);
+
+
+int kernel_WhoIs(TD * t, request * r, kernelHandler * ks, message * m);
+
+int kernel_RegisterAs(TD * t, request * r, kernelHandler * ks, message * m);
 
 int kernel_RequestClockServer(TD * t, request * r, kernelHandler * ks, message * m);
 
