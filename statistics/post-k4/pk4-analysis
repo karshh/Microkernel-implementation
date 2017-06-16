@@ -79,5 +79,28 @@ PK	4	off	yes	on	230.93
 PK	64	off	yes	on	735.50
 PK	4	on	yes	on	30.51		    25.6	0.01	25.2
 PK	64	on	yes	on	52.899		    26.2	0.01	25.2
+-----------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------
+
+16/6/17
+modified test to make sure instructions take use of caches
+
+					time		over	c/b
+PK	4	on	yes	on	13.25	 	13.19	0.015
+PK	64	on	yes	on	14.17	    	13.19	0.015	
+
+note: a send/recieve does the same number of context switches are running 3 Passe.
+So if Cost of SRR = 3 * OH (context switch) + X (cost specific to SRR)
+      cost of 3Pass = 3*OH + Y (cost of doing 3 passes).
+	So CSRR - C3PASS = X - Y. 
+	Since i assume the ammount of extra work done by 3 passes is neglible (1 lines of code to set ret val)
+	Y = 0;
+	so X = CSSR - C3PASS;
+					
+3 passes				8.966
+PKSSR					13.99
+
+X = 5.024
+OH = 2.98 <- need to make this tighter.
 
 

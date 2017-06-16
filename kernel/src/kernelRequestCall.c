@@ -344,87 +344,43 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 	int tid = (int) r->arg1;
 	int msglen = (int) r->arg3;
 	int replylen = (int) r->arg5;
-
-	// Cases where we return a -2 to the user task:
-	// 		1. TID is out of bounds.
-	//		2. User task is sending to a task which is a zombie or is free.
-	if ((tid > MAX_TID - 1) || tid < 0 || 
-		(ks->TDList[tid]).state == ZOMBIE || 
-		 (ks->TDList[tid]).state == FREE) {
-		//bwassert(0, COM2, 
-		//"ERROR: tid > MAX_TID - 1 = %d, tid < 0 = %d, ks->TDList[tid]).state == ZOMBIE = %d, (ks->TDList[tid]).state == FREE = %d\r\n",
-		//tid > MAX_TID, tid < 0,  (ks->TDList[tid]).state == ZOMBIE, (ks->TDList[tid]).state == FREE);
+	if ((tid > MAX_TID - 1) || tid < 0 || (ks->TDList[tid]).state == ZOMBIE ||  (ks->TDList[tid]).state == FREE) {
 		t->reqVal = -2;
 		return 1;
 	}
 
 
-	// Cases where we return a -3 to the user task:
-	// 		1. User is trying to send a message to itself.
-	//		2. Message is too long [> MESSAGE_CAPACITY] (Deprecated)
-	//	Send this error in any situation where the transaction can't be completed.
 	if (tid == t->TID) {
 		t->reqVal = -3;
 		return 1;
 	}
 	
-	//put request information in message.
-	//m->senderTID = t->TID;
-	//m->msglen = msglen;
-	//m->msg = (char *) r->arg2;
-
-	//point task's compose to reply buffer.
 	t->sendMsg = (char *) r->arg2;
 	t->sendMsgLen = msglen;
 	t->replyMsg = (char *) r->arg4;
 	t->replyMsgLen = replylen;
 
-    //bwprintf(COM2, "Kernel: Case 12[TID:%d, Msg:%s, Msglen:%d, reqVal:%d]\r\n",
-    //	m->receiverTID, m->msg, m->msglen, 0xdeadbeef);
-	
-	//If the mail isn't sent, just return an error code that the transaction couldn't be completed.
+    	inbox_Push(&(ks->TDList[tid]),t);
 
-	inbox_Push(&(ks->TDList[tid]),t);
-
-/*
-	if (!putMail(&(ks->TDList[tid]), m)) {
-		t->reqVal = -3;
-		return 1;
-	}
-*/
-    ////bwprintf(COM2, "Kernel: Case 13.\r\n");
 	if ((ks->TDList[tid]).state == SEND_BLOCKED) {
-		// push into queue during this statement execution.
 		processMail(tid, ks, m, 1);
 	} else {
 		t->state = RECEIVE_BLOCKED;
 	}
 
-
-    //bwprintf(COM2, "Kernel: Case 15.\r\n");
-	// block task.
 	return 1;
 
 }
 
 int kernel_Receive(TD * t, request * r, kernelHandler * ks, message * m) {
-	
-	// point compose and tid to the buffer.
 	t->receiveMsg = (char*) r->arg2;
 	t->receiveMsgLen = (int) r->arg3;
 	t->tidBuffer = (int*) r->arg1;
-	
-    //bwprintf(COM2, "Kernel: Case 21.\r\n");
-	// we don't push into queue here during this statement execution.
-
 	return processMail(t->TID, ks, m, 0);
-	
-
 }
 
 
 int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
-	
 	int tid = (int) r->arg1;
 	if (tid > MAX_TID - 1 || tid < 0 || (ks->TDList[tid]).state == ZOMBIE || (ks->TDList[tid]).state == FREE ) {
 		t->reqVal = -2;
@@ -432,14 +388,11 @@ int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
 	}
 	TD * sender = &(ks->TDList[tid]);
 	int replylen = (int) r->arg3;
-	
 	if (sender->state != RECEIVE_BLOCKED && sender->state != REPLY_BLOCKED) {
 		t->reqVal = -3;
 		return 1;
 	}
-    //bwprintf(COM2, "Kernel: Case 31.\r\n");
 	pkmemcpy((void*) sender->replyMsg, (void*) r->arg2, replylen <= sender->replyMsgLen ? replylen : sender->replyMsgLen);
-
 	if (replylen > sender->replyMsgLen) {
 		sender->replyMsg[sender->replyMsgLen - 1] = 0;
 		t->reqVal = -1;
@@ -449,11 +402,8 @@ int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
 		sender->reqVal = replylen;
 	}
 	
-    //bwprintf(COM2, "Kernel: Case 32[TID:%d, Msg:%s, Msglen:%d, reqVal:%d].\r\n", 
-    //	sender->TID, sender->compose, sender->composelen, sender->reqVal);
 	sender->state = ACTIVE;
 	kernel_queuePush(ks, sender);
-    ////bwprintf(COM2, "Kernel: Case 33.\r\n");
 	return 1;
 	
 	
@@ -462,7 +412,6 @@ int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
 // this is called AFTER task requests a mail receiver.
 int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue) {
 	TD * receiverTD = &(ks->TDList[receiver]);
-   // bwprintf(COM2, "Kernel: Case 210.\r\n");
 
 	if(!receiverTD->inboxCount){
 		receiverTD->state = SEND_BLOCKED;
@@ -473,25 +422,8 @@ int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue
 
 	inbox_Pop(receiverTD,&task);
 	task->state = REPLY_BLOCKED;	
-/*
-	if (!checkMail(receiverTD, m)) {
-		// no mail, just block.
-		receiverTD->state = SEND_BLOCKED;
-		return 1;
-	}
-*/
-	//(ks->TDList[m->senderTID]).state = REPLY_BLOCKED;	
-    // bwprintf(COM2, "Kernel: Case 211.\r\n");
-	//if there was a mail, the m pointer would be assigned that within the if statement parameter. 
-	
+
 	pkmemcpy((void*) receiverTD->receiveMsg, (void*) task->sendMsg, task->sendMsgLen  <= receiverTD->receiveMsgLen ? task->sendMsgLen : receiverTD->receiveMsgLen);
-/*
-	volatile int i = 0;
-	for (i = 0; i < m->msglen && i < receiverTD->composelen; i++) {
-		receiverTD->compose[i] = m->msg[i];
-	}
-*/
-    //bwprintf(COM2, "Kernel: Case 212.\r\n");
 	if (task->sendMsgLen > receiverTD->receiveMsgLen){
 		receiverTD->receiveMsg[receiverTD->receiveMsgLen - 1] = 0;
 		receiverTD->reqVal = -1;
@@ -501,8 +433,6 @@ int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue
 
 	*(receiverTD->tidBuffer) = task->TID;
 	
-    // bwprintf(COM2, "Kernel: Case 213[TID:%d, Msg:%s, Msglen:%d, reqVal:%d].\r\n", 
-    	// receiverTD->TID, receiverTD->compose, receiverTD->composelen, receiverTD->reqVal);
 	receiverTD->state = ACTIVE;
 	if (pushIntoQueue) kernel_queuePush(ks, receiverTD);
 	return 1;

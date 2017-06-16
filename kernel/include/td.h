@@ -46,24 +46,24 @@ typedef struct TD {
 	int priority;
 	State state;
 
-	volatile struct TD * nextTD; //used for priority queues and free list
-		//when pop, next means the task after the poped task
-	volatile struct TD * prevTD; 
+	struct TD * nextTD; //used for priority queues and free list
+	//when pop, next means the task after the poped task
+	struct TD * prevTD; 
 /*
 	// message passing
 	volatile Inbox inbox;
 	volatile char* compose;
 	volatile int composelen;
 */
-	volatile int* tidBuffer;
+	int* tidBuffer;
 	//new vars to replace inbox
-	volatile char* sendMsg;
-	volatile int sendMsgLen;
-	volatile char* replyMsg;
-	volatile int replyMsgLen;
-	volatile char* receiveMsg;
-	volatile int receiveMsgLen;
-	volatile int inboxCount;
+	char* sendMsg;
+	int sendMsgLen;
+	char* replyMsg;
+	int replyMsgLen;
+	char* receiveMsg;
+	int receiveMsgLen;
+	int inboxCount;
 	struct TD * inboxHead;
 	struct TD * inboxTail;
 	

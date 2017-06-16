@@ -21,15 +21,15 @@ typedef struct kernelHandler{
 	//list of TD's
 	TD TDList[MAX_TID];
 	//priority queues
-	volatile TD * priorityHead[32];
-	volatile TD * priorityTail[32];
+	TD * priorityHead[32];
+	TD * priorityTail[32];
 	unsigned int priotiyBitLookup;  
 
 	//free list
-	volatile TD * freeHead;
-	volatile TD * freeTail;
+	TD * freeHead;
+	TD * freeTail;
 
-	volatile TD * activeTask;
+	TD * activeTask;
 
 	volatile int nameServer; //k2
 	volatile int clockServer;//k3
@@ -63,7 +63,7 @@ typedef struct kernelHandler{
 	volatile int await_UART2SEND;
 	volatile int await_UART2RECEIVE; 
 
-	volatile int KernelState;
+	int KernelState;
 	//memm offset for user task space
 	int memOffset;
 	//an idea from ben to safely allocate space is to have 
@@ -93,12 +93,12 @@ TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code)
 
 
 //temporary queue functions for now
-int kernel_queuePush(kernelHandler * ks,volatile TD * task);
-int kernel_queuePop_priority(kernelHandler * ks, volatile TD ** task, volatile int priority);
-int kernel_queuePop(kernelHandler * ks, volatile TD ** task);
+int kernel_queuePush(kernelHandler * ks, TD * task);
+int kernel_queuePop_priority(kernelHandler * ks, TD ** task, int priority);
+int kernel_queuePop(kernelHandler * ks, TD ** task);
 
-int free_Push(kernelHandler * ks,volatile TD * task);
-int free_Pop(kernelHandler * ks, volatile TD ** task);
+int free_Push(kernelHandler * ks, TD * task);
+int free_Pop(kernelHandler * ks, TD ** task);
 
 #endif
 

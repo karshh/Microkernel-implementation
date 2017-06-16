@@ -415,31 +415,64 @@ void kernelTest() {
 }
 
 
+void testTaskPass3(){
+    unsigned int initTick;
+    unsigned int endTick;
+    int i;
+    int total=0;
 
+    stopTimer(TIMER4_BASE);
+    startTimer(TIMER4_BASE, 0,0,0);
+    for(i=0;i<100;i++){
+    initTick = getTicks4us(0);
+	Pass();
+	Pass();
+	Pass();
+    endTick = getTicks4us(0);
+	total += endTick - initTick;
+    bwprintf(COM2, "Ticks taken to complete 3 passes: %d\r\n", endTick - initTick);
+	//Pass();
+    }
+    bwprintf(COM2, "Avg Time: %d \r\n",(int)( total));
+    Exit();
+
+}
 
 // MAKE SURE TO PLACE SENDTIMER IN RECEIVE TASK WHEN YOU TEST RSR.
 void testTaskSend64() {
     char _msg[64];
-    startTimer(TIMER4_BASE, 0,0,0);
     unsigned int initTick;
     unsigned int endTick;
+    int i;
+    int total=0;
     Pass();
 
+
+    stopTimer(TIMER4_BASE);
+    startTimer(TIMER4_BASE, 0,0,0);
+    for(i=0;i<100;i++){
     initTick = getTicks4us(0);
     bwassert(Send(2, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 64, _msg, 64)>= 0, COM2, "TEST FAILED!\r\n");
     endTick = getTicks4us(0);
-
+	total += endTick - initTick;
     bwprintf(COM2, "Ticks taken to complete: %d\r\n", endTick - initTick);
+	//Pass();
+    }
+    bwprintf(COM2, "Avg Time: %d \r\n",(int)( total));
     Exit();
 }
 
 void testTaskReceive64() {
     int _tid = 0;
     char _msg[64];
-
+	int i=0;
+	Pass();
+	for(i=0;i<100;i++){
     if (Receive(&_tid, _msg, 64) >= 0) {
         Reply(_tid, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 64);
+	//Pass();
     }
+	}
     Exit();
 }
 
@@ -452,19 +485,23 @@ void testTaskGod64() {
 
 void testTaskSend4() {
     char _msg[4];
-    stopTimer(TIMER4_BASE);
-    startTimer(TIMER4_BASE, 0,0,0);
     unsigned int initTick;
     unsigned int endTick;
+    int i;
+    int total=0;
     Pass();
 
 
+    //stopTimer(TIMER4_BASE);
+    //startTimer(TIMER4_BASE, 0,0,0);
+    for(i=0;i<100;i++){
     initTick = getTicks4us(0);
     bwassert(Send(2, "bbb", 4, _msg, 4) >= 0, COM2, "TEST FAILED!\r\n");
     endTick = getTicks4us(0);
-
-
-    bwprintf(COM2, "Ticks taken to complete: %d\r\n", endTick - initTick);
+	total += endTick - initTick;
+    bwprintf(COM2, "Ticks taken to complete: %d \r\n", endTick - initTick);
+    }
+    bwprintf(COM2, "Avg Time: %d \r\n",(int)( total));
     Exit();
 
 
@@ -473,28 +510,23 @@ void testTaskSend4() {
 void testTaskReceive4() {
     int _tid = 0;
     char _msg[4];
-    Pass();
-
+	int i=0;
+    Pass(); 
+    for(i=0;i<100;i++){
     if (Receive(&_tid, _msg, 4) >= 0) {
         Reply(_tid, "aaa", 4);
     }
+    }
+
+
     Exit();
 }
 
 void testTaskGod4() {
-	Pass();
-	Pass();
-	Pass();
-	Pass();
-	Pass();
-	Pass();
-	Pass();
-	Pass();
-	Pass();
-	Pass();
-    //Create(6, (void*) testTaskSend4);
-    //Create(6, (void*) testTaskReceive4);
-    Exit( );
+    Create(6, (void*) testTaskSend4);
+    Create(6, (void*) testTaskReceive4);
+
+   Exit( );
 }
 
 void TESTold(char * a1, char * b1){
@@ -624,7 +656,7 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
     //kernelRun(2,(int) FirstUserTask);
-    if(1){
+    if(0){
 	//bwprintf(COM2,"God4\n\r");
     kernelRun(2,(int) testTaskGod4);
 	}

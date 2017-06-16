@@ -11,7 +11,7 @@
 
 
 int getNextTID(kernelHandler  * ks, int * TID){
-	volatile TD * task = 0;
+	TD * task = 0;
 	if(!free_Pop(ks,&task)) return -1;
 	*TID = task->TID;
 	return 0;
@@ -148,7 +148,7 @@ void kernelRun(int priority, int code) {
 	request * r;
 	
 	message m;
-	volatile TD * task =0;
+	TD * task =0;
 	//int old_idle = 0;
 
 
@@ -241,7 +241,7 @@ return  td;
 
 }
 
-int kernel_queuePush(kernelHandler * ks, volatile TD * task){
+int kernel_queuePush(kernelHandler * ks, TD * task){
 	//puts or priority queue at task's priority
 	int priority = task->priority;
 
@@ -262,7 +262,7 @@ int kernel_queuePush(kernelHandler * ks, volatile TD * task){
 		task->prevTD = 0;
 		task->state = READY;
 	}else{
-		volatile TD * prevHead = ks->priorityHead[priority];
+		TD * prevHead = ks->priorityHead[priority];
 		prevHead->nextTD = task;
 		task->prevTD = prevHead;
 		task->nextTD = 0;
@@ -273,7 +273,7 @@ int kernel_queuePush(kernelHandler * ks, volatile TD * task){
 	
 }
 
-int free_Push(kernelHandler * ks, volatile TD * task){
+int free_Push(kernelHandler * ks, TD * task){
 	//puts or priority queue at task's priority
 
 	if(ks->freeHead == 0){
@@ -285,7 +285,7 @@ int free_Push(kernelHandler * ks, volatile TD * task){
 		task->prevTD = 0;
 		task->state = FREE;
 	}else{
-		volatile TD * prevHead = ks->freeHead;
+		TD * prevHead = ks->freeHead;
 		prevHead->nextTD = task;
 		task->prevTD = prevHead;
 		task->nextTD = 0;
@@ -297,11 +297,11 @@ int free_Push(kernelHandler * ks, volatile TD * task){
 }
 
 
-int kernel_queuePop_priority(kernelHandler * ks, volatile TD ** task, volatile int priority){
+int kernel_queuePop_priority(kernelHandler * ks, TD ** task, int priority){
 	if (!ks->priorityTail[priority] ) return 0;
 	
-	volatile TD * poppedtask =  ks->priorityTail[priority];
-	volatile TD * nextTail = poppedtask->nextTD;
+	TD * poppedtask =  ks->priorityTail[priority];
+	TD * nextTail = poppedtask->nextTD;
 
 	if(nextTail == 0){
 		//set bit for this priority
@@ -326,11 +326,11 @@ int kernel_queuePop_priority(kernelHandler * ks, volatile TD ** task, volatile i
 	return 1;
 }
 
-int free_Pop(kernelHandler * ks, volatile TD ** task){
+int free_Pop(kernelHandler * ks, TD ** task){
 	if (!ks->freeTail ) return 0;
 	
-	volatile TD * poppedtask =  ks->freeTail;
-	volatile TD * nextTail = poppedtask->nextTD;
+	TD * poppedtask =  ks->freeTail;
+	TD * nextTail = poppedtask->nextTD;
 
 	if(nextTail == 0){
 		ks->freeTail = 0;
@@ -346,7 +346,7 @@ int free_Pop(kernelHandler * ks, volatile TD ** task){
 	*task = poppedtask;
 	return 1;
 }
-int kernel_queuePop(kernelHandler * ks, volatile TD ** task){
+int kernel_queuePop(kernelHandler * ks, TD ** task){
 	unsigned int v = ks->priotiyBitLookup;     // 32-bit word input to count zero bits on right
 	unsigned int c;     // c will be the number of zero bits on the right,
 			    // so if v is 1101000 (base 2), then c will be 3
