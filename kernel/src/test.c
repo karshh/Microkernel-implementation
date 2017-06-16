@@ -419,12 +419,49 @@ void testTaskPass3(){
     unsigned int initTick;
     unsigned int endTick;
     int i;
+    int j;
     int total=0;
 
     stopTimer(TIMER4_BASE);
     startTimer(TIMER4_BASE, 0,0,0);
     for(i=0;i<100;i++){
     initTick = getTicks4us(0);
+	Pass();
+	Pass();
+	Pass();
+
+	Pass();
+	Pass();
+	Pass();
+
+	Pass();
+	Pass();
+	Pass();
+
+	Pass();
+	Pass();
+	Pass();
+
+	Pass();
+	Pass();
+	Pass();
+
+	Pass();
+	Pass();
+	Pass();
+
+	Pass();
+	Pass();
+	Pass();
+
+	Pass();
+	Pass();
+	Pass();
+
+	Pass();
+	Pass();
+	Pass();
+
 	Pass();
 	Pass();
 	Pass();
@@ -656,6 +693,10 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
     //kernelRun(2,(int) FirstUserTask);
+if(1){
+    kernelRun(2,(int) testTaskPass3);
+}
+else{
     if(0){
 	//bwprintf(COM2,"God4\n\r");
     kernelRun(2,(int) testTaskGod4);
@@ -666,6 +707,7 @@ int main(void) {
 	}
 	//testMemCpy();
 	return 0;
+}
 }
 
 

@@ -97,7 +97,7 @@ So if Cost of SRR = 3 * OH (context switch) + X (cost specific to SRR)
 	Y = 0;
 	so X = CSSR - C3PASS;
 					
-3 passes				8.966
+3 passes				9.15
 PKSSR					13.99
 
 X = 5.024

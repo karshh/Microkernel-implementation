@@ -17,20 +17,17 @@ typedef enum KERNELSTATEtype {
 
 
 typedef struct kernelHandler{
-	
-	//list of TD's
-	TD TDList[MAX_TID];
+	int KernelState;
+	TD * activeTask;
 	//priority queues
+	unsigned int priotiyBitLookup;  
 	TD * priorityHead[32];
 	TD * priorityTail[32];
-	unsigned int priotiyBitLookup;  
 
-	//free list
-	TD * freeHead;
-	TD * freeTail;
 
-	TD * activeTask;
-
+	//list of TD's
+	TD TDList[MAX_TID];
+			
 	volatile int nameServer; //k2
 	volatile int clockServer;//k3
 	volatile int ioServerUART1S;//k4
@@ -57,28 +54,30 @@ typedef struct kernelHandler{
 		if we need to allow mutliple, we should do something like freeHead, free tail, where we push these tasks to a
 		list/queue.
 	*/
+
 	volatile int await_TIMER;
 	volatile int await_UART1SEND;
 	volatile int await_UART1RECEIVE;
 	volatile int await_UART2SEND;
 	volatile int await_UART2RECEIVE; 
 
-	int KernelState;
 	//memm offset for user task space
 	int memOffset;
-	//an idea from ben to safely allocate space is to have 
-	//wondering if this should be placed in another datastructure to limit cache misses
-	char taskSpace[MAX_STACKSIZE+16];//add extra padding to deal with wierd offsets
-	
+//free list
+	TD * freeHead;
+	TD * freeTail;
+/*
+*/	
 } kernelHandler;
 
 // return 1 if kernel handler was succesfully initialized. 
-int initKernel(kernelHandler * ks, int priority, int code);
+int initKernel(kernelHandler * ks, int priority, int code,int memOffset);
 
 void  exitKernel(kernelHandler * ks);
 
 // run the kernel
-void kernelRun();
+void kernelRun(int priority, int code) ;
+void kernelExecute(kernelHandler *ks); 
 
 int getNextTID(kernelHandler  * ks, int * TID);
 
