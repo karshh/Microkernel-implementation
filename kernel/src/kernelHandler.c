@@ -263,10 +263,11 @@ end diagnostic code
 			bwprintf(COM2,"PROCESS request failed[TID:%d]!\n\r", ks->activeTask->TID);
 			 break;
 		}
+
 		if(ks->activeTask->state == ACTIVE)kernel_queuePush(ks, ks->activeTask);
 
 		//we are done with task so setting active task to null
-		ks->activeTask = 0;
+	//	ks->activeTask = 0;
 	}
 	exitKernel(ks);
 
@@ -289,12 +290,12 @@ int kernel_queuePush(kernelHandler * ks, TD * task){
 		ks->priorityHead[priority] = task;
 		ks->priorityTail[priority] = task;
 		task->nextTD = 0;
-		task->prevTD = 0;
+		//task->prevTD = 0;
 		task->state = READY;
 	}else{
 		TD * prevHead = ks->priorityHead[priority];
 		prevHead->nextTD = task;
-		task->prevTD = prevHead;
+	//	task->prevTD = prevHead;
 		task->nextTD = 0;
 		task->state = READY;
 		ks->priorityHead[priority] = task;
@@ -344,37 +345,40 @@ int kernel_queuePop(kernelHandler * ks, TD ** task){
 	}	
 
 	//priority queue c
-	kernel_queuePop_priority(ks,task,c);
-	return 1;
-}
-int kernel_queuePop_priority(kernelHandler * ks, TD ** task, int priority){
-	if (!ks->priorityTail[priority] ) return 0;
+	//kernel_queuePop_priority(ks,task,c);
+	//return 1;
+//}
+
+//int kernel_queuePop_priority(kernelHandler * ks, TD ** task, int priority){
+	if (!ks->priorityTail[c] ) return 0;
 	
-	TD * poppedtask =  ks->priorityTail[priority];
+	TD * poppedtask =  ks->priorityTail[c];
 	TD * nextTail = poppedtask->nextTD;
 
 	if(nextTail == 0){
 		//set bit for this priority
-		unsigned int mask = 1 <<priority;
+		unsigned int mask = 1 <<c;
 		int  f=0;         // conditional flag
 		ks->priotiyBitLookup ^= (-f ^ ks->priotiyBitLookup) & mask;
 		//finish setting bit
 
 
 
-		ks->priorityTail[priority] = 0;
-		ks->priorityHead[priority] = 0;
+		ks->priorityTail[c] = 0;
+		ks->priorityHead[c] = 0;
 	}
 	else{
-		nextTail->prevTD = 0;
-		ks->priorityTail[priority] = nextTail;
+	//	nextTail->prevTD = 0;
+		ks->priorityTail[c] = nextTail;
 	}
 
 	poppedtask->nextTD = 0;
-	poppedtask->prevTD = 0;
+	//poppedtask->prevTD = 0;
 	*task = poppedtask;
 	return 1;
 }
+
+
 TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code){
 	TD * td = &(ks->TDList[TID]);
 	td->priority = priority;

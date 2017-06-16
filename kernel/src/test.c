@@ -693,11 +693,11 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
     //kernelRun(2,(int) FirstUserTask);
-if(1){
+if(0){
     kernelRun(2,(int) testTaskPass3);
 }
 else{
-    if(0){
+    if(1){
 	//bwprintf(COM2,"God4\n\r");
     kernelRun(2,(int) testTaskGod4);
 	}

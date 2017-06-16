@@ -372,6 +372,36 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 
 }
 
+// this is called AFTER task requests a mail receiver.
+int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue) {
+	TD * receiverTD = &(ks->TDList[receiver]);
+
+	if(!receiverTD->inboxCount){
+		receiverTD->state = SEND_BLOCKED;
+		return 1;
+	}
+
+	TD * task = 0;
+
+	inbox_Pop(receiverTD,&task);
+	task->state = REPLY_BLOCKED;	
+
+	pkmemcpy((void*) receiverTD->receiveMsg, (void*) task->sendMsg, task->sendMsgLen  <= receiverTD->receiveMsgLen ? task->sendMsgLen : receiverTD->receiveMsgLen);
+	if (task->sendMsgLen > receiverTD->receiveMsgLen){
+		receiverTD->receiveMsg[receiverTD->receiveMsgLen - 1] = 0;
+		receiverTD->reqVal = -1;
+	} else {
+		receiverTD->reqVal = task->sendMsgLen;	
+	}
+
+	*(receiverTD->tidBuffer) = task->TID;
+	
+	receiverTD->state = ACTIVE;
+	if (pushIntoQueue) kernel_queuePush(ks, receiverTD);
+	return 1;
+	
+}
+
 int kernel_Receive(TD * t, request * r, kernelHandler * ks, message * m) {
 	t->receiveMsg = (char*) r->arg2;
 	t->receiveMsgLen = (int) r->arg3;
@@ -409,35 +439,6 @@ int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
 	
 }
 
-// this is called AFTER task requests a mail receiver.
-int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue) {
-	TD * receiverTD = &(ks->TDList[receiver]);
-
-	if(!receiverTD->inboxCount){
-		receiverTD->state = SEND_BLOCKED;
-		return 1;
-	}
-
-	TD * task = 0;
-
-	inbox_Pop(receiverTD,&task);
-	task->state = REPLY_BLOCKED;	
-
-	pkmemcpy((void*) receiverTD->receiveMsg, (void*) task->sendMsg, task->sendMsgLen  <= receiverTD->receiveMsgLen ? task->sendMsgLen : receiverTD->receiveMsgLen);
-	if (task->sendMsgLen > receiverTD->receiveMsgLen){
-		receiverTD->receiveMsg[receiverTD->receiveMsgLen - 1] = 0;
-		receiverTD->reqVal = -1;
-	} else {
-		receiverTD->reqVal = task->sendMsgLen;	
-	}
-
-	*(receiverTD->tidBuffer) = task->TID;
-	
-	receiverTD->state = ACTIVE;
-	if (pushIntoQueue) kernel_queuePush(ks, receiverTD);
-	return 1;
-	
-}
 
 int kernel_IdlePercentage(TD * t, kernelHandler * ks) {
 	t->reqVal = 100 * ks->totalIdleRunningTime / getTicks4(0);
