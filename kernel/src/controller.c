@@ -94,11 +94,12 @@ int parseCommand(char * input, int * arg1, int * arg2){
 	int speed =0;
 	int sw = 0; //switch
 	char swd =0;
+	int sens =0;
 	//if character is null terminator, its a empty string
 	if(input[0] == '\0') { return COMMAND_EMPTY;}
 	while(1){
 		//if(input[counter] == '\0') { state = -2; break;}
-		state = nextState(state,input[counter], &terminator, &train, &speed, &sw, &swd);
+		state = nextState(state,input[counter], &terminator, &train, &speed, &sw, &swd, &sens);
 		if(state < 0 ) 
 			break;
 		if(input[counter+1] == '\0')
@@ -175,6 +176,7 @@ int parseCommand(char * input, int * arg1, int * arg2){
 						msg[1] = sw;
 						msg[2] = swd;
 						msg[3] = '\0';
+						if( sw > 18  && sw < 153)return COMMAND_INVALID;
 					
 						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Switch command.\r\n");
 
@@ -184,7 +186,15 @@ int parseCommand(char * input, int * arg1, int * arg2){
 						//poll_sensor(glbv);
 						return COMMAND_PN;
 						break;
-	
+					case(DFA_SS_1):
+						*arg1 = train;
+						*arg2 = sens;
+						return COMMAND_SS;
+						break;
+					case(DFA_IS_1):
+						*arg1 = train;
+						*arg2 = sens;
+						return COMMAND_IS;
 					default:
 						break;
 			}
@@ -198,7 +208,7 @@ int parseCommand(char * input, int * arg1, int * arg2){
 /********************************************************************************************************
 	DFA function
 ********************************************************************************************************/
-int nextState(int state, char c, int * terminator, int *train, int * speed, int *sw , char *swd){
+int nextState(int state, char c, int * terminator, int *train, int * speed, int *sw , char *swd, int * sens){
     switch(state){
         case DFA_INIT:
             switch(c){
@@ -223,6 +233,9 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
                 case 'l':
                     return 29; //r
                     break;      
+                case 'i':
+                    return 45; //t
+                    break;
                 default :
                     return DFA_ERROR;
                     break;  
@@ -508,6 +521,10 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
                 case 'w':
                     return 20;
                     break;
+             	case 's':
+                    return 34;
+                    break;
+
                 default :
                     return DFA_ERROR;
                     break;  
@@ -769,6 +786,361 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
                     break;  
             }
             break;     
+        case 34: //just a 'ss'
+            switch(c){
+                case ' ':
+                    return 35;
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break; 
+       case 35: //just a 'ss '
+            switch(c){
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                    { *train = c- '0';
+
+                    }
+                    return 36; //'ss #[0-7]'                          
+                    break;
+                case '8':    
+                    { *train = c- '0';
+
+                    }
+                    return 37;
+                    break;
+                case '9':
+                    { *train = c- '0';
+
+                    }
+                    return 38;
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 36: //just a 'ss #[0-7]'
+            switch(c){
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    { *train = (*train *10 ) + (c- '0');
+
+                    }
+                    return 38; //'ss #[07][09]'                          
+                    break;
+                case ' ':    
+                    return 40; //'ss #[07] '
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 37: //just a 'ss #[8]'
+            switch(c){
+                case '0':
+                    { *train = (*train *10 ) + (c- '0');
+                    }
+                    return 39; //'ss #[8][0]'                          
+                    break;
+                case ' ':    
+                    return 40; //'ss #[8] '
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;  
+        case 38: //just a 'ss #[9] or ss #[07][09]'
+            switch(c){
+                case ' ':    
+                    return 40; //'ss #[8] '
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break; 
+        case 39: //just a 'ss #[8][0]'
+            switch(c){
+                case ' ':    
+                    return 40; //'ss #[8][0] '
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break; 
+        case 40: //just a 'ss ### '
+            switch(c){
+                case 'A':
+                case 'B':
+                case 'C':
+                case 'D':
+                case 'E':
+                    { *sens = (c - 'A')*16;
+                    }
+                    return 41;//ss ### [ABCDE];
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 41: //just a 'ss ### #'
+            switch(c){
+                case '0':
+                    return 42;//ss ### #0;
+                    break;
+ 
+                case '1':
+                    return 43;//ss ### #1;
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 42: //just a 'ss ### #0'
+            switch(c){
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    { *sens += (c - '0');
+                    }
+                    *terminator = 1;
+                    return 44;//ss ### #0[19];
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 43: //just a 'ss ### #1'
+            switch(c){
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                    { *sens += (c - '0')+10;
+                    }
+                    *terminator = 1;
+                    return 44;//ss ### #1[06];
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 45: //just a i
+            switch(c){
+                case 's':
+                    return 46; //is
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 46: //just a is
+            switch(c){
+                case ' ':
+                    return 47; //'is '
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+       case 47: //just a 'ss '
+            switch(c){
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                    { *train = c- '0';
+
+                    }
+                    return 48; //'ss #[0-7]'                          
+                    break;
+                case '8':    
+                    { *train = c- '0';
+
+                    }
+                    return 49;
+                    break;
+                case '9':
+                    { *train = c- '0';
+
+                    }
+                    return 50;
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 48: //just a 'ss #[0-7]'
+            switch(c){
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    { *train = (*train *10 ) + (c- '0');
+
+                    }
+                    return 50; //'ss #[07][09]'                          
+                    break;
+                case ' ':    
+                    return 52; //'ss #[07] '
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 49: //just a 'ss #[8]'
+            switch(c){
+                case '0':
+                    { *train = (*train *10 ) + (c- '0');
+                    }
+                    return 51; //'ss #[8][0]'                          
+                    break;
+                case ' ':    
+                    return 52; //'ss #[8] '
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;  
+        case 50: //just a 'ss #[9] or ss #[07][09]'
+            switch(c){
+                case ' ':    
+                    return 52; //'ss #[8] '
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break; 
+        case 51: //just a 'ss #[8][0]'
+            switch(c){
+                case ' ':    
+                    return 52; //'ss #[8][0] '
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break; 
+        case 52: //just a 'ss ### '
+            switch(c){
+                case 'A':
+                case 'B':
+                case 'C':
+                case 'D':
+                case 'E':
+                    { *sens = (c - 'A')*16;
+                    }
+                    return 53;//ss ### [ABCDE];
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 53: //just a 'ss ### #'
+            switch(c){
+                case '0':
+                    return 54;//ss ### #0;
+                    break;
+ 
+                case '1':
+                    return 55;//ss ### #1;
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 54: //just a 'ss ### #0'
+            switch(c){
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    { *sens += (c - '0');
+                    }
+                    *terminator = 1;
+                    return 56;//ss ### #0[19];
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 55: //just a 'ss ### #1'
+            switch(c){
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                    { *sens += (c - '0')+10;
+                    }
+                    *terminator = 1;
+                    return 56;//ss ### #1[06];
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+
         default:
             return DFA_ERROR;
             break;

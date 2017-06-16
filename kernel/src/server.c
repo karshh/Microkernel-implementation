@@ -929,7 +929,14 @@ void displayServer() {
 	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KExecuting, please wait.\033[34;1H>");
 	                break;
 
-            	case COMMAND_Q:
+	        	case COMMAND_SS:
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KSS command[Fix msg Karsh] train %d for sensor %d.\033[34;1H>",msg[1],msg[2]);
+	                break;
+
+	        	case COMMAND_IS:
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KIS command[Fix msg Karsh] train %d for sensor %d.\033[34;1H>",msg[1],msg[2]);
+	                break;
+            		case COMMAND_Q:
 	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KQuiting Kernel.\033[34;1H>");
 					Death_TID = Create(0,(void*) DeathServer);
 	            	break;

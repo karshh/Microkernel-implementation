@@ -19,6 +19,8 @@
 #define CLOCK_U 			18 //for displayServer purposes
 #define DELAY_U				19 //change switch
 #define COMMAND_LOADING		20
+#define COMMAND_SS			21 //Stop at sensor "SS <TR> <SEN>"
+#define COMMAND_IS			22 //Init at sensor "IS <TR> <SEN>"
 
 #define DFA_INIT 0
 #define DFA_ERROR -1
@@ -33,6 +35,8 @@
 #define DFA_L_1 31
 #define DFA_L_2 32
 #define DFA_L_3 33
+#define DFA_SS_1 44
+#define DFA_IS_1 56 //change
 #define DFA_SENSOR_PING 90
 
 
@@ -54,7 +58,7 @@ int getSensorData(char * s);
 int parseCommand(char * input, int * arg1, int * arg2);
 
 
-int nextState(int state, char c, int * terminator, int *train, int * speed, int *sw , char *swd);
+int nextState(int state, char c, int * terminator, int *train, int * speed, int *sw , char *swd,int *sens);
 
 void update_switch(int sw,int swd, int * switch_states_current);
 #endif
