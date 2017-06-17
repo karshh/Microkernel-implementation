@@ -13,7 +13,7 @@ void initHandlers(){
 
 }
 
- request *  activate(volatile TD *td){
+ request *  activate( TD *td){
 	request * rq = 0;
 	int r;
 /*

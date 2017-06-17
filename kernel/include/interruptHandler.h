@@ -10,10 +10,10 @@
 request *  activate( int reqVal, TD * td);
 request * swiHandler(int reqVal, TD * td);
 */
-request *  activate(volatile TD * td);
+request *  activate( TD * td);
 //request * swiHandler(volatile TD * td, request * irq_r);
-request * swiHandler(volatile TD * td);
-request * hwiHandler(volatile TD * td);
+request * swiHandler( TD * td);
+request * hwiHandler( TD * td);
 void initHandlers();
 
 /*

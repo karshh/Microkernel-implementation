@@ -749,7 +749,7 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
     //kernelRun(2,(int) FirstUserTask);
-if(1){ //run pass3 test
+if(0){ //run pass3 test
 	    bwprintf(COM2,"PASS 3\n\r");
     kernelRun(2,(int) testTaskPass3);
     kernelRun(2,(int) testTaskPass3);
@@ -768,7 +768,7 @@ if(1){ //run pass3 test
     kernelRun(2,(int) testTaskPass3);
 }
 else{
-	if(1){ //run rsr
+	if(0){ //run rsr
 		if(0){
 		    bwprintf(COM2,"RSR God4\n\r");
 		    kernelRun(2,(int) testTaskGodRSR4);
@@ -807,7 +807,7 @@ else{
 		}
 	}else{ //run srr
 
-	    if(0){//run 4 byte
+	    if(1){//run 4 byte
 		bwprintf(COM2,"SRR God4\n\r");
 	    kernelRun(2,(int) testTaskGod4);
 	    kernelRun(2,(int) testTaskGod4);

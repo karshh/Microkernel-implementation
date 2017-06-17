@@ -326,11 +326,13 @@ end diagnostic code
 end diagnostic code
 *************************************/
 
+		processRequest(ks, ks->activeTask, r);
+		/*
 		if(!processRequest(ks, ks->activeTask, r)){
 			bwprintf(COM2,"PROCESS request failed[TID:%d]!\n\r", ks->activeTask->TID);
-			 break;
+			break;
 		}
-
+*/
 		if(ks->activeTask->state == ACTIVE)kernel_queuePush(ks, ks->activeTask);
 
 		if (ks->KernelState == KERQUIT){
