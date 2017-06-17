@@ -1,18 +1,19 @@
 #include "controller.h"
+#include "trackGraph.h"
 #include "userRequestCall.h"
 
-void update_switch(int sw,int swd, int * switch_states_current){
+void update_switch(int sw, TrackGraph * t){
 	//updates the display
 	int dspTID = WhoIs("displayServer");
 	char msg[4];
 	int msgLen = 4;
     char rpl[3];
     int rpllen = 3;
-
+    TrackGraphNode * node = t->node;
 
 	if(sw <= 18 ){
 			msg[0] = '0'; //no warning
-			msg[1] = swd;
+			msg[1] = node[80+sw].switchConfig == C ? 'C' : 'S' ;
 			msg[2] = sw-1;//position (0..17)
 			msg[3] = 0;
 
@@ -20,7 +21,7 @@ void update_switch(int sw,int swd, int * switch_states_current){
 	}
 	else if(sw <= 154){
 		//warns the user if we have a double curve switch
-		if (switch_states_current[18] == switch_states_current[19] && swd == 'C'){
+		if (node[99].switchConfig == CC){
 			msg[0] = 1; // warning
 			msg[1] = 'C';
 			msg[2] = 18;
@@ -35,12 +36,12 @@ void update_switch(int sw,int swd, int * switch_states_current){
 		}
 		else{
 			msg[0] = '0'; //no warning
-			msg[1] = switch_states_current[18];
+			msg[1] = node[99].switchConfig == CS ? 'C' : 'S';
 			msg[2] = 18;
 			msg[3] = 0;
 			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
 			msg[0] = '0'; //no warning
-			msg[1] = switch_states_current[19];
+            msg[1] = node[99].switchConfig == SC  ? 'C' : 'S';
 			msg[2] = 19;
 			msg[3] = 0;
 			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
@@ -52,7 +53,7 @@ void update_switch(int sw,int swd, int * switch_states_current){
 	}
 	else if(sw <= 156){
 		//warns the user if we have a double curve switch
-		if (switch_states_current[20] == switch_states_current[21] && swd == 'C'){
+		if (node[100].switchConfig == CC){
 			msg[0] = 1; // warning
 			msg[1] = 'C';
 			msg[2] = 20;
@@ -67,12 +68,12 @@ void update_switch(int sw,int swd, int * switch_states_current){
 		}
 		else{
 			msg[0] = '0'; //no warning
-			msg[1] = switch_states_current[20];
+			msg[1] = node[100].switchConfig == CS ? 'C' : 'S';
 			msg[2] = 20;
 			msg[3] = 0;
 			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
 			msg[0] = '0'; //no warning
-			msg[1] = switch_states_current[21];
+            msg[1] = node[100].switchConfig == SC  ? 'C' : 'S';
 			msg[2] = 21;
 			msg[3] = 0;
 			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 

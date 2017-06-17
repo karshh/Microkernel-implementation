@@ -3,6 +3,7 @@
 #ifndef _CONTROLLER_
 #define _CONTROLLER_
 
+#include "trackGraph.h"
 // Returns from parser
 #define COMMAND_BACKSPACE 	1
 #define COMMAND_CHAR	  	2
@@ -60,7 +61,7 @@ int parseCommand(char * input, int * arg1, int * arg2);
 
 int nextState(int state, char c, int * terminator, int *train, int * speed, int *sw , char *swd,int *sens);
 
-void update_switch(int sw,int swd, int * switch_states_current);
+void update_switch(int sw, TrackGraph * t);
 #endif
 
 
