@@ -12,6 +12,27 @@ int switch2i(int i) {
 }
 
 
+int findNextSensor(TrackGraph * t, int sensor) {
+	TrackGraphNode * node = t->node;
+	volatile int i = node[sensor].nextNodeIndex;
+	while(1) {
+		if (i <= 0) break;
+		switch(node[i].type) {
+			case Sensor:
+				return i;
+				break;
+			case Switch:
+				i = node[i].switchConfig == S ? node[i].SnextNodeIndex : node[i].CnextNodeIndex;
+				break;
+			case MultiSwitch:
+				i = node[i].switchConfig == CS ? node[i].CSnextNodeIndex : node[i].SCnextNodeIndex;
+				break;
+			default:
+				bwassert(0, COM2, "<findNextSensor>: Why the hell did we end up here? FIGURE THIS OUT!");
+		}
+	}
+	return -1;
+}
 
 void TrackGraphInit(TrackGraph * t) {
 
@@ -24,7 +45,8 @@ void TrackGraphInit(TrackGraph * t) {
 		if (i <= 80) {
 			node[i].type = Sensor;
 			node[i].id1 = i;
-			node[i].id2 = -1;	
+			node[i].id2 = -1;
+			node[i].switchConfig = NA;
 		} else {
 			node[i].type = Switch;
 			node[i].id1 = i-80;
@@ -35,6 +57,7 @@ void TrackGraphInit(TrackGraph * t) {
 	node[99].type = MultiSwitch;
 	node[99].id1 = 153;
 	node[99].id2 = 154;
+
 	node[100].type = MultiSwitch;
 	node[100].id1 = 155;
 	node[100].id2 = 156;

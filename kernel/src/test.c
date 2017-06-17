@@ -502,14 +502,9 @@ int main(void) {
     int path[100];
     int pathLength;
     TrackGraphInit(&t);
-    if (!getShortestPath(&t, 1, 9, path, &pathLength)) {
-        bwprintf(COM2, "DEAD END.\r\n");
-        return 0;
-    }
-    bwprintf(COM2, "Ans: ");
-    volatile int i = 0;
-    for (i = pathLength - 1; i >= 0; i--) {
-        bwprintf(COM2, " %d ", path[i]);
-    }
+
+    bwprintf(COM2, "%d\r\n", findNextSensor(&t, sensor2i("A02")));
+    bwprintf(COM2, "%d\r\n", findNextSensor(&t, sensor2i("D08")));
+    bwprintf(COM2, "%d\r\n", findNextSensor(&t, sensor2i("B13")));
     return 0;
 }

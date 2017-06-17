@@ -11,7 +11,7 @@ typedef enum TrackGraphNodeType {
 	MultiSwitch
 } TrackGraphNodeType;
 
-typedef enum SwitchNodeType {
+typedef enum SwitchConfig {
 	NA,
 	S,
 	C,
@@ -19,14 +19,14 @@ typedef enum SwitchNodeType {
 	SC,
 	CS,
 	CC
-} SwitchNodeType;
+} SwitchConfig;
 
 typedef struct TrackGraphNode {
 	TrackGraphNodeType type;
 	int id1;
 	int id2; // to support multiswitches, have 2 ID's. 
 
-	SwitchNodeType nodeType;
+	SwitchConfig switchConfig;
 	int nextNodeIndex; // for sensors only.
 	int CnextNodeIndex; // for single switches only;
 	int SnextNodeIndex; // for single switches only;
@@ -40,6 +40,8 @@ typedef struct TrackGraph {
 } TrackGraph;
 
 
+int findNextSensor(TrackGraph * t, int sensor);
+
 int sensor2i(char * c);
 
 int switch2i(int i);
@@ -50,6 +52,9 @@ void TrackGraphInit(TrackGraph * t);
 
 // Returns 1 if a shortest path does exist.
 // If there's a dead end, 0 is returned.
+
+// The shortest path will be placed in path array in reverse order. Luckily the pathLength is also
+// mutated, make sure to traverse in reverse order.
 int getShortestPath(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength);
 
 #endif
