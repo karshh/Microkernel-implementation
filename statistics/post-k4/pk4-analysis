@@ -110,7 +110,13 @@ OH = 2.98 <- need to make this tighter.
 ----------------------------------------------------------------------------------------------------
 inlining, and new scheduler,code re-arrangement
 					time		over	c/b
-PK	4	on	yes	on	10.548	 	10.42	0.019
-PK	64	on	yes	on	11.65	    	10.42	0.019	
+PK	4	on	yes	on	10.300	 	10.239  0.015
+PK	64	on	yes	on	11.235	    	10.239	0.015	
+
+3 Passes				6.634
+PKSSR					10.239
+
+X=3.604
+OH=2.211
 
 close....so close....

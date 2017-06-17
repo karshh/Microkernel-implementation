@@ -9,7 +9,7 @@
 #include "pkstring.h"
 
 
-int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
+int processRequest(kernelHandler * ks, TD * t, request * r) {
 
 	if(!r){ 	
 		t->interupted = 1;
@@ -23,19 +23,19 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 		return kernel_AwaitEvent(t,r,ks);
 		break;
 	case(SEND):
-		return kernel_Send(t, r, ks, m);
+		return kernel_Send(t, r, ks);
 		break;
 	case(RECEIVE):
-		return kernel_Receive(t, r, ks, m);
+		return kernel_Receive(t, r, ks);
 		break;
 	case (REPLY):
-		return kernel_Reply(t, r, ks, m);
+		return kernel_Reply(t, r, ks);
 		break;
 	case(CLOCK):
-		return kernel_RequestClockServer(t,r,ks,m);
+		return kernel_RequestClockServer(t,r,ks);
 		break;
 	case(IO):
-		return kernel_RequestIOServer(t,r,ks,m);
+		return kernel_RequestIOServer(t,r,ks);
 		break;
 	case(MYTID):
 		return kernel_MyTid(t);
@@ -69,10 +69,10 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 		return kernel_Exit(t);
 		break;
 	case(WHOIS):
-		return kernel_WhoIs(t, r, ks, m);
+		return kernel_WhoIs(t, r, ks);
 		break;
 	case(REGISTER):
-		return kernel_RegisterAs(t, r, ks, m);
+		return kernel_RegisterAs(t, r, ks);
 		break;
 	case(CREATECLOCKSERVER):
 		return kernel_CreateClockServer(t,r,ks);
@@ -88,7 +88,7 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 
 }
 
-int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
+int kernel_Send(TD * t, request * r, kernelHandler * ks) {
 	int tid = (int) r->arg1;
 	int msglen = (int) r->arg3;
 	int replylen = (int) r->arg5;
@@ -111,7 +111,7 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
     	inbox_Push(&(ks->TDList[tid]),t);
 
 	if ((ks->TDList[tid]).state == SEND_BLOCKED) {
-		processMail(tid, ks, m, 1);
+		processMail(tid, ks, 1);
 	} else {
 		t->state = RECEIVE_BLOCKED;
 	}
@@ -121,7 +121,7 @@ int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
 }
 
 // this is called AFTER task requests a mail receiver.
-int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue) {
+int processMail(int receiver, kernelHandler * ks, int pushIntoQueue) {
 	TD * receiverTD = &(ks->TDList[receiver]);
 
 	if(!receiverTD->inboxCount){
@@ -150,15 +150,15 @@ int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue
 	
 }
 
-int kernel_Receive(TD * t, request * r, kernelHandler * ks, message * m) {
+int kernel_Receive(TD * t, request * r, kernelHandler * ks) {
 	t->receiveMsg = (char*) r->arg2;
 	t->receiveMsgLen = (int) r->arg3;
 	t->tidBuffer = (int*) r->arg1;
-	return processMail(t->TID, ks, m, 0);
+	return processMail(t->TID, ks,  0);
 }
 
 
-int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
+int kernel_Reply(TD * t, request * r, kernelHandler * ks) {
 	int tid = (int) r->arg1;
 	if (tid > MAX_TID - 1 || tid < 0 || (ks->TDList[tid]).state == ZOMBIE || (ks->TDList[tid]).state == FREE ) {
 		t->reqVal = -2;
@@ -197,29 +197,29 @@ int kernel_Quit(TD * t, kernelHandler * ks){
 // Extra error case added:
 // 		-3 : The send-recieve-reply transmission could not be completed.
 //
-int kernel_RequestClockServer(TD * t, request * r, kernelHandler * ks, message * m) {
+int kernel_RequestClockServer(TD * t, request * r, kernelHandler * ks) {
 	if (ks->clockServer == -1 || (ks->clockServer != ((int) r->arg1))) {
 		t->reqVal = -1;
 		return 1;
 	}
 
-	return kernel_Send(t, r, ks, m);
+	return kernel_Send(t, r, ks);
 }
 
-int kernel_RequestIOServer(TD * t, request * r, kernelHandler * ks, message * m) {
+int kernel_RequestIOServer(TD * t, request * r, kernelHandler * ks) {
 	
 	if(ks->ioServer != -1 && ks->ioServer == (int) r->arg1)
-		return kernel_Send(t, r, ks, m);
+		return kernel_Send(t, r, ks);
 	else if	(ks->ioServerUART1S != -1 && ks->ioServerUART1S == (int) r->arg1)
-		return kernel_Send(t, r, ks, m);
+		return kernel_Send(t, r, ks);
 	else if	(ks->ioServerUART1R != -1 && ks->ioServerUART1R == (int) r->arg1)
-		return kernel_Send(t, r, ks, m);
+		return kernel_Send(t, r, ks);
 
 	else if	(ks->ioServerUART2S != -1 && ks->ioServerUART2S == (int) r->arg1)
-		return kernel_Send(t, r, ks, m);
+		return kernel_Send(t, r, ks);
 
 	else if	(ks->ioServerUART2R != -1 && ks->ioServerUART2R == (int) r->arg1)
-		return kernel_Send(t, r, ks, m);
+		return kernel_Send(t, r, ks);
 	//else
 	t->reqVal = -1;
 	return 1;
@@ -414,13 +414,13 @@ int kernel_Create(TD * t, request * r, kernelHandler * ks) {
 	return 1;
 }
 
-int kernel_WhoIs(TD * t, request * r, kernelHandler * ks, message * m){
+int kernel_WhoIs(TD * t, request * r, kernelHandler * ks){
 	int nameServer = ks->nameServer;
 	if (nameServer != -1 && ks->TDList[nameServer].state != ZOMBIE && ks->TDList[nameServer].state != FREE){
 		//set name server
 		r->arg1 = (void *) nameServer;
 
-		return kernel_Send(t,r,ks,m);
+		return kernel_Send(t,r,ks);
 	}else{
 		t->reqVal = -1;
 		//nameserver does not exist;
@@ -428,12 +428,12 @@ int kernel_WhoIs(TD * t, request * r, kernelHandler * ks, message * m){
 	return 1;
 }
 
-int kernel_RegisterAs(TD * t, request * r, kernelHandler * ks, message * m){
+int kernel_RegisterAs(TD * t, request * r, kernelHandler * ks){
 	int nameServer = ks->nameServer;
 	if (nameServer != -1 && ks->TDList[nameServer].state != ZOMBIE && ks->TDList[nameServer].state != FREE){
 		//set name server
 		r->arg1 = (void *) nameServer;
-		return kernel_Send(t,r,ks,m);
+		return kernel_Send(t,r,ks);
 	}else{
 		t->reqVal = -1;
 		//nameserver does not exist;

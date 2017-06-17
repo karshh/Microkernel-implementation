@@ -424,50 +424,14 @@ void testTaskPass3(){
 
     stopTimer(TIMER4_BASE);
     startTimer(TIMER4_BASE, 0,0,0);
-    for(i=0;i<100;i++){
+    for(i=0;i<10000;i++){
     initTick = getTicks4us(0);
-	Pass();
-	Pass();
-	Pass();
-
-	Pass();
-	Pass();
-	Pass();
-
-	Pass();
-	Pass();
-	Pass();
-
-	Pass();
-	Pass();
-	Pass();
-
-	Pass();
-	Pass();
-	Pass();
-
-	Pass();
-	Pass();
-	Pass();
-
-	Pass();
-	Pass();
-	Pass();
-
-	Pass();
-	Pass();
-	Pass();
-
-	Pass();
-	Pass();
-	Pass();
-
 	Pass();
 	Pass();
 	Pass();
     endTick = getTicks4us(0);
 	total += endTick - initTick;
-    bwprintf(COM2, "Ticks taken to complete 3 passes: %d\r\n", endTick - initTick);
+    //bwprintf(COM2, "Ticks taken to complete 3 passes: %d\r\n", endTick - initTick);
 	//Pass();
     }
     bwprintf(COM2, "Avg Time: %d \r\n",(int)( total));
@@ -487,12 +451,12 @@ void testTaskSend64() {
 
     stopTimer(TIMER4_BASE);
     startTimer(TIMER4_BASE, 0,0,0);
-    for(i=0;i<100;i++){
+    for(i=0;i<10000;i++){
     initTick = getTicks4us(0);
     bwassert(Send(2, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 64, _msg, 64)>= 0, COM2, "TEST FAILED!\r\n");
     endTick = getTicks4us(0);
 	total += endTick - initTick;
-    bwprintf(COM2, "Ticks taken to complete: %d\r\n", endTick - initTick);
+    //bwprintf(COM2, "Ticks taken to complete: %d\r\n", endTick - initTick);
 	//Pass();
     }
     bwprintf(COM2, "Avg Time: %d \r\n",(int)( total));
@@ -504,7 +468,7 @@ void testTaskReceive64() {
     char _msg[64];
 	int i=0;
 	Pass();
-	for(i=0;i<100;i++){
+	for(i=0;i<10000;i++){
     if (Receive(&_tid, _msg, 64) >= 0) {
         Reply(_tid, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 64);
 	//Pass();
@@ -531,12 +495,12 @@ void testTaskSend4() {
 
     //stopTimer(TIMER4_BASE);
     //startTimer(TIMER4_BASE, 0,0,0);
-    for(i=0;i<100;i++){
+    for(i=0;i<10000;i++){
     initTick = getTicks4us(0);
     bwassert(Send(2, "bbb", 4, _msg, 4) >= 0, COM2, "TEST FAILED!\r\n");
     endTick = getTicks4us(0);
 	total += endTick - initTick;
-    bwprintf(COM2, "Ticks taken to complete: %d \r\n", endTick - initTick);
+    //bwprintf(COM2, "Ticks taken to complete: %d \r\n", endTick - initTick);
     }
     bwprintf(COM2, "Avg Time: %d \r\n",(int)( total));
     Exit();
@@ -549,7 +513,7 @@ void testTaskReceive4() {
     char _msg[4];
 	int i=0;
     Pass(); 
-    for(i=0;i<100;i++){
+    for(i=0;i<10000;i++){
     if (Receive(&_tid, _msg, 4) >= 0) {
         Reply(_tid, "aaa", 4);
     }
@@ -565,6 +529,98 @@ void testTaskGod4() {
 
    Exit( );
 }
+
+void testTaskRSRend64() {
+    char _msg[64];
+    unsigned int initTick;
+    unsigned int endTick;
+    int i;
+    int total=0;
+    Pass();
+
+
+    stopTimer(TIMER4_BASE);
+    startTimer(TIMER4_BASE, 0,0,0);
+    for(i=0;i<10000;i++){
+    initTick = getTicks4us(0);
+    bwassert(Send(1, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 64, _msg, 64)>= 0, COM2, "TEST FAILED!\r\n");
+    endTick = getTicks4us(0);
+	total += endTick - initTick;
+    //bwprintf(COM2, "Ticks taken to complete: %d\r\n", endTick - initTick);
+	//Pass();
+    }
+    bwprintf(COM2, "Avg Time: %d \r\n",(int)( total));
+    Exit();
+}
+
+void testTaskRSReceive64() {
+    int _tid = 0;
+    char _msg[64];
+	int i=0;
+	Pass();
+	for(i=0;i<10000;i++){
+    if (Receive(&_tid, _msg, 64) >= 0) {
+        Reply(_tid, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 64);
+	//Pass();
+    }
+	}
+    Exit();
+}
+
+void testTaskGodRSR64() {
+    Create(6, (void*) testTaskRSReceive64);
+    Create(6, (void*) testTaskRSRend64);
+    Exit( );
+}
+
+
+
+void testTaskRSRend4() {
+    char _msg[4];
+    unsigned int initTick;
+    unsigned int endTick;
+    int i;
+    int total=0;
+    Pass();
+
+
+    //stopTimer(TIMER4_BASE);
+    //startTimer(TIMER4_BASE, 0,0,0);
+    for(i=0;i<10000;i++){
+    initTick = getTicks4us(0);
+    bwassert(Send(1, "bbb", 4, _msg, 4) >= 0, COM2, "TEST FAILED!\r\n");
+    endTick = getTicks4us(0);
+	total += endTick - initTick;
+    //bwprintf(COM2, "Ticks taken to complete: %d \r\n", endTick - initTick);
+    }
+    bwprintf(COM2, "Avg Time: %d \r\n",(int)( total));
+    Exit();
+
+
+}
+
+void testTaskRSReceive4() {
+    int _tid = 0;
+    char _msg[4];
+	int i=0;
+    Pass(); 
+    for(i=0;i<10000;i++){
+    if (Receive(&_tid, _msg, 4) >= 0) {
+        Reply(_tid, "aaa", 4);
+    }
+    }
+
+
+    Exit();
+}
+
+void testTaskGodRSR4() {
+    Create(6, (void*) testTaskRSReceive4);
+    Create(6, (void*) testTaskRSRend4);
+
+   Exit( );
+}
+
 
 void TESTold(char * a1, char * b1){
 	bwprintf(COM2,"stringa:[%s]\n\r",a1);
@@ -693,21 +749,108 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
     //kernelRun(2,(int) FirstUserTask);
-if(0){
+if(1){ //run pass3 test
+	    bwprintf(COM2,"PASS 3\n\r");
+    kernelRun(2,(int) testTaskPass3);
+    kernelRun(2,(int) testTaskPass3);
+    kernelRun(2,(int) testTaskPass3);
+    kernelRun(2,(int) testTaskPass3);
+    kernelRun(2,(int) testTaskPass3);
+    kernelRun(2,(int) testTaskPass3);
+    kernelRun(2,(int) testTaskPass3);
+    kernelRun(2,(int) testTaskPass3);
+    kernelRun(2,(int) testTaskPass3);
+    kernelRun(2,(int) testTaskPass3);
+    kernelRun(2,(int) testTaskPass3);
+    kernelRun(2,(int) testTaskPass3);
+    kernelRun(2,(int) testTaskPass3);
+    kernelRun(2,(int) testTaskPass3);
     kernelRun(2,(int) testTaskPass3);
 }
 else{
-    if(0){
-	//bwprintf(COM2,"God4\n\r");
-    kernelRun(2,(int) testTaskGod4);
+	if(1){ //run rsr
+		if(0){
+		    bwprintf(COM2,"RSR God4\n\r");
+		    kernelRun(2,(int) testTaskGodRSR4);
+		    kernelRun(2,(int) testTaskGodRSR4);
+		    kernelRun(2,(int) testTaskGodRSR4);
+		    kernelRun(2,(int) testTaskGodRSR4);
+		    kernelRun(2,(int) testTaskGodRSR4);
+		    kernelRun(2,(int) testTaskGodRSR4);
+		    kernelRun(2,(int) testTaskGodRSR4);
+		    kernelRun(2,(int) testTaskGodRSR4);
+		    kernelRun(2,(int) testTaskGodRSR4);
+		    kernelRun(2,(int) testTaskGodRSR4);
+		    kernelRun(2,(int) testTaskGodRSR4);
+		    kernelRun(2,(int) testTaskGodRSR4);
+		    kernelRun(2,(int) testTaskGodRSR4);
+		    kernelRun(2,(int) testTaskGodRSR4);
+		    kernelRun(2,(int) testTaskGodRSR4);
+		}
+		else{
+		    bwprintf(COM2,"RSR God64\n\r");
+		    kernelRun(2,(int) testTaskGodRSR64);
+		    kernelRun(2,(int) testTaskGodRSR64);
+		    kernelRun(2,(int) testTaskGodRSR64);
+		    kernelRun(2,(int) testTaskGodRSR64);
+		    kernelRun(2,(int) testTaskGodRSR64);
+		    kernelRun(2,(int) testTaskGodRSR64);
+		    kernelRun(2,(int) testTaskGodRSR64);
+		    kernelRun(2,(int) testTaskGodRSR64);
+		    kernelRun(2,(int) testTaskGodRSR64);
+		    kernelRun(2,(int) testTaskGodRSR64);
+		    kernelRun(2,(int) testTaskGodRSR64);
+		    kernelRun(2,(int) testTaskGodRSR64);
+		    kernelRun(2,(int) testTaskGodRSR64);
+		    kernelRun(2,(int) testTaskGodRSR64);
+		    kernelRun(2,(int) testTaskGodRSR64);
+		}
+	}else{ //run srr
+
+	    if(0){//run 4 byte
+		bwprintf(COM2,"SRR God4\n\r");
+	    kernelRun(2,(int) testTaskGod4);
+	    kernelRun(2,(int) testTaskGod4);
+	    kernelRun(2,(int) testTaskGod4);
+	    kernelRun(2,(int) testTaskGod4);
+	    kernelRun(2,(int) testTaskGod4);
+	    kernelRun(2,(int) testTaskGod4);
+	    kernelRun(2,(int) testTaskGod4);
+	    kernelRun(2,(int) testTaskGod4);
+	    kernelRun(2,(int) testTaskGod4);
+	    kernelRun(2,(int) testTaskGod4);
+	    kernelRun(2,(int) testTaskGod4);
+	    kernelRun(2,(int) testTaskGod4);
+	    kernelRun(2,(int) testTaskGod4);
+	    kernelRun(2,(int) testTaskGod4);
+	    kernelRun(2,(int) testTaskGod4);
+		}
+		else{
+		//run 64 byte
+		bwprintf(COM2,"SRR God64\n\r");
+
+	    kernelRun(2,(int) testTaskGod64);
+	    kernelRun(2,(int) testTaskGod64);
+	    kernelRun(2,(int) testTaskGod64);
+	    kernelRun(2,(int) testTaskGod64);
+	    kernelRun(2,(int) testTaskGod64);
+	    kernelRun(2,(int) testTaskGod64);
+	    kernelRun(2,(int) testTaskGod64);
+	    kernelRun(2,(int) testTaskGod64);
+	    kernelRun(2,(int) testTaskGod64);
+	    kernelRun(2,(int) testTaskGod64);
+	    kernelRun(2,(int) testTaskGod64);
+	    kernelRun(2,(int) testTaskGod64);
+	    kernelRun(2,(int) testTaskGod64);
+	    kernelRun(2,(int) testTaskGod64);
+	    kernelRun(2,(int) testTaskGod64);
+		}
+		//testMemCpy();
+		return 0;
 	}
-	else{
-	//bwprintf(COM2,"God64\n\r");
-    kernelRun(2,(int) testTaskGod64);
-	}
-	//testMemCpy();
-	return 0;
 }
+
+
 }
 
 

@@ -267,7 +267,7 @@ void exitKernel(kernelHandler * ks){
 void kernelExecute(kernelHandler * ks) {
 	request * r;
 	
-	message m;
+	//message m;
 	//TD * task =0;
 	//int old_idle = 0;
 
@@ -326,7 +326,7 @@ end diagnostic code
 end diagnostic code
 *************************************/
 
-		if(!processRequest(ks, ks->activeTask, r, &m)){
+		if(!processRequest(ks, ks->activeTask, r)){
 			bwprintf(COM2,"PROCESS request failed[TID:%d]!\n\r", ks->activeTask->TID);
 			 break;
 		}
@@ -392,9 +392,6 @@ int kernel_queuePop(kernelHandler * ks, TD ** task){
 		int  f=0;         // conditional flag
 		ks->priotiyBitLookup ^= (-f ^ ks->priotiyBitLookup) & mask;
 		//finish setting bit
-
-
-
 		ks->priorityTail[c] = 0;
 		ks->priorityHead[c] = 0;
 	}
@@ -402,7 +399,6 @@ int kernel_queuePop(kernelHandler * ks, TD ** task){
 	//	nextTail->prevTD = 0;
 		ks->priorityTail[c] = nextTail;
 	}
-
 	poppedtask->nextTD = 0;
 	//poppedtask->prevTD = 0;
 	*task = poppedtask;
