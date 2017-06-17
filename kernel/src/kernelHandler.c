@@ -64,6 +64,7 @@ int free_Push(kernelHandler * ks, TD * task){
 
 int initKernel(kernelHandler * ks, int priority, int code,int memOffset){
 	ks->memOffset = memOffset;
+
 	//reset previous IRQ state, in case if last run state is bad
 	ks->KernelState = KERINIT;
 	disableInterrupts();
@@ -164,6 +165,46 @@ Timer clock speeds
 	ks->clockNotifierTaskRunning= 0;
 	ks->totalIdleRunningTime =0;
 	
+	//needed for fast priority queue pop
+	ks->MultiplyDeBruijnBitPosition[ 0] = 0;
+	ks->MultiplyDeBruijnBitPosition[ 1] = 1;
+	ks->MultiplyDeBruijnBitPosition[ 2] = 28;
+	ks->MultiplyDeBruijnBitPosition[ 3] = 2;
+	ks->MultiplyDeBruijnBitPosition[ 4] = 29;
+
+	ks->MultiplyDeBruijnBitPosition[ 5] = 14;
+	ks->MultiplyDeBruijnBitPosition[ 6] = 24;
+	ks->MultiplyDeBruijnBitPosition[ 7] = 3;
+	ks->MultiplyDeBruijnBitPosition[ 8] = 30;
+	ks->MultiplyDeBruijnBitPosition[ 9] = 22;
+
+	ks->MultiplyDeBruijnBitPosition[10] = 20;
+	ks->MultiplyDeBruijnBitPosition[11] = 15;
+	ks->MultiplyDeBruijnBitPosition[12] = 25;
+	ks->MultiplyDeBruijnBitPosition[13] = 17;
+	ks->MultiplyDeBruijnBitPosition[14] = 4;
+
+	ks->MultiplyDeBruijnBitPosition[15] = 8;
+	ks->MultiplyDeBruijnBitPosition[16] = 31;
+	ks->MultiplyDeBruijnBitPosition[17] = 27;
+	ks->MultiplyDeBruijnBitPosition[18] = 13;
+	ks->MultiplyDeBruijnBitPosition[19] = 23;
+
+	ks->MultiplyDeBruijnBitPosition[20] = 21;
+	ks->MultiplyDeBruijnBitPosition[21] = 19;
+	ks->MultiplyDeBruijnBitPosition[22] = 16;
+	ks->MultiplyDeBruijnBitPosition[23] = 7;
+	ks->MultiplyDeBruijnBitPosition[24] = 26;
+
+	ks->MultiplyDeBruijnBitPosition[25] = 12;
+	ks->MultiplyDeBruijnBitPosition[26] = 18;
+	ks->MultiplyDeBruijnBitPosition[27] = 6;
+	ks->MultiplyDeBruijnBitPosition[28] = 11;
+	ks->MultiplyDeBruijnBitPosition[29] = 5;
+
+	ks->MultiplyDeBruijnBitPosition[30] = 10;
+	ks->MultiplyDeBruijnBitPosition[31] = 9;
+
 
 	//everthing good by this point
 
@@ -192,6 +233,37 @@ void kernelRun(int priority, int code) {
 	kernelExecute(&ks);
 }
 	
+
+TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code){
+	TD * td = &(ks->TDList[TID]);
+	td->priority = priority;
+	td->parentTID = parentTID;
+	if(parentTID == KERNAL_CHILD) td->parent = 0;
+	else td->parent = &(ks->TDList[parentTID]);
+
+	td->state = READY;
+	td->reqVal = -1;
+	volatile int mem = (volatile int) (TID * (MAX_STACKSIZE/MAX_TID));//giving stack space of 1kb
+	td->sp  = (int *) (ks->memOffset -(int) mem);
+	*(td->sp - 11) = code+REDBOOT_LOAD_OFFSET; //assumes redboot is loaded at 0x21000
+ 	*(td->sp - 12) = td->spsr; 	
+		td->sp -= 12;
+return  td;
+
+}
+
+
+
+
+void exitKernel(kernelHandler * ks){
+	//clean up after kernel when exiting.
+	disableInterrupts();
+	stopTimer(TIMER1_BASE);
+	stopTimer(TIMER4_BASE);
+}
+
+
+
 void kernelExecute(kernelHandler * ks) {
 	request * r;
 	
@@ -206,12 +278,7 @@ void kernelExecute(kernelHandler * ks) {
 
 	while(kernel_queuePop(ks, &ks->activeTask)) {
 
-		if (ks->KernelState == KERQUIT){
-			//hard quit for now
-			break;
-		}
-
-
+	
 		//task->state = ACTIVE;
 		ks->activeTask->state = ACTIVE;
 		//ks.activeTask = task;
@@ -266,6 +333,12 @@ end diagnostic code
 
 		if(ks->activeTask->state == ACTIVE)kernel_queuePush(ks, ks->activeTask);
 
+		if (ks->KernelState == KERQUIT){
+			//hard quit for now
+			break;
+		}
+
+
 		//we are done with task so setting active task to null
 	//	ks->activeTask = 0;
 	}
@@ -285,8 +358,6 @@ int kernel_queuePush(kernelHandler * ks, TD * task){
 		ks->priotiyBitLookup ^= (-f ^ ks->priotiyBitLookup) & mask;
 		//finish setting bit
 
-
-
 		ks->priorityHead[priority] = task;
 		ks->priorityTail[priority] = task;
 		task->nextTD = 0;
@@ -303,53 +374,13 @@ int kernel_queuePush(kernelHandler * ks, TD * task){
 	return 1;
 	
 }
-
 int kernel_queuePop(kernelHandler * ks, TD ** task){
-	unsigned int v = ks->priotiyBitLookup;     // 32-bit word input to count zero bits on right
+	//unsigned int v = ks->priotiyBitLookup;     // 32-bit word input to count zero bits on right
 	unsigned int c;     // c will be the number of zero bits on the right,
 			    // so if v is 1101000 (base 2), then c will be 3
-	if(v == 0) return 0;//if bit string is zero then no flags are checked
-	//bit hack to count trailing zeroes. # of trailing zeroes are the first free priority queue
-	//33% faster than 3 * lg(N) + 4 for N bit words
-	// NOTE: if 0 == v, then c = 31.dd
+	if(ks->priotiyBitLookup == 0) return 0;//if bit string is zero then no flags are checked
+	c = ks->MultiplyDeBruijnBitPosition[((unsigned int)((-(ks->priotiyBitLookup) & (ks->priotiyBitLookup)) * 0x077CB531U)) >>27];
 
-	if (v & 0x1) 
-	{
-	  // special case for odd v (assumed to happen half of the time)
-	  c = 0;
-	}
-	else
-	{
-	  c = 1;
-	  if ((v & 0xffff) == 0) 
-	  {  
-	    v >>= 16;  
-	    c += 16;
-	  }
-	  if ((v & 0xff) == 0) 
-	  {  
-	    v >>= 8;  
-	    c += 8;
-	  }
-	  if ((v & 0xf) == 0) 
-	  {  
-	    v >>= 4;
-	    c += 4;
-	  }
-	  if ((v & 0x3) == 0) 
-	  {  
-	    v >>= 2;
-	    c += 2;
-	  }
-	  c -= v & 0x1;
-	}	
-
-	//priority queue c
-	//kernel_queuePop_priority(ks,task,c);
-	//return 1;
-//}
-
-//int kernel_queuePop_priority(kernelHandler * ks, TD ** task, int priority){
 	if (!ks->priorityTail[c] ) return 0;
 	
 	TD * poppedtask =  ks->priorityTail[c];
@@ -378,32 +409,4 @@ int kernel_queuePop(kernelHandler * ks, TD ** task){
 	return 1;
 }
 
-
-TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code){
-	TD * td = &(ks->TDList[TID]);
-	td->priority = priority;
-	td->parentTID = parentTID;
-	if(parentTID == KERNAL_CHILD) td->parent = 0;
-	else td->parent = &(ks->TDList[parentTID]);
-
-	td->state = READY;
-	td->reqVal = -1;
-	volatile int mem = (volatile int) (TID * (MAX_STACKSIZE/MAX_TID));//giving stack space of 1kb
-	td->sp  = (int *) (ks->memOffset -(int) mem);
-	*(td->sp - 11) = code+REDBOOT_LOAD_OFFSET; //assumes redboot is loaded at 0x21000
- 	*(td->sp - 12) = td->spsr; 	
-		td->sp -= 12;
-return  td;
-
-}
-
-
-
-
-void exitKernel(kernelHandler * ks){
-	//clean up after kernel when exiting.
-	disableInterrupts();
-	stopTimer(TIMER1_BASE);
-	stopTimer(TIMER4_BASE);
-}
 

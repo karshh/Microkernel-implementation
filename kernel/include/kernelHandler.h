@@ -21,6 +21,9 @@ typedef struct kernelHandler{
 	TD * activeTask;
 	//priority queues
 	unsigned int priotiyBitLookup;  
+	//int Mod37BitPosition[37] ; // map a bit value mod 37 to its position
+
+	int MultiplyDeBruijnBitPosition[32];
 	TD * priorityHead[32];
 	TD * priorityTail[32];
 
@@ -79,7 +82,7 @@ void  exitKernel(kernelHandler * ks);
 void kernelRun(int priority, int code) ;
 void kernelExecute(kernelHandler *ks); 
 
-int getNextTID(kernelHandler  * ks, int * TID);
+inline int getNextTID(kernelHandler  * ks, int * TID); //inline to make cache checks better
 
 void kernelTestRun(int priority, int code);
 
@@ -92,9 +95,9 @@ TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code)
 
 
 //temporary queue functions for now
-int kernel_queuePush(kernelHandler * ks, TD * task);
-int kernel_queuePop_priority(kernelHandler * ks, TD ** task, int priority);
-int kernel_queuePop(kernelHandler * ks, TD ** task);
+inline int kernel_queuePush(kernelHandler * ks, TD * task);
+//inline int kernel_queuePop_priority(kernelHandler * ks, TD ** task, int priority);
+inline int kernel_queuePop(kernelHandler * ks, TD ** task);
 
 int free_Push(kernelHandler * ks, TD * task);
 int free_Pop(kernelHandler * ks, TD ** task);

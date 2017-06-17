@@ -88,6 +88,106 @@ int processRequest(kernelHandler * ks, TD * t, request * r, message * m) {
 
 }
 
+int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
+	int tid = (int) r->arg1;
+	int msglen = (int) r->arg3;
+	int replylen = (int) r->arg5;
+	if ((tid > MAX_TID - 1) || tid < 0 || (ks->TDList[tid]).state == ZOMBIE ||  (ks->TDList[tid]).state == FREE) {
+		t->reqVal = -2;
+		return 1;
+	}
+
+
+	if (tid == t->TID) {
+		t->reqVal = -3;
+		return 1;
+	}
+	
+	t->sendMsg = (char *) r->arg2;
+	t->sendMsgLen = msglen;
+	t->replyMsg = (char *) r->arg4;
+	t->replyMsgLen = replylen;
+
+    	inbox_Push(&(ks->TDList[tid]),t);
+
+	if ((ks->TDList[tid]).state == SEND_BLOCKED) {
+		processMail(tid, ks, m, 1);
+	} else {
+		t->state = RECEIVE_BLOCKED;
+	}
+
+	return 1;
+
+}
+
+// this is called AFTER task requests a mail receiver.
+int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue) {
+	TD * receiverTD = &(ks->TDList[receiver]);
+
+	if(!receiverTD->inboxCount){
+		receiverTD->state = SEND_BLOCKED;
+		return 1;
+	}
+
+	TD * task = 0;
+
+	inbox_Pop(receiverTD,&task);
+	task->state = REPLY_BLOCKED;	
+
+	pkmemcpy((void*) receiverTD->receiveMsg, (void*) task->sendMsg, task->sendMsgLen  <= receiverTD->receiveMsgLen ? task->sendMsgLen : receiverTD->receiveMsgLen);
+	if (task->sendMsgLen > receiverTD->receiveMsgLen){
+		receiverTD->receiveMsg[receiverTD->receiveMsgLen - 1] = 0;
+		receiverTD->reqVal = -1;
+	} else {
+		receiverTD->reqVal = task->sendMsgLen;	
+	}
+
+	*(receiverTD->tidBuffer) = task->TID;
+	
+	receiverTD->state = ACTIVE;
+	if (pushIntoQueue) kernel_queuePush(ks, receiverTD);
+	return 1;
+	
+}
+
+int kernel_Receive(TD * t, request * r, kernelHandler * ks, message * m) {
+	t->receiveMsg = (char*) r->arg2;
+	t->receiveMsgLen = (int) r->arg3;
+	t->tidBuffer = (int*) r->arg1;
+	return processMail(t->TID, ks, m, 0);
+}
+
+
+int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
+	int tid = (int) r->arg1;
+	if (tid > MAX_TID - 1 || tid < 0 || (ks->TDList[tid]).state == ZOMBIE || (ks->TDList[tid]).state == FREE ) {
+		t->reqVal = -2;
+		return 1;
+	}
+	TD * sender = &(ks->TDList[tid]);
+	int replylen = (int) r->arg3;
+	if (sender->state != RECEIVE_BLOCKED && sender->state != REPLY_BLOCKED) {
+		t->reqVal = -3;
+		return 1;
+	}
+	pkmemcpy((void*) sender->replyMsg, (void*) r->arg2, replylen <= sender->replyMsgLen ? replylen : sender->replyMsgLen);
+	if (replylen > sender->replyMsgLen) {
+		sender->replyMsg[sender->replyMsgLen - 1] = 0;
+		t->reqVal = -1;
+		sender->reqVal = -1;
+	} else {
+		t->reqVal = 0;
+		sender->reqVal = replylen;
+	}
+	
+	sender->state = ACTIVE;
+	kernel_queuePush(ks, sender);
+	return 1;
+	
+	
+}
+
+
 
 int kernel_Quit(TD * t, kernelHandler * ks){ 
 		ks->KernelState = KERQUIT;
@@ -340,106 +440,6 @@ int kernel_RegisterAs(TD * t, request * r, kernelHandler * ks, message * m){
 	}
 	return 1;
 }
-int kernel_Send(TD * t, request * r, kernelHandler * ks, message * m) {
-	int tid = (int) r->arg1;
-	int msglen = (int) r->arg3;
-	int replylen = (int) r->arg5;
-	if ((tid > MAX_TID - 1) || tid < 0 || (ks->TDList[tid]).state == ZOMBIE ||  (ks->TDList[tid]).state == FREE) {
-		t->reqVal = -2;
-		return 1;
-	}
-
-
-	if (tid == t->TID) {
-		t->reqVal = -3;
-		return 1;
-	}
-	
-	t->sendMsg = (char *) r->arg2;
-	t->sendMsgLen = msglen;
-	t->replyMsg = (char *) r->arg4;
-	t->replyMsgLen = replylen;
-
-    	inbox_Push(&(ks->TDList[tid]),t);
-
-	if ((ks->TDList[tid]).state == SEND_BLOCKED) {
-		processMail(tid, ks, m, 1);
-	} else {
-		t->state = RECEIVE_BLOCKED;
-	}
-
-	return 1;
-
-}
-
-// this is called AFTER task requests a mail receiver.
-int processMail(int receiver, kernelHandler * ks, message * m, int pushIntoQueue) {
-	TD * receiverTD = &(ks->TDList[receiver]);
-
-	if(!receiverTD->inboxCount){
-		receiverTD->state = SEND_BLOCKED;
-		return 1;
-	}
-
-	TD * task = 0;
-
-	inbox_Pop(receiverTD,&task);
-	task->state = REPLY_BLOCKED;	
-
-	pkmemcpy((void*) receiverTD->receiveMsg, (void*) task->sendMsg, task->sendMsgLen  <= receiverTD->receiveMsgLen ? task->sendMsgLen : receiverTD->receiveMsgLen);
-	if (task->sendMsgLen > receiverTD->receiveMsgLen){
-		receiverTD->receiveMsg[receiverTD->receiveMsgLen - 1] = 0;
-		receiverTD->reqVal = -1;
-	} else {
-		receiverTD->reqVal = task->sendMsgLen;	
-	}
-
-	*(receiverTD->tidBuffer) = task->TID;
-	
-	receiverTD->state = ACTIVE;
-	if (pushIntoQueue) kernel_queuePush(ks, receiverTD);
-	return 1;
-	
-}
-
-int kernel_Receive(TD * t, request * r, kernelHandler * ks, message * m) {
-	t->receiveMsg = (char*) r->arg2;
-	t->receiveMsgLen = (int) r->arg3;
-	t->tidBuffer = (int*) r->arg1;
-	return processMail(t->TID, ks, m, 0);
-}
-
-
-int kernel_Reply(TD * t, request * r, kernelHandler * ks, message * m) {
-	int tid = (int) r->arg1;
-	if (tid > MAX_TID - 1 || tid < 0 || (ks->TDList[tid]).state == ZOMBIE || (ks->TDList[tid]).state == FREE ) {
-		t->reqVal = -2;
-		return 1;
-	}
-	TD * sender = &(ks->TDList[tid]);
-	int replylen = (int) r->arg3;
-	if (sender->state != RECEIVE_BLOCKED && sender->state != REPLY_BLOCKED) {
-		t->reqVal = -3;
-		return 1;
-	}
-	pkmemcpy((void*) sender->replyMsg, (void*) r->arg2, replylen <= sender->replyMsgLen ? replylen : sender->replyMsgLen);
-	if (replylen > sender->replyMsgLen) {
-		sender->replyMsg[sender->replyMsgLen - 1] = 0;
-		t->reqVal = -1;
-		sender->reqVal = -1;
-	} else {
-		t->reqVal = 0;
-		sender->reqVal = replylen;
-	}
-	
-	sender->state = ACTIVE;
-	kernel_queuePush(ks, sender);
-	return 1;
-	
-	
-}
-
-
 int kernel_IdlePercentage(TD * t, kernelHandler * ks) {
 	t->reqVal = 100 * ks->totalIdleRunningTime / getTicks4(0);
 	return 1;

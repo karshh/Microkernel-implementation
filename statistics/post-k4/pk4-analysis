@@ -104,3 +104,13 @@ X = 5.024
 OH = 2.98 <- need to make this tighter.
 
 
+
+
+
+----------------------------------------------------------------------------------------------------
+inlining, and new scheduler,code re-arrangement
+					time		over	c/b
+PK	4	on	yes	on	10.548	 	10.42	0.019
+PK	64	on	yes	on	11.65	    	10.42	0.019	
+
+close....so close....

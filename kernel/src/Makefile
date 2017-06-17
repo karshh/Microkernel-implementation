@@ -1,7 +1,7 @@
 #
 # Makefile for busy-wait IO library
 #
-XCC     = gcc -O2
+XCC     = gcc -O3
 AS	= as
 AR	= ar
 LD	= ld
@@ -158,7 +158,7 @@ trackB.o: trackB.s
 	$(AS) $(ASFLAGS) -o trackB.o trackB.s
 
 test.elf:test.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o test.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o pkstring.o  userRequestCall.o interruptHandler.o kernelHandler.o kernelRequestCall.o time.o icu.o dictionary.o buffer.o td.o server.o controller.o ui.o test.o -lgcc
 
 k1.elf: k1.o
 	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o k1.o -lgcc

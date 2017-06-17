@@ -3,7 +3,7 @@
 #include "bwio.h"
 
 
-
+/*
 int messageInit(message * m) {
 	m->msg = 0;
 	m->msglen = 0;
@@ -18,7 +18,6 @@ int initInbox(volatile Inbox * i) {
 	return 1;
 }
 
-/*
 int checkMail(TD * td, message * m) {
     volatile Inbox * i = &(td->inbox);
     

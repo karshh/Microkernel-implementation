@@ -697,7 +697,7 @@ if(0){
     kernelRun(2,(int) testTaskPass3);
 }
 else{
-    if(1){
+    if(0){
 	//bwprintf(COM2,"God4\n\r");
     kernelRun(2,(int) testTaskGod4);
 	}
