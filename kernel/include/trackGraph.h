@@ -36,7 +36,6 @@ typedef struct TrackGraphNode {
 
 typedef struct TrackGraph {
 	TrackGraphNode node[102];
-	int currentNodeIndex;
 } TrackGraph;
 
 

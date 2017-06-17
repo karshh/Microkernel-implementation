@@ -8,6 +8,7 @@
 #include "dictionary.h"
 #include "icu.h"
 #include "ui.h"
+#include "trackGraph.h"
 
 void displayTrack() {
 
@@ -495,6 +496,38 @@ int main(void) {
         "ORR r0, r0, #0x1 <<12 \n"
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
-    kernelRun(2,(int) FirstUserTask);
-	return 0;
+    //kernelRun(2,(int) FirstUserTask);
+	
+    TrackGraph t;
+    TrackGraphInit(&t);
+
+    volatile int i = 1;
+    int next = -1;
+    for (; i < 101; i++) {
+            next = t.node[i].nextNodeIndex;
+        if (t.node[i].type == Sensor) {
+            bwprintf(COM2, "%c%d%d Next node:", ((t.node[i].id1-1)/16)+'A',((t.node[i].id1-1)%16+1)/10, ((t.node[i].id1-1)%16+1)%10);
+            //bwprintf(COM2, "t.node[i].nextNodeIndex = %d\r\n", t.node[i].nextNodeIndex);
+            if (next <= 0) {
+                 bwprintf(COM2, " -1\r\n");
+             } else if (t.node[next].type == Switch) {
+                 bwprintf(COM2, " %d[Switch]\r\n", t.node[next].id1);
+             } else if (t.node[next].type == MultiSwitch) {
+                 bwprintf(COM2, " %d %d[MultiSwitch]\r\n", t.node[next].id1, t.node[next].id2 );
+             } else {
+                 bwprintf(COM2, " %c%d%d[Sensor]\r\n", ((t.node[next].id1-1)/16)+'A',((t.node[next].id1-1)%16+1)/10, ((t.node[next].id1-1)%16+1)%10);
+             }
+        } else if (t.node[i].type == Switch) {
+            bwprintf(COM2, "Switch[%d] ", t.node[i].id1);
+            bwprintf(COM2, "CnextNodeIndex = %d", t.node[i].CnextNodeIndex);
+            bwprintf(COM2, "SnextNodeIndex = %d\r\n", t.node[i].SnextNodeIndex);
+        } else {
+            bwprintf(COM2, "MultiSwitch[%d %d] ", t.node[i].id1, t.node[i].id2);
+            bwprintf(COM2, "CSnextNodeIndex = %d", t.node[i].CSnextNodeIndex);
+            bwprintf(COM2, "SCnextNodeIndex = %d\r\n", t.node[i].SCnextNodeIndex);
+        }
+
+
+    } 
+    return 0;
 }

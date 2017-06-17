@@ -4,7 +4,7 @@
 
 
 int sensor2i(char * c) {
-	return  ((16*(c[0] - 'A')) + (10* c[1]) + c[2]);
+	return    ((10* (c[1] - '0')) + (c[2] - '0')) + (16*(c[0] - 'A')) ;
 }
 
 int switch2i(int i) {
@@ -17,7 +17,6 @@ void TrackGraphInit(TrackGraph * t) {
 
 	TrackGraphNode * node = t->node;
 	//prevNodeIndex = -1;
-	t->currentNodeIndex = -1;
 
 	volatile int i = 1;
 	// initializing sensors
@@ -55,8 +54,8 @@ void TrackGraphInit(TrackGraph * t) {
 	node[sensor2i("A12")].nextNodeIndex = -1;
 	node[sensor2i("A13")].nextNodeIndex = sensor2i("C13");
 	node[sensor2i("A14")].nextNodeIndex = -1;
-	node[sensor2i("A15")].nextNodeIndex = sensor2i("C13");
-	node[sensor2i("A16")].nextNodeIndex = -1;
+	node[sensor2i("A15")].nextNodeIndex = -1;
+	node[sensor2i("A16")].nextNodeIndex = sensor2i("C13");
 	node[sensor2i("B01")].nextNodeIndex = sensor2i("D14");
 	node[sensor2i("B02")].nextNodeIndex = sensor2i("C09");
 	node[sensor2i("B03")].nextNodeIndex = sensor2i("C02");
@@ -101,7 +100,7 @@ void TrackGraphInit(TrackGraph * t) {
 	node[sensor2i("D10")].nextNodeIndex = switch2i(9);
 	node[sensor2i("D11")].nextNodeIndex = sensor2i("C16");
 	node[sensor2i("D12")].nextNodeIndex = sensor2i("E11");
-	node[sensor2i("D13")].nextNodeIndex = sensor2i("B2");
+	node[sensor2i("D13")].nextNodeIndex = sensor2i("B02");
 	node[sensor2i("D14")].nextNodeIndex = sensor2i("E14");
 	node[sensor2i("D15")].nextNodeIndex = sensor2i("B13");
 	node[sensor2i("D16")].nextNodeIndex = sensor2i("E14");
