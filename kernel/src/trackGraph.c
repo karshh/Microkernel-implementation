@@ -1,5 +1,5 @@
-
-
+#include "bwio.h"
+#include "buffer.h"
 #include "trackGraph.h"
 
 
@@ -166,6 +166,111 @@ void TrackGraphInit(TrackGraph * t) {
 
 	node[100].CSnextNodeIndex = sensor2i("D02");
 	node[100].SCnextNodeIndex = sensor2i("E02");
+
+}
+
+
+// 3 semesters of graph theory and this is what my best solution ends up being.... FML
+
+int getShortestPath(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength) {
+
+	volatile int print = 0; // use this to toggle print
+	circularBuffer cb;
+	circularBufferInit(&cb);
+
+	// storing reverse paths in here.
+	int tree[101];
+	volatile int i = 0;
+	// variables for while loop.
+	int val = 0;
+	int next = -1;
+	int Cnext = -1;
+	int Snext = -1;
+	int SCnext = -1;
+	int CSnext = -1;
+
+	for (; i < 101; i++) tree[i] = 0; // inefficient step.
+
+
+	TrackGraphNode * node = t->node;
+	// add sensor start as the root node in the queue
+
+	//bwprintf(COM2, "Adding root %d\r\n", sensorStart);
+	bwassert(addToBuffer(sensorStart, &cb), COM2, "<TrackGraphFind>:ERROR 1, Could not add %d to cb.", i);
+
+	//bwprintf(COM2, "Beginning BFS find.\r\n");
+	while(1) {
+		// pop a node out
+		// if we can't get a node from this buffer, we've reached a dead end. Return 0.
+		if (!getFromBuffer(&val, &cb)) return 0;
+
+		if (node[val].type == Sensor) {
+			//bwprintf(COM2, "Found node %d, which is a sensor.\r\n", val);
+			 next = node[val].nextNodeIndex;
+			//bwprintf(COM2, "The child is %d.\r\n", next);
+			if (next <= 0 || tree[next] > 0) continue;
+			tree[next] = val;
+			if (next == sensorEnd) {
+				//bwprintf(COM2, "Looks like %d is the chosen child!\r\n", next);
+				break;
+			}
+			bwassert(addToBuffer(next, &cb), COM2, "<TrackGraphFind>:ERROR 3, Could not add %d to cb.", next);
+
+		} else if (node[val].type == Switch){
+			//bwprintf(COM2, "Found node %d, which is a switch.\r\n", val);
+			 Cnext = node[val].CnextNodeIndex;
+			 Snext = node[val].SnextNodeIndex;
+			if (Cnext > 0 && tree[Cnext] <= 0) {
+				tree[Cnext] = val;
+				if (Cnext == sensorEnd) break;
+				bwassert(addToBuffer(Cnext, &cb), COM2, "<TrackGraphFind>:ERROR 4, Could not add %d to cb.", Cnext);
+			}
+			if (Snext > 0 && tree[Snext] <= 0) {
+				tree[Snext] = val;
+				if (Snext == sensorEnd) break;
+				bwassert(addToBuffer(Snext, &cb), COM2, "<TrackGraphFind>:ERROR 5, Could not add %d to cb.", Snext);
+			}
+		} else {
+			//bwprintf(COM2, "Found node %d, which is a multiswitch.\r\n", val);
+			 CSnext = node[val].CSnextNodeIndex;
+			 SCnext = node[val].SCnextNodeIndex;
+			if (CSnext > 0 && tree[CSnext] <= 0) {
+				tree[CSnext] = val;
+				if (CSnext == sensorEnd) break;
+				bwassert(addToBuffer(CSnext, &cb), COM2, "<TrackGraphFind>:ERROR 6, Could not add %d to cb.", CSnext);
+			}
+			if (SCnext > 0 && tree[SCnext] <= 0) {
+				tree[SCnext] = val;
+				if (SCnext == sensorEnd) break;
+				bwassert(addToBuffer(SCnext, &cb), COM2, "<TrackGraphFind>:ERROR 7, Could not add %d to cb.", SCnext);
+			}
+		}
+	}
+
+	*pathLength = 0;
+	i = sensorEnd;
+	for (;i != sensorStart; i = tree[i]) {
+		path[*pathLength] = i;
+		*pathLength += 1;
+	}
+	path[*pathLength] = sensorStart;
+	*pathLength += 1;
+
+
+	// toggle print variable to print this.
+	if (print) {
+		bwprintf(COM2, "Shortest path, reversed from end to start:\r\n");
+		i = sensorEnd;
+		for (;i != sensorStart; i = tree[i]) {
+			if (i < 81) bwprintf(COM2, "%c%d%d <- ", ((i-1)/16)+'A',((i-1)%16+1)/10, ((i-1)%16+1)%10);
+			else if (i < 98) bwprintf(COM2, "sw %d <- ", i-80);
+			else bwprintf(COM2, "multsw %d %d <- ", i == 99 ? 153 : 155, i == 99 ? 154 : 156);
+
+		}
+		bwprintf(COM2, "%c%d%d\r\n\r\n", ((sensorStart-1)/16)+'A',((sensorStart-1)%16+1)/10, ((sensorStart-1)%16+1)%10);
+	}
+
+	return 1;
 
 }
 

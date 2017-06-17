@@ -499,35 +499,17 @@ int main(void) {
     //kernelRun(2,(int) FirstUserTask);
 	
     TrackGraph t;
+    int path[100];
+    int pathLength;
     TrackGraphInit(&t);
-
-    volatile int i = 1;
-    int next = -1;
-    for (; i < 101; i++) {
-            next = t.node[i].nextNodeIndex;
-        if (t.node[i].type == Sensor) {
-            bwprintf(COM2, "%c%d%d Next node:", ((t.node[i].id1-1)/16)+'A',((t.node[i].id1-1)%16+1)/10, ((t.node[i].id1-1)%16+1)%10);
-            //bwprintf(COM2, "t.node[i].nextNodeIndex = %d\r\n", t.node[i].nextNodeIndex);
-            if (next <= 0) {
-                 bwprintf(COM2, " -1\r\n");
-             } else if (t.node[next].type == Switch) {
-                 bwprintf(COM2, " %d[Switch]\r\n", t.node[next].id1);
-             } else if (t.node[next].type == MultiSwitch) {
-                 bwprintf(COM2, " %d %d[MultiSwitch]\r\n", t.node[next].id1, t.node[next].id2 );
-             } else {
-                 bwprintf(COM2, " %c%d%d[Sensor]\r\n", ((t.node[next].id1-1)/16)+'A',((t.node[next].id1-1)%16+1)/10, ((t.node[next].id1-1)%16+1)%10);
-             }
-        } else if (t.node[i].type == Switch) {
-            bwprintf(COM2, "Switch[%d] ", t.node[i].id1);
-            bwprintf(COM2, "CnextNodeIndex = %d", t.node[i].CnextNodeIndex);
-            bwprintf(COM2, "SnextNodeIndex = %d\r\n", t.node[i].SnextNodeIndex);
-        } else {
-            bwprintf(COM2, "MultiSwitch[%d %d] ", t.node[i].id1, t.node[i].id2);
-            bwprintf(COM2, "CSnextNodeIndex = %d", t.node[i].CSnextNodeIndex);
-            bwprintf(COM2, "SCnextNodeIndex = %d\r\n", t.node[i].SCnextNodeIndex);
-        }
-
-
-    } 
+    if (!getShortestPath(&t, 1, 9, path, &pathLength)) {
+        bwprintf(COM2, "DEAD END.\r\n");
+        return 0;
+    }
+    bwprintf(COM2, "Ans: ");
+    volatile int i = 0;
+    for (i = pathLength - 1; i >= 0; i--) {
+        bwprintf(COM2, " %d ", path[i]);
+    }
     return 0;
 }
