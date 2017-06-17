@@ -496,15 +496,15 @@ int main(void) {
         "ORR r0, r0, #0x1 <<12 \n"
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
-    //kernelRun(2,(int) FirstUserTask);
+    kernelRun(2,(int) FirstUserTask);
 	
-    TrackGraph t;
-    int path[100];
-    int pathLength;
-    TrackGraphInit(&t);
+    // TrackGraph t;
+    // int path[100];
+    // int pathLength;
+    // TrackGraphInit(&t);
 
-    bwprintf(COM2, "%d\r\n", findNextSensor(&t, sensor2i("A02")));
-    bwprintf(COM2, "%d\r\n", findNextSensor(&t, sensor2i("D08")));
-    bwprintf(COM2, "%d\r\n", findNextSensor(&t, sensor2i("B13")));
+    // bwprintf(COM2, "%d\r\n", findNextSensor(&t, sensor2i("A02")));
+    // bwprintf(COM2, "%d\r\n", findNextSensor(&t, sensor2i("D08")));
+    // bwprintf(COM2, "%d\r\n", findNextSensor(&t, sensor2i("B13")));
     return 0;
 }
