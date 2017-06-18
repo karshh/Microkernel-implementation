@@ -19,6 +19,9 @@
 #define CLOCK_U 			18 //for displayServer purposes
 #define DELAY_U				19 //change switch
 #define COMMAND_LOADING		20
+#define COMMAND_LOCKEDTRAINL	21
+#define COMMAND_LOCKEDTRAINT	22
+#define COMMAND_LOCKEDTRAINR	23
 
 #define DFA_INIT 0
 #define DFA_ERROR -1

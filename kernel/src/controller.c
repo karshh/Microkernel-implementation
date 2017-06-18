@@ -130,8 +130,10 @@ int parseCommand(char * input, int * arg1, int * arg2){
 						msg[2] = '\0';
 						msg[3] = '\0';
 						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Lights command.\r\n");
-
-						return COMMAND_LI;
+						if(reply[0] == '1')
+							 return COMMAND_LI;
+						else
+							 return COMMAND_LOCKEDTRAINL;
 						break;
 					case(DFA_RV_1):
 					case(DFA_RV_2):
@@ -147,7 +149,11 @@ int parseCommand(char * input, int * arg1, int * arg2){
 
 						*arg1 = train;
 						*arg2 = reply[0];
-						return COMMAND_RV;
+						if(reply[1] == '1')
+							return COMMAND_RV;
+						else
+							 return COMMAND_LOCKEDTRAINR;
+
 						break;
 
 					case(DFA_TR_1):
@@ -161,10 +167,11 @@ int parseCommand(char * input, int * arg1, int * arg2){
 						msg[3] = '\0';
 						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Trains command.\r\n");
 
-
 						*arg2 = speed;
-
-						return COMMAND_TR;
+						if(reply[0] == '1')
+							 return COMMAND_TR;
+						else
+							 return COMMAND_LOCKEDTRAINT;
 						break;
 					case(DFA_SW_1):
 
