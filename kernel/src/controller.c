@@ -49,7 +49,6 @@ void update_switch(int sw, TrackGraph * t){
 
 		}
 		
-	//	pie_printf(COM2, glbv, "\033[%d;%dH             ", 11, 22 + 10 , c);
 	}
 	else if(sw <= 156){
 		//warns the user if we have a double curve switch

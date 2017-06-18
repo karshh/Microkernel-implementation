@@ -197,7 +197,7 @@ void TrackGraphInit(TrackGraph * t) {
 
 int getShortestPath(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength) {
 
-	volatile int print = 0; // use this to toggle print
+	volatile int print = 1; // use this to toggle print
 	circularBuffer cb;
 	circularBufferInit(&cb);
 
@@ -280,7 +280,7 @@ int getShortestPath(TrackGraph * t, int sensorStart, int sensorEnd, int * path, 
 	*pathLength += 1;
 
 
-	// toggle print variable to print this.
+	// toggle print variable to print this, for purposes of debugging (and potentially your sanity if you hate graphs).
 	if (print) {
 		bwprintf(COM2, "Shortest path, reversed from end to start:\r\n");
 		i = sensorEnd;

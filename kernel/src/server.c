@@ -613,25 +613,34 @@ void trainServer(){
 	int trainCurrentSensor[80];
 	int trainExpectedSensor[80];
 
+
+
 	// track graph.
 	TrackGraph t;
 	TrackGraphInit(&t);
 	TrackGraphNode * node = t.node;
 
     int _tid = -1;
-    char msg[4];
-    int msgCap = 4;
+    char msg[64];
+    int msgCap = 64;
+
+    // need seperate Msg and Rpl buffers just for displaying train sensors.
+    char dspMsg[64];
+    int dspMsgCap = 64;
+    char dspRpl[64];
+    int dspRplLen = 64;
 
     char commandMsg[64];
     char rpl[3];
     int rpllen = 3;
 
 	volatile int i=0;
-	int msgLen = 4;
+	int msgLen = 0;
 	int dspTID = WhoIs("displayServer");
 
-	
 	for (i=0; i < 80; i++){
+			trainCurrentSensor[i] = 0;
+			trainExpectedSensor[i] = 0;
  			trainSpeed[i] = 0;
 			commandMsg[0] = 'T';
 			commandMsg[1] = trainSpeed[i];
@@ -643,7 +652,7 @@ void trainServer(){
 			msg[1] = 0;
 			msg[2] = i;//position (0..17)
 			msg[3] = 0;
-			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+			bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
 
 			//Delay(csTID, (14 * 19) + 170);
 			Delay(csTID, 5);
@@ -655,7 +664,7 @@ void trainServer(){
 	msg[1] = 1;
 	msg[2] = 0;//position (0..17)
 	msg[3] = 0;
-	bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+	bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
 
 
 	//init switches
@@ -675,7 +684,8 @@ void trainServer(){
 	commandMsg[2] = 153;
 	commandMsg[3] = 0;
 	bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-	update_switch(153, &t); //updates the display
+	//update_switch(153, &t); //updates the display
+	
 	commandMsg[0] = 'S';
 	commandMsg[1] = 33;
 	commandMsg[2] = 154;
@@ -689,7 +699,8 @@ void trainServer(){
 	commandMsg[2] = 155;
 	commandMsg[3] = 0;
 	bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-	update_switch(155, &t); //updates the display
+	//update_switch(155, &t); //updates the display
+	
 	commandMsg[0] = 'S';
 	commandMsg[1] = 33;
 	commandMsg[2] = 156;
@@ -703,153 +714,178 @@ void trainServer(){
 	msg[1] = 2;
 	msg[2] = 0;//position (0..17)
 	msg[3] = 0;
-		bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+		bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
 
 	int train;
 	int speed;
 	int sw;
 	int swd;
 	while(1){
-		bwassert(Receive(&_tid, msg, msgCap) >= 0, COM2, "<trainServer>: Receive error.\r\n");
-		
-		switch(msg[0]){
-		case 'L':
-			train = msg[1];
-			trainSpeed[train] = 0;
 
+		msgLen = Receive(&_tid, msg, msgCap);
+		bwassert(msgLen >= 0, COM2, "<trainServer>: Receive error.\r\n");
+		if (_tid == dspTID) {
+			// we received a sensor update from dspTID
+			// search for each train if it's expected sensor was hit. If yes, then find next sensor
+			// and add that as it's expected sensor.
+			dspRplLen = 0;
+			volatile int j = 0;
+			for (i = 0; i < msgLen; i++) {
+				for (j = 0; j < 80; j++) {
+					if (trainExpectedSensor[j] == msg[i]) {
+						trainCurrentSensor[j] = msg[i];
+						trainExpectedSensor[j] = findNextSensor(&t, msg[i]);
+						dspRpl[dspRplLen] = j;
+						dspRpl[dspRplLen + 1] = trainExpectedSensor[j];
+						dspRplLen += 2;
 
-			commandMsg[0] = 'L';
-			commandMsg[1] = 16+trainSpeed[train];
-			commandMsg[2] = train;
-			commandMsg[3] = 0;
-			bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-	        Reply(_tid, "1", 2);
-	        break;
-
-		case 'T':
-			speed = msg[1];
-			train = msg[2];
-			trainSpeed[train] = speed;
-
-			commandMsg[0] = 'T';
-			commandMsg[1] = trainSpeed[train];
-			commandMsg[2] = train;
-			commandMsg[3] = 0;
-			bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-	        Reply(_tid, "1", 2);
-	        break;
-
-		case 'R':
-			train = msg[1];
-
-			commandMsg[0] = 'R';
-			commandMsg[1] = train;
-			commandMsg[2] = trainSpeed[train];
-			commandMsg[3] = 0;
-			bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-			{ char c[2];
-			 c[0] = trainSpeed[train];
-			 c[1] = 0;
-			
-	        	Reply(_tid, &c[0], 2);
-			}
-
-	        break;
-		case 'S':
-			sw = msg[1];
-			swd = msg[2];
-			if(sw <= 18) {
-				node[80+sw].switchConfig = swd == 'C' ? C : S;
-
-			} else if (sw == 153) {
-				switch (node[99].switchConfig) {
-					case SC:
-						node[99].switchConfig = swd == 'C' ? CC : SC;
-						break;
-					case SS:
-						node[99].switchConfig = swd == 'C' ? CS : SS;
-						break;
-					case CS:
-						node[99].switchConfig = swd == 'C' ? CS : SS;
-						break;
-					case CC:
-						node[99].switchConfig = swd == 'C' ? CC : SC;
-						break;
-					default:
-						bwassert(0, COM2, "<trainServer>: Incorrect multi switch configuration of 153/154 [153].");
-						break;
-
-				}
-			} else if (sw == 154) {
-				switch (node[99].switchConfig) {
-					case SC:
-						node[99].switchConfig = swd == 'C' ? SC : SS;
-						break;
-					case SS:
-						node[99].switchConfig = swd == 'C' ? SC : SS;
-						break;
-					case CS:
-						node[99].switchConfig = swd == 'C' ? CC : CS;
-						break;
-					case CC:
-						node[99].switchConfig = swd == 'C' ? CC : CS;
-						break;
-					default:
-						bwassert(0, COM2, "<trainServer>: Incorrect multi switch configuration of 153/154 [154].");
-						break;
-
-				}
-			} else if (sw == 155) {
-				switch (node[100].switchConfig) {
-					case SC:
-						node[100].switchConfig = swd == 'C' ? CC : SC;
-						break;
-					case SS:
-						node[100].switchConfig = swd == 'C' ? CS : SS;
-						break;
-					case CS:
-						node[100].switchConfig = swd == 'C' ? CS : SS;
-						break;
-					case CC:
-						node[100].switchConfig = swd == 'C' ? CC : SC;
-						break;
-					default:
-						bwassert(0, COM2, "<trainServer>: Incorrect multi switch configuration of 153/154 [153].");
-						break;
-
-				}
-			} else if (sw == 156) {
-				switch (node[100].switchConfig) {
-					case SC:
-						node[100].switchConfig = swd == 'C' ? SC : SS;
-						break;
-					case SS:
-						node[100].switchConfig = swd == 'C' ? SC : SS;
-						break;
-					case CS:
-						node[100].switchConfig = swd == 'C' ? CC : CS;
-						break;
-					case CC:
-						node[100].switchConfig = swd == 'C' ? CC : CS;
-						break;
-					default:
-						bwassert(0, COM2, "<trainServer>: Incorrect multi switch configuration of 153/154 [154].");
-						break;
-
+					}
 				}
 			}
+		    Reply(_tid, dspRpl, dspRplLen);
 
-			commandMsg[0] = 'S';
-			commandMsg[1] = swd == 'S' ? 33 : 34;
-			commandMsg[2] = sw;
-			commandMsg[3] = 0;
-			bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-	        Reply(_tid, "1", 2);
-			update_switch(sw, &t); //updates the display
-	        break;
+		} else {
 
-		default:
-	        bwassert(0, COM2, "<trainServer>: Illegal request code from userTask <%d>:[%s].\r\n", _tid,msg);
+			switch(msg[0]){
+			case 'L':
+				train = msg[1];
+				trainSpeed[train] = 0;
+
+
+				commandMsg[0] = 'L';
+				commandMsg[1] = 16+trainSpeed[train];
+				commandMsg[2] = train;
+				commandMsg[3] = 0;
+				bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        Reply(_tid, "1", 2);
+		        break;
+
+			case 'T':
+				speed = msg[1];
+				train = msg[2];
+				trainSpeed[train] = speed;
+
+				commandMsg[0] = 'T';
+				commandMsg[1] = trainSpeed[train];
+				commandMsg[2] = train;
+				commandMsg[3] = 0;
+				bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        Reply(_tid, "1", 2);
+		        break;
+
+			case 'R':
+				train = msg[1];
+
+				commandMsg[0] = 'R';
+				commandMsg[1] = train;
+				commandMsg[2] = trainSpeed[train];
+				commandMsg[3] = 0;
+				bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+				{ char c[2];
+				 c[0] = trainSpeed[train];
+				 c[1] = 0;
+				
+		        	Reply(_tid, &c[0], 2);
+				}
+
+		        break;
+			case 'S':
+				sw = msg[1];
+				swd = msg[2];
+				if(sw <= 18) {
+					node[80+sw].switchConfig = swd == 'C' ? C : S;
+
+				} else if (sw == 153) {
+					switch (node[99].switchConfig) {
+						case SC:
+							node[99].switchConfig = swd == 'C' ? CC : SC;
+							break;
+						case SS:
+							node[99].switchConfig = swd == 'C' ? CS : SS;
+							break;
+						case CS:
+							node[99].switchConfig = swd == 'C' ? CS : SS;
+							break;
+						case CC:
+							node[99].switchConfig = swd == 'C' ? CC : SC;
+							break;
+						default:
+							bwassert(0, COM2, "<trainServer>: Incorrect multi switch configuration of 153/154 [153].");
+							break;
+
+					}
+				} else if (sw == 154) {
+					switch (node[99].switchConfig) {
+						case SC:
+							node[99].switchConfig = swd == 'C' ? SC : SS;
+							break;
+						case SS:
+							node[99].switchConfig = swd == 'C' ? SC : SS;
+							break;
+						case CS:
+							node[99].switchConfig = swd == 'C' ? CC : CS;
+							break;
+						case CC:
+							node[99].switchConfig = swd == 'C' ? CC : CS;
+							break;
+						default:
+							bwassert(0, COM2, "<trainServer>: Incorrect multi switch configuration of 153/154 [154].");
+							break;
+
+					}
+				} else if (sw == 155) {
+					switch (node[100].switchConfig) {
+						case SC:
+							node[100].switchConfig = swd == 'C' ? CC : SC;
+							break;
+						case SS:
+							node[100].switchConfig = swd == 'C' ? CS : SS;
+							break;
+						case CS:
+							node[100].switchConfig = swd == 'C' ? CS : SS;
+							break;
+						case CC:
+							node[100].switchConfig = swd == 'C' ? CC : SC;
+							break;
+						default:
+							bwassert(0, COM2, "<trainServer>: Incorrect multi switch configuration of 155/156 [155].");
+							break;
+
+					}
+				} else if (sw == 156) {
+					switch (node[100].switchConfig) {
+						case SC:
+							node[100].switchConfig = swd == 'C' ? SC : SS;
+							break;
+						case SS:
+							node[100].switchConfig = swd == 'C' ? SC : SS;
+							break;
+						case CS:
+							node[100].switchConfig = swd == 'C' ? CC : CS;
+							break;
+						case CC:
+							node[100].switchConfig = swd == 'C' ? CC : CS;
+							break;
+						default:
+							bwassert(0, COM2, "<trainServer>: Incorrect multi switch configuration of 155/156 [156].");
+							break;
+
+					}
+				}
+
+				commandMsg[0] = 'S';
+				commandMsg[1] = swd == 'S' ? 33 : 34;
+				commandMsg[2] = sw;
+				commandMsg[3] = 0;
+				bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        Reply(_tid, "1", 2);
+				update_switch(sw, &t); //updates the display
+		        break;
+
+			default:
+		        bwassert(0, COM2, "<trainServer>: Illegal request code from userTask <%d>:[%s].\r\n", _tid,msg);
+			}
+
 		}
 	}
 
@@ -886,8 +922,8 @@ void UserPrompt() {
 	// messaging purposes
     char msg[64];
 
-    char rpl[3];
-    int rpllen = 3;
+    char rpl[64];
+    int rpllen = 64;
 	while (1) {
 		c = Getc(iosTID, COM2);
 
@@ -963,6 +999,8 @@ void displayServer() {
     char msg[64];
     int msgCap = 64;
     int msgLen = -1;
+    char rpl[64];
+    int rplLen = 64;
 
     int cursorCol = 0;
     // sensor variables'
@@ -1068,12 +1106,12 @@ void displayServer() {
 			Exit();
 		} else if (_tid == Sensors_TID){
 
-
+			//bwassert(Send(Train_TID, msg, msgLen, rpl, rplLen) >= 0, COM2, "<displayServer> Could not send sensor data to Train server");
 			for (i = 0; i < msgLen; i++) {
 
 				if (prevSensor != msg[i]) {
 					sensorPingCurrent = getTicks4(0);
-					Printf(iosTID,COM2,"\033[s\033[?25l\033[1;10HSensor ping elapse:%dms \033[u\033[?25h",sensorPingCurrent-sensorPingLast);
+					//Printf(iosTID,COM2,"\033[s\033[?25l\033[1;10HSensor ping elapse:%dms \033[u\033[?25h",sensorPingCurrent-sensorPingLast);
 				}
 				prevSensor = msg[i];
 				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;13H--->%c%d%d<---\033[u\033[?25h", sensorCursor,((msg[i]-1)/16)+'A',((msg[i]-1)%16+1)/10, ((msg[i]-1)%16+1)%10);
@@ -1082,10 +1120,12 @@ void displayServer() {
 				sensorCursor = sensorCursor + 1 > maxCursor ? minCursor : sensorCursor + 1;
 				sensorPingLast = getTicks4(0);
 			} 
+			// for (i = 0; i < rplLen; i += 2) {
+   //  			Printf(iosTID, COM2,"\033[%d;30H%d: ", rpl[i] - 54, rpl[i+1]);
+			// }
 			Reply(_tid, "1", 2);
 
 		} else if (_tid == Train_TID){
-	       		switchLocation = msg[2] + 6;
 			if (msg[0] == 2){ //2 used for initiliziation code
 				if(msg[1] == 0)
 	                		Printf(iosTID, COM2, "\033[s\033[?25l\033[34;1H\033[K\033[35;1H\033[KInitializing Trains %d.\033[34;1H>\033[u\033[?25h",msg[2]);
@@ -1097,10 +1137,12 @@ void displayServer() {
 				}
 					
 			}
-			else if (msg[0] == 1)//1 is switch mode warning
+			else if (msg[0] == 1) {//1 is switch mode warning
+	       			switchLocation = msg[2] + 6;
        				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;11H\033[1m\033[31m%c\033[0m\033[u\033[?25h", switchLocation, msg[1]);
-			else
+			} else
 				//0 is for switch mode normal text
+	       			switchLocation = msg[2] + 6;
        				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;11H%c\033[u\033[?25h", switchLocation, msg[1]);
 			Reply(_tid, "1", 2);
 		} else if (_tid == Clock_TID){
