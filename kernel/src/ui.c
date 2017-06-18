@@ -198,7 +198,15 @@ int getSensorData(char * s){
 }
 
 void displaySensors() {
+	
+	bwassert(!RegisterAs("displaySensors"), COM2, "Failed to register displaySensors.\r\n");
 	int parentTID = MyParentTid();
+	// a brittle hack to forcefully get the trainServer TID.
+	int trainTID = WhoIs("trainServer");
+	while (trainTID < 0) {
+		Pass();
+		trainTID = WhoIs("trainServer");
+	}
 	char recentSensors[64];
 	volatile int i = 0;
 	for (; i < 64; i++) recentSensors[i] = 0;
@@ -212,7 +220,10 @@ void displaySensors() {
 	//volatile int num = 0;
 	while(1)  {
 		recentSensorsLen = getSensorData(recentSensors);
-		if (recentSensorsLen) bwassert(Send(parentTID, recentSensors, recentSensorsLen, rpl, rpllen) >= 0, COM2, "<getSensorData>: Displaying sensors failed.");  
+		if (recentSensorsLen) {
+			bwassert(Send(trainTID, recentSensors, recentSensorsLen, rpl, rpllen) >= 0, COM2, "<getSensorData>: Displaying sensors failed.");
+			bwassert(Send(parentTID, recentSensors, recentSensorsLen, rpl, rpllen) >= 0, COM2, "<getSensorData>: Displaying sensors failed."); 
+		}
 	}
 
 	Exit();

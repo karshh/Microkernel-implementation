@@ -608,6 +608,11 @@ void trainServer(){
 	bwassert(!RegisterAs("trainServer"), COM2, "Failed to register trainServer.\r\n");
 	int commandServerTID = WhoIs("commandServer");
 	int csTID = WhoIs("clockServer");
+	int sensorTID = WhoIs("displaySensors");
+	while (sensorTID < 0) {
+		Pass();
+		sensorTID = WhoIs("displaySensors");
+	}
 	//keep track of train speeds
 	int trainSpeed[80];
 	int trainCurrentSensor[80];
@@ -626,9 +631,6 @@ void trainServer(){
 
     // need seperate Msg and Rpl buffers just for displaying train sensors.
     char dspMsg[64];
-    int dspMsgCap = 64;
-    char dspRpl[64];
-    int dspRplLen = 64;
 
     char commandMsg[64];
     char rpl[3];
@@ -720,29 +722,32 @@ void trainServer(){
 	int speed;
 	int sw;
 	int swd;
+	int sens;
+
+
 	while(1){
 
 		msgLen = Receive(&_tid, msg, msgCap);
 		bwassert(msgLen >= 0, COM2, "<trainServer>: Receive error.\r\n");
-		if (_tid == dspTID) {
+		if (_tid == sensorTID) {
 			// we received a sensor update from dspTID
 			// search for each train if it's expected sensor was hit. If yes, then find next sensor
 			// and add that as it's expected sensor.
-			dspRplLen = 0;
 			volatile int j = 0;
-			for (i = 0; i < msgLen; i++) {
-				for (j = 0; j < 80; j++) {
-					if (trainExpectedSensor[j] == msg[i]) {
-						trainCurrentSensor[j] = msg[i];
-						trainExpectedSensor[j] = findNextSensor(&t, msg[i]);
-						dspRpl[dspRplLen] = j;
-						dspRpl[dspRplLen + 1] = trainExpectedSensor[j];
-						dspRplLen += 2;
-
+			for (j = 0; j < msgLen; j++) {
+				for (i = 58; i < 80; i++) {
+					if (trainExpectedSensor[i] == msg[j]) {
+						trainCurrentSensor[i] = msg[j];
+						trainExpectedSensor[i] = findNextSensor(&t, msg[j]);
+						dspMsg[0] = 3; //hardcoded to indicate expected sensor
+						dspMsg[1] = i;
+						dspMsg[2] = trainExpectedSensor[j];
+						dspMsg[3] = 0;
+						bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
 					}
 				}
 			}
-		    Reply(_tid, dspRpl, dspRplLen);
+			Reply(_tid, "1", 2);
 
 		} else {
 
@@ -787,6 +792,23 @@ void trainServer(){
 				
 		        	Reply(_tid, &c[0], 2);
 				}
+
+		        break;
+
+			case 'I':
+				train = msg[1];
+				sens = msg[2];
+				if (train >= 58 && train < 80) {
+					trainCurrentSensor[train] = -1;
+					trainExpectedSensor[train] = sens;	
+					dspMsg[0] = 3; //hardcoded to indicate expected sensor
+					dspMsg[1] = train;
+					dspMsg[2] = trainExpectedSensor[train];
+					dspMsg[3] = 0;
+					bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+				}
+
+		        Reply(_tid, "1", 2);
 
 		        break;
 			case 'S':
@@ -999,9 +1021,8 @@ void displayServer() {
     char msg[64];
     int msgCap = 64;
     int msgLen = -1;
-    char rpl[64];
-    int rplLen = 64;
-
+    char rpl[4];
+    int rplLen = 4;
     int cursorCol = 0;
     // sensor variables'
     const int maxCursor = SENSOR_LIST_SIZE + 5;
@@ -1106,12 +1127,12 @@ void displayServer() {
 			Exit();
 		} else if (_tid == Sensors_TID){
 
-			//bwassert(Send(Train_TID, msg, msgLen, rpl, rplLen) >= 0, COM2, "<displayServer> Could not send sensor data to Train server");
 			for (i = 0; i < msgLen; i++) {
+
 
 				if (prevSensor != msg[i]) {
 					sensorPingCurrent = getTicks4(0);
-					//Printf(iosTID,COM2,"\033[s\033[?25l\033[1;10HSensor ping elapse:%dms \033[u\033[?25h",sensorPingCurrent-sensorPingLast);
+					Printf(iosTID,COM2,"\033[s\033[?25l\033[1;10HSensor ping elapse:%dms \033[u\033[?25h",sensorPingCurrent-sensorPingLast);
 				}
 				prevSensor = msg[i];
 				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;13H--->%c%d%d<---\033[u\033[?25h", sensorCursor,((msg[i]-1)/16)+'A',((msg[i]-1)%16+1)/10, ((msg[i]-1)%16+1)%10);
@@ -1136,14 +1157,17 @@ void displayServer() {
 					Prompt_TID = Create(4, (void *) UserPrompt);
 				}
 					
-			}
-			else if (msg[0] == 1) {//1 is switch mode warning
+			} else if (msg[0] == 3) {//3 is train sensor update
+				Printf(iosTID, COM2,"\033[%d;30H%c%d%d", msg[1] - 52, ((msg[2]-1)/16)+'A',((msg[2]-1)%16+1)/10, ((msg[2]-1)%16+1)%10);
+
+			} else if (msg[0] == 1) {//1 is switch mode warning
 	       			switchLocation = msg[2] + 6;
        				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;11H\033[1m\033[31m%c\033[0m\033[u\033[?25h", switchLocation, msg[1]);
-			} else
+			} else {
 				//0 is for switch mode normal text
 	       			switchLocation = msg[2] + 6;
        				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;11H%c\033[u\033[?25h", switchLocation, msg[1]);
+			}
 			Reply(_tid, "1", 2);
 		} else if (_tid == Clock_TID){
 			switch((int) msg[0]) {
