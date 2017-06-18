@@ -152,13 +152,11 @@ Timer clock speeds
 1.9939 KHz
 983 KHz
 */
-/*
 	startTimer(TIMER3_BASE, 508, 5084689,PERIODIC);//used to prevent clock skew every 10s
 	//startTimer(TIMER1_BASE, 508, 508469,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
 	startTimer(TIMER1_BASE, 508, 5085,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
 	//startTimer(TIMER1_BASE, 508, 5084,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
 	toggleTimer3Interrupt(1);//timer3 to keep timer 1 from clock skewing
-*/	
 	startTimer(TIMER4_BASE, 0,0,0); //TIMER 4 cares not for other arguments
 	ks->idleTaskRunning = 0;
 	ks->clockTaskRunning = 0;
@@ -275,6 +273,7 @@ void kernelExecute(kernelHandler * ks) {
 /*
 */
 
+	int old_idle = 0;
 
 	while(kernel_queuePop(ks, &ks->activeTask)) {
 
@@ -286,11 +285,11 @@ void kernelExecute(kernelHandler * ks) {
 /*************************************
  diagnostic code
 *************************************/
-/*
-	  	if(ks.activeTask->priority ==31){
+
+	  	if(ks->activeTask->priority ==31){
 		// 	 //makes assumption a 31 prioty task is an idle task
-		 	ks.idleTaskRunning = 1;
-		  	ks.lastIdleRunningTime = getTicks4(0);
+		 	ks->idleTaskRunning = 1;
+		  	ks->lastIdleRunningTime = getTicks4(0);
 			
 		 }
 
@@ -300,27 +299,27 @@ end diagnostic code
 
 
 		r = activate(ks->activeTask);
-/*
-		if(ks.idleTaskRunning ){
-					ks.totalIdleRunningTime += getTicks4(0) -ks.lastIdleRunningTime;
-					ks.idleTaskRunning = 0;
+
+		if(ks->idleTaskRunning ){
+					ks->totalIdleRunningTime += getTicks4(0) -ks->lastIdleRunningTime;
+					ks->idleTaskRunning = 0;
 		}
 
 /*************************************
  diagnostic code
 *************************************/
-
-		 //if(r == 0){
+/*
+		 if(r == 0){
 		 //if interupt print diagnostic info.
 		 //print only if diagnostic info changes:
-		 //	int new_idle = 100 * ks.totalIdleRunningTime / getTicks4(0);
-		 // 	if(old_idle - new_idle){
-		 	//	old_idle = new_idle;
-		//  		bwprintf(COM2,"\033[s\033[?25l\033[1;90H idle:%d%% \033[u\033[?25h",old_idle);
-		// 	}
-		// }
+		 	int new_idle = 100 * ks->totalIdleRunningTime / getTicks4(0);
+		 	if(old_idle - new_idle){
+		 		old_idle = new_idle;
+		  		bwprintf(COM2,"\033[s\033[?25l\033[1;90H idle:%d%% \033[u\033[?25h",old_idle);
+		 	}
+		 }
 
-
+*/
 
 /*************************************
 end diagnostic code

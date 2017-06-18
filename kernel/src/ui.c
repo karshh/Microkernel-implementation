@@ -52,7 +52,7 @@ void displayGrid() {
 
 	// sensor graph.
 
-	displayTrack();
+	//displayTrack();
 
 	// table headers
 	Printf(iosTID, COM2,  "\033[3;4HSwitch\033[4;3HPosition");

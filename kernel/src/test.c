@@ -419,7 +419,6 @@ void testTaskPass3(){
     unsigned int initTick;
     unsigned int endTick;
     int i;
-    int j;
     int total=0;
 
     stopTimer(TIMER4_BASE);
@@ -740,6 +739,91 @@ void testMemCpy(){
 	//bwprintf(COM2,"stringa:[%d]\n\r",&b2);
 	//TESTold(a1,b1);
 }
+/*
+
+void testClockStorage(){
+	StorageNode s;
+	TimeStorage t;
+	initStorage(&t);
+    	unsigned int initTick;
+    	unsigned int endTick;
+    	int i;
+    	int total=0;
+    	bwprintf(COM2, "Old Storage algos\r\n");
+	
+    	//stopTimer(TIMER4_BASE);
+    	//startTimer(TIMER4_BASE, 0,0,0);
+    	for(i=0;i<125;i++){
+    		initTick = getTicks4us(0);
+		s.tid = i; 
+		s.delayTime = getTicks4us(0) % 37; // get number based on delay time
+		bwassert(insertIntoStorage(&t, &s), COM2, "<ClockServer>: DelayUntil storage error. Could not put TD<%d> into storage.\r\n", s.tid);
+    		endTick = getTicks4us(0);
+		total += endTick - initTick;
+    	}
+    	bwprintf(COM2, "Time: Insert %d \r\n",(int)( total));
+int total2 = total;	
+	total = 0;
+    	for(i=0;i<125;i++){
+    		initTick = getTicks4us(0);
+			if (!deleteFromStorage(&t, &s)) break;
+    		endTick = getTicks4us(0);
+		total += endTick - initTick;
+    	}
+
+    	bwprintf(COM2, "Time: Delete %d \r\n",(int)( total));
+    	bwprintf(COM2, "Total Time to fill and unfill %d \r\n",(int)( total+total2));
+    	Exit();
+
+}
+*/
+void testClockStorage2(){
+	StorageNode s;
+	TimeStorage t;
+	initStorage(&t);
+    	unsigned int initTick;
+    	unsigned int endTick;
+    	int i;
+    	int total=0;
+	
+    	bwprintf(COM2, "New Storage algos\r\n");
+    	//stopTimer(TIMER4_BASE);
+    	//startTimer(TIMER4_BASE, 0,0,0);
+    	for(i=0;i<125;i++){
+    		initTick = getTicks4us(0);
+		s.tid = i; 
+		s.delayTime = getTicks4us(0) % 37; // get number based on delay time
+		bwassert(minHeapInsert(&t, &s), COM2, "<ClockServer>: DelayUntil storage error. Could not put TD<%d> into storage.\r\n", s.tid);
+    		endTick = getTicks4us(0);
+		total += endTick - initTick;
+    	}
+
+    	bwprintf(COM2, "Time: Insert %d \r\n",(int)( total));
+int total2 = total;	
+	total = 0;
+    	for(i=0;i<125;i++){
+    		initTick = getTicks4us(0);
+			int peak;
+			if(!minHeapPeak(&t,&peak)){  
+				endTick = getTicks4us(0);
+				total += endTick - initTick;
+				break;}
+			if (peak >= 25){ 
+				endTick = getTicks4us(0);
+				total += endTick - initTick;
+				break;}
+			if (!minHeapDelete(&t, &s)){ 
+    			bwprintf(COM2, "heap empty\r\n"); break;}
+
+    		endTick = getTicks4us(0);
+		total += endTick - initTick;
+    	}
+
+    	bwprintf(COM2, "Time: Delete %d \r\n",(int)( total));
+    	bwprintf(COM2, "Total Time to fill and unfill %d \r\n",(int)( total+total2));
+    	Exit();
+
+}
 
 int main(void) {
     // turning on data and instruction cache.
@@ -748,7 +832,10 @@ int main(void) {
         "ORR r0, r0, #0x1 <<12 \n"
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
-    //kernelRun(2,(int) FirstUserTask);
+    //kernelRun(2,(int) testClockStorage);
+    kernelRun(2,(int) testClockStorage2);
+
+/*
 if(0){ //run pass3 test
 	    bwprintf(COM2,"PASS 3\n\r");
     kernelRun(2,(int) testTaskPass3);
@@ -850,7 +937,7 @@ else{
 	}
 }
 
-
+*/
 }
 
 

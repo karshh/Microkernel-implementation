@@ -17,21 +17,21 @@ void Task() {
 	int clockServerTid = WhoIs("clockServer");
 	char reply[3];
 	char replyLen = 3;
-	bwprintf(COM2, "TD<%d>: Asking God for a delay request.\r\n", myTid);
+	//bwprintf(COM2, "TD<%d>: Asking God for a delay request.\r\n", myTid);
 	Send(godTid, "1", 2, reply, replyLen);
 	volatile int delayTime = (int) reply[0];
 	volatile int numDelays = (int) reply[1];
 	volatile int i = 0;
-	bwprintf(COM2, "TD<%d>: Received delayTime:%d, numDelays:%d. Entering delay mode.\r\n", myTid, delayTime, numDelays);
+	//bwprintf(COM2, "TD<%d>: Received delayTime:%d, numDelays:%d. Entering delay mode.\r\n", myTid, delayTime, numDelays);
 	volatile int time1 = 0;
 	volatile int time2 = 0;
 	for (i = 0; i < numDelays; i++) {
 		time1 = Time(clockServerTid);
 		Delay(clockServerTid, delayTime);
 		time2 = Time(clockServerTid);
-		bwprintf(COM2, "TD<%d>: Delay Interval:[%d-%d]\tDelays completed: %d.\r\n", myTid, time1, time2, i+1);
+		bwprintf(COM2, "%d:[%d-%d]-%d\r\n", myTid, time1, time2, i+1);
 	}
-	bwprintf(COM2, "TD<%d>: Completed God's delay request. Current time is %d ticks\r\n", myTid, Time(clockServerTid));
+	bwprintf(COM2, "%d:%d\r\n", myTid, Time(clockServerTid));
 	Exit();
 
 }
@@ -42,6 +42,7 @@ void God() {
 	bwprintf(COM2, "\033[2J\033[2;H");//clear screen
 	CreateNameServer(2, (void *) NameServerTask);
 	CreateClockServer(2, (void *) clockServer);
+	Create(31, (void *) idleTask);
 	//and it was good
 	
 	//Then he created his children
@@ -61,25 +62,25 @@ void God() {
 	reply[0] = 10; // Delay Time (ticks)
 	reply[1] = 20; // Number of delays
 	reply[2] = 0;
-	bwprintf(COM2, "<God>: Sending the following delay parameters to TD<%d>: delayTime:%d, numDelays:%d \r\n", _tid, reply[0], reply[1]);
+	//bwprintf(COM2, "<God>: Sending the following delay parameters to TD<%d>: delayTime:%d, numDelays:%d \r\n", _tid, reply[0], reply[1]);
 	Reply(_tid, reply, 3);
 	Receive( &_tid, msg, msgLen);
 	reply[0] = 23; // Delay Time (ticks)
 	reply[1] = 9; // Number of delays
 	reply[2] = 0;
-	bwprintf(COM2, "<God>: Sending the following delay parameters to TD<%d>: delayTime:%d, numDelays:%d \r\n", _tid, reply[0], reply[1]);
+	//bwprintf(COM2, "<God>: Sending the following delay parameters to TD<%d>: delayTime:%d, numDelays:%d \r\n", _tid, reply[0], reply[1]);
 	Reply(_tid, reply, 3);
 	Receive( &_tid, msg, msgLen);
 	reply[0] = 33; // Delay Time (ticks)
 	reply[1] = 6; // Number of delays
 	reply[2] = 0;
-	bwprintf(COM2, "<God>: Sending the following delay parameters to TD<%d>: delayTime:%d, numDelays:%d \r\n", _tid, reply[0], reply[1]);
+	//bwprintf(COM2, "<God>: Sending the following delay parameters to TD<%d>: delayTime:%d, numDelays:%d \r\n", _tid, reply[0], reply[1]);
 	Reply(_tid, reply, 3);
 	Receive( &_tid, msg, msgLen);
 	reply[0] = 71; // Delay Time (ticks)
 	reply[1] = 3; // Number of delays
 	reply[2] = 0;
-	bwprintf(COM2, "<God>: Sending the following delay parameters to TD<%d>: delayTime:%d, numDelays:%d \r\n", _tid, reply[0], reply[1]);
+	//bwprintf(COM2, "<God>: Sending the following delay parameters to TD<%d>: delayTime:%d, numDelays:%d \r\n", _tid, reply[0], reply[1]);
 	Reply(_tid, reply, 3); 
 	//and it was good
 	//after giving his holy commandments, he left this mortal plane toward the next form of existence
@@ -100,6 +101,7 @@ int main() {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
 
+bwprintf(COM2,"STARING K3 Tests (post k4)/n/r");
 
 	kernelRun(3, (int) God);
 

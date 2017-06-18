@@ -28,8 +28,8 @@ void NameServerTask();
 #define STORAGE_CAPACITY 128
 
 typedef struct StorageNode {
-	int tid;
 	volatile int delayTime;
+	int tid;
 } StorageNode;
 
 typedef struct TimeStorage {
@@ -37,9 +37,27 @@ typedef struct TimeStorage {
 	int size;
 } TimeStorage;
 void initStorage(TimeStorage * t);
+/*
 int insertIntoStorage(TimeStorage * t, StorageNode * n);
 int deleteFromStorage(TimeStorage * t, StorageNode * n);
+*/
+inline int heapParent(int i);
 
+inline int heapLeft(int i);
+
+inline int heapRight(int i);
+
+//min heap so A[parent(i)] <= A[i];
+
+//peak
+inline int minHeapPeak(TimeStorage *t, int * peak);
+
+void minHeapify(TimeStorage *t,int i);
+//delete
+int minHeapDelete(TimeStorage *t, StorageNode *n);
+//insert
+int minHeapInsert(TimeStorage *t, StorageNode *n);
+	
 // clockserver code.
 
 void idleTask();

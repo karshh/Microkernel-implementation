@@ -19,7 +19,7 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 ARFLAGS = rcs
 LDFLAGS = -init main -Map m.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
-all: clean bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o test.o test.elf trackA.elf trackB.elf install
+all: clean bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o test.o test.elf trackA.elf trackB.elf k4.elf install
 
 # new file preable
 #.s: .c
@@ -158,16 +158,16 @@ trackB.o: trackB.s
 	$(AS) $(ASFLAGS) -o trackB.o trackB.s
 
 test.elf:test.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o pkstring.o  userRequestCall.o interruptHandler.o kernelHandler.o kernelRequestCall.o time.o icu.o dictionary.o buffer.o td.o server.o controller.o ui.o test.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o pkstring.o userRequestCall.o interruptHandler.o kernelHandler.o kernelRequestCall.o time.o icu.o dictionary.o buffer.o td.o server.o controller.o ui.o test.o -lgcc
 
 k1.elf: k1.o
 	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o k1.o -lgcc
 
 k2.elf: k2.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o k2.o -lgcc
+	$(LD) $(LDFLAGS) -o $@ bwio.o pkstring.o userRequestCall.o interruptHandler.o kernelHandler.o kernelRequestCall.o time.o icu.o dictionary.o buffer.o td.o server.o controller.o ui.o k2.o -lgcc
 
 k3.elf: k3.o
-	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o  pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o k3.o -lgcc
+	$(LD) $(LDFLAGS) -o $@  bwio.o pkstring.o userRequestCall.o interruptHandler.o kernelHandler.o kernelRequestCall.o time.o icu.o dictionary.o buffer.o td.o server.o controller.o ui.o k3.o -lgcc
 
 k4.elf: k4.o
 	$(LD) $(LDFLAGS) -o $@ bwio.o time.o icu.o pkstring.o dictionary.o buffer.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o k4.o -lgcc
@@ -181,6 +181,7 @@ trackB.elf: trackB.o
 
 install: test.elf trackA.elf trackB.elf
 	cp test.elf /u/cs452/tftp/ARM/`whoami`/
+	cp k4.elf /u/cs452/tftp/ARM/`whoami`/
 	cp trackA.elf /u/cs452/tftp/ARM/`whoami`/
 	cp trackB.elf /u/cs452/tftp/ARM/`whoami`/
 
