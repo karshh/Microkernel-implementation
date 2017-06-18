@@ -198,7 +198,12 @@ void TrackGraphInit(TrackGraph * t) {
 int getShortestPath(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength) {
 
 	if (sensorStart <= 0 || sensorEnd <= 0) return 0;
-	volatile int print = 1; // use this to toggle print
+	if (sensorStart == sensorEnd) {
+		path[0] = sensorStart;
+		*pathLength = 1;
+		return 1;
+	}
+	volatile int print = 0; // use this to toggle print
 	circularBuffer cb;
 	circularBufferInit(&cb);
 

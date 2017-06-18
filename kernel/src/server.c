@@ -617,6 +617,7 @@ void trainServer(){
 	int trainSpeed[80];
 	int trainCurrentSensor[80];
 	int trainExpectedSensor[80];
+	int trainDestinationSensor[80];
 
 
 
@@ -643,6 +644,7 @@ void trainServer(){
 	for (i=0; i < 80; i++){
 			trainCurrentSensor[i] = 0;
 			trainExpectedSensor[i] = 0;
+			trainDestinationSensor[i] = 0;
  			trainSpeed[i] = 0;
 			commandMsg[0] = 'T';
 			commandMsg[1] = trainSpeed[i];
@@ -736,6 +738,16 @@ void trainServer(){
 			volatile int j = 0;
 			for (j = 0; j < msgLen; j++) {
 				for (i = 58; i < 80; i++) {
+					if (trainDestinationSensor[i] == msg[j]) {
+
+						commandMsg[0] = 'T';
+						commandMsg[1] = 0;
+						commandMsg[2] = i;
+						commandMsg[3] = 0;
+						bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+						trainSpeed[i] = 0;
+						trainDestinationSensor[i] = 0;
+					}
 					if (trainExpectedSensor[i] == msg[j]) {
 						trainCurrentSensor[i] = msg[j];
 						trainExpectedSensor[i] = findNextSensor(&t, msg[j]);
@@ -799,12 +811,14 @@ void trainServer(){
 				train = msg[1];
 				sens = msg[2];
 				if (train >= 58 && train < 80) {
+
 					int path[102];
 					int pathLength = 0;
 					if (!getShortestPath(&t, trainExpectedSensor[train], sens, path, &pathLength)) {
 						Reply(_tid, "0", 2);
 						break;
 					}
+					trainDestinationSensor[train] = sens;
 
 					for (i = 0; i < pathLength; i++) {
 						if (node[path[i]].type == Sensor) continue;
