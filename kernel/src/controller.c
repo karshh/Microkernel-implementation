@@ -190,7 +190,16 @@ int parseCommand(char * input, int * arg1, int * arg2){
 						*arg1 = train;
 						*arg2 = sens;
 
-						return COMMAND_SS;
+
+
+                        msg[0] = 'J';
+                        msg[1] = train;
+                        msg[2] = sens;
+                        msg[3] = '\0';
+
+                        bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Init sensor command.\r\n");
+
+						return reply[0] == '1' ? COMMAND_SS : COMMAND_SSW;
 						break;
 					case(DFA_IS_1):
 						*arg1 = train;

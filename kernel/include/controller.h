@@ -22,6 +22,8 @@
 #define COMMAND_LOADING		20
 #define COMMAND_SS			21 //Stop at sensor "SS <TR> <SEN>"
 #define COMMAND_IS			22 //Init at sensor "IS <TR> <SEN>"
+#define COMMAND_SSW			23// Path failed.
+
 
 #define DFA_INIT 0
 #define DFA_ERROR -1

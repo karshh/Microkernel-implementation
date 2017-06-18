@@ -741,7 +741,7 @@ void trainServer(){
 						trainExpectedSensor[i] = findNextSensor(&t, msg[j]);
 						dspMsg[0] = 3; //hardcoded to indicate expected sensor
 						dspMsg[1] = i;
-						dspMsg[2] = trainExpectedSensor[j];
+						dspMsg[2] = trainExpectedSensor[i];
 						dspMsg[3] = 0;
 						bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
 					}
@@ -795,7 +795,91 @@ void trainServer(){
 
 		        break;
 
-			case 'I':
+			case 'J': // ss command
+				train = msg[1];
+				sens = msg[2];
+				if (train >= 58 && train < 80) {
+					int path[102];
+					int pathLength = 0;
+					if (!getShortestPath(&t, trainExpectedSensor[train], sens, path, &pathLength)) {
+						Reply(_tid, "0", 2);
+						break;
+					}
+
+					for (i = 0; i < pathLength; i++) {
+						if (node[path[i]].type == Sensor) continue;
+						else if (node[path[i]].type == Switch) {
+							switch(node[path[i]].switchConfig) {
+								case C:
+									if (node[path[i]].CnextNodeIndex == path[i-1]) break;
+									node[path[i]].switchConfig = S;
+									commandMsg[0] = 'S';
+									commandMsg[1] = 33;
+									commandMsg[2] = path[i] - 80;
+									commandMsg[3] = 0;
+									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+									break;
+								case S:
+									if (node[path[i]].SnextNodeIndex == path[i-1]) break;
+									node[path[i]].switchConfig = C;
+									commandMsg[0] = 'S';
+									commandMsg[1] = 34;
+									commandMsg[2] = path[i] - 80;
+									commandMsg[3] = 0;
+									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+									break;
+								default:
+									bwassert( 0, COM2, "<trainServer>: Got an invalid single switch configuration.");
+									break;
+							}
+
+						}
+						else if (node[path[i]].type == MultiSwitch) {
+							switch(node[path[i]].switchConfig) {
+								case CS:
+									if (node[path[i]].CSnextNodeIndex == path[i-1]) break;
+									node[path[i]].switchConfig = SC;
+									commandMsg[0] = 'S';
+									commandMsg[1] = 33;
+									commandMsg[2] = path[i] == 99 ? 153 : 155;
+									commandMsg[3] = 0;
+									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+									commandMsg[0] = 'S';
+									commandMsg[1] = 34;
+									commandMsg[2] = path[i] == 99 ? 154 : 156;
+									commandMsg[3] = 0;
+									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+									break;
+
+								case SC:
+									if (node[path[i]].SCnextNodeIndex == path[i-1]) break;
+									node[path[i]].switchConfig = CS;
+									commandMsg[0] = 'S';
+									commandMsg[1] = 34;
+									commandMsg[2] = path[i] == 99 ? 153 : 155;
+									commandMsg[3] = 0;
+									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+									commandMsg[0] = 'S';
+									commandMsg[1] = 33;
+									commandMsg[2] = path[i] == 99 ? 154 : 156;
+									commandMsg[3] = 0;
+									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+									break;
+								default:
+									bwassert( 0, COM2, "<trainServer>: Got an invalid multi switch configuration.");
+									break;
+
+							}
+						} else {
+							bwassert( 0, COM2, "<trainServer>: Got an invalid node.");
+
+						}
+					}
+				} 
+				Reply(_tid, "1", 2);
+		        break;
+
+			case 'I': // is command
 				train = msg[1];
 				sens = msg[2];
 				if (train >= 58 && train < 80) {
@@ -811,6 +895,7 @@ void trainServer(){
 		        Reply(_tid, "1", 2);
 
 		        break;
+
 			case 'S':
 				sw = msg[1];
 				swd = msg[2];
@@ -1091,11 +1176,15 @@ void displayServer() {
 	                break;
 
 	        	case COMMAND_SS:
-	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KSS command[Fix msg Karsh] train %d for sensor %d.\033[34;1H>",msg[1],msg[2]);
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KPath for train %d set up en route to sensor %d.\033[34;1H>",msg[1],msg[2]);
+	                break;
+
+	        	case COMMAND_SSW:
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KSS Could not set up path for train %d to sensor %d.\033[34;1H>",msg[1],msg[2]);
 	                break;
 
 	        	case COMMAND_IS:
-	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KIS command[Fix msg Karsh] train %d for sensor %d.\033[34;1H>",msg[1],msg[2]);
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KProgram is now awaiting train %d to flick sensor %d in order to complete registration.\033[34;1H>",msg[1],msg[2]);
 	                break;
             		case COMMAND_Q:
 	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KQuiting Kernel.\033[34;1H>");
@@ -1158,7 +1247,7 @@ void displayServer() {
 				}
 					
 			} else if (msg[0] == 3) {//3 is train sensor update
-				Printf(iosTID, COM2,"\033[%d;30H%c%d%d", msg[1] - 52, ((msg[2]-1)/16)+'A',((msg[2]-1)%16+1)/10, ((msg[2]-1)%16+1)%10);
+				Printf(iosTID, COM2,"\033[s\033[?25l\033[%d;30H%c%d%d\033[u\033[?25h", msg[1] - 52, ((msg[2]-1)/16)+'A',((msg[2]-1)%16+1)/10, ((msg[2]-1)%16+1)%10);
 
 			} else if (msg[0] == 1) {//1 is switch mode warning
 	       			switchLocation = msg[2] + 6;
