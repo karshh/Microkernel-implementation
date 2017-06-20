@@ -501,7 +501,7 @@ void testTaskSend4() {
 	total += endTick - initTick;
     //bwprintf(COM2, "Ticks taken to complete: %d \r\n", endTick - initTick);
     }
-    bwprintf(COM2, "Avg Time: %d \r\n",(int)( total));
+    bwprintf(COM2, "Avg Time1: %10d \r\n",(int)( total));
     Exit();
 
 
@@ -825,6 +825,105 @@ int total2 = total;
 
 }
 
+void U2Test(){
+	//lightwave U2 io server for debug purposes
+	
+    int _tid = -1;
+    char msg[66];
+    int msgCap = 66;
+    //char reply[6];
+
+    // extra variables used.
+
+					int count =0;
+					char * str = 0;
+	while(1) {
+		bwassert(Receive(&_tid, msg, msgCap) >= 0, COM2, "<UART1SendServer>: Receive error.\r\n");
+		switch((int) msg[0]) {
+			    case 'Q': // Angel of Death
+					bwprintf( COM2, "<Uart1SendServer>: Quiting.\r\n");
+					Reply(_tid, "1", 2);
+					Exit();
+			    case 21: // UART1 Putc
+				//if dead rplyblck
+					count =0;
+					str = &msg[1];
+					while(*str){ 
+						count ++;
+						str++;
+					}
+					bwprintf(COM2, "count = %d\n\r", count);
+					bwprintf(COM2, "[%s] \n\r",&msg[1]);
+					Reply(_tid, "1", 2);
+				break;
+			    default:
+				bwassert(0, COM2, "<Uart1SendServer>: Illegal request code from userTask <%d>.\r\n", _tid);
+				break;
+		}
+     	}
+}
+
+
+
+void testPrintf(){
+	int uprint = CreateIOServer(1, (void *) U2Test, UART2S);
+	bwassert(uprint >=0, COM2, "Failed Create UART2TS Server.\n\r");
+	Putc(uprint, COM2, 'C');
+	Putstr(uprint, COM2, "C");
+	Putstr(uprint, COM2, "CAMERA");
+	Putstr(uprint, COM2, "CAMERA");
+	Putstr(uprint, COM2, "123456789012345678901234567890123456789012345678901234567890"); //60
+	Putstr(uprint, COM2, "1234567890123456789012345678901234567890123456789012345678901"); //61
+	Putstr(uprint, COM2, "12345678901234567890123456789012345678901234567890123456789012"); //62
+	Putstr(uprint, COM2, "123456789012345678901234567890123456789012345678901234567890123"); //63
+	Putstr(uprint, COM2, "1234567890123456789012345678901234567890123456789012345678901234"); //64
+
+
+	Putstr(uprint, COM2, "Under = 64");
+	Putstr(uprint, COM2, "12345678901234567890123456789012345678901234567890123456789012345"); //65
+	Putstr(uprint, COM2, "1234567890123456789012345678901234567890123456789012345678901234A234567890123456789012345678901234567890123456789012345678901234ABCDE"); //69
+bwprintf(COM2,"Testing Putx\n\r");
+bwprintf(COM2,"Testing Putx A\n\r");
+	Putx(uprint,COM2,'A');
+bwprintf(COM2,"Testing Putx B\n\r");
+	Putx(uprint,COM2,'B');
+bwprintf(COM2,"Testing Putr\n\r");
+unsigned int tmp= 1;
+	Putr(uprint,COM2,tmp);
+tmp= 1;
+	Putr(uprint,COM2,tmp);
+ tmp= 2;
+	Putr(uprint,COM2,tmp);
+
+bwprintf(COM2,"putw\n\r");
+	Putw(uprint,COM2,10,'W',"tmp");
+
+bwprintf(COM2,"test printf numbers[%8x]TEST\n\r",10);
+Printf(uprint,COM2,"test");
+Printf(uprint,COM2,"test%c",'A');
+Printf(uprint,COM2,"test%c%%",'A');
+Printf(uprint,COM2,"test [%7s] !","string");
+Printf(uprint,COM2,"test [%7s] %x  !","string",10);
+Printf(uprint,COM2,"test [%7s] %x %d %d %u!","string",16,16,-16,-16);
+Printf(uprint,COM2,"**********************************");
+
+
+
+    Printf(uprint, COM2, "Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of \"de Finibus Bonorum et Malorum\" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, \"Lorem ipsum dolor sit amet..\", comes from a line in section 1.10.32.\r\n\r\n\r\n");
+
+
+
+
+Printf(uprint,COM2,"**********************************");
+bwprintf(COM2,"Quiting\n\r");
+	//quit
+    	char msg[2];
+    	int msgCap = 2;
+	Send(uprint,"Q",2,msg[2],msgCap);
+	Exit();
+}
+
+
 int main(void) {
     // turning on data and instruction cache.
      asm volatile (
@@ -833,111 +932,24 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
     //kernelRun(2,(int) testClockStorage);
-    kernelRun(2,(int) testClockStorage2);
+    //kernelRun(2,(int) testPrintf);
+    kernelRun(2,(int) testTaskGod4);
+    kernelRun(2,(int) testTaskGod4);
+    kernelRun(2,(int) testTaskGod4);
+    kernelRun(2,(int) testTaskGod4);
+     asm volatile (
+        "MRC p15, 0, r0, c1, c0, 0 \n"
+        "ORR r0, r0, #0x1 <<30 \n"
+        "ORR r0, r0, #0x1 <<12 \n"
+        "ORR r0, r0, #0x1 <<2 \n"
+        "MCR p15, 0, r0, c1, c0, 0 \n");
+    //kernelRun(2,(int) testClockStorage);
+    //kernelRun(2,(int) testPrintf);
+    kernelRun(2,(int) testTaskGod4);
+    kernelRun(2,(int) testTaskGod4);
+    kernelRun(2,(int) testTaskGod4);
+    kernelRun(2,(int) testTaskGod4);
 
-/*
-if(0){ //run pass3 test
-	    bwprintf(COM2,"PASS 3\n\r");
-    kernelRun(2,(int) testTaskPass3);
-    kernelRun(2,(int) testTaskPass3);
-    kernelRun(2,(int) testTaskPass3);
-    kernelRun(2,(int) testTaskPass3);
-    kernelRun(2,(int) testTaskPass3);
-    kernelRun(2,(int) testTaskPass3);
-    kernelRun(2,(int) testTaskPass3);
-    kernelRun(2,(int) testTaskPass3);
-    kernelRun(2,(int) testTaskPass3);
-    kernelRun(2,(int) testTaskPass3);
-    kernelRun(2,(int) testTaskPass3);
-    kernelRun(2,(int) testTaskPass3);
-    kernelRun(2,(int) testTaskPass3);
-    kernelRun(2,(int) testTaskPass3);
-    kernelRun(2,(int) testTaskPass3);
-}
-else{
-	if(0){ //run rsr
-		if(0){
-		    bwprintf(COM2,"RSR God4\n\r");
-		    kernelRun(2,(int) testTaskGodRSR4);
-		    kernelRun(2,(int) testTaskGodRSR4);
-		    kernelRun(2,(int) testTaskGodRSR4);
-		    kernelRun(2,(int) testTaskGodRSR4);
-		    kernelRun(2,(int) testTaskGodRSR4);
-		    kernelRun(2,(int) testTaskGodRSR4);
-		    kernelRun(2,(int) testTaskGodRSR4);
-		    kernelRun(2,(int) testTaskGodRSR4);
-		    kernelRun(2,(int) testTaskGodRSR4);
-		    kernelRun(2,(int) testTaskGodRSR4);
-		    kernelRun(2,(int) testTaskGodRSR4);
-		    kernelRun(2,(int) testTaskGodRSR4);
-		    kernelRun(2,(int) testTaskGodRSR4);
-		    kernelRun(2,(int) testTaskGodRSR4);
-		    kernelRun(2,(int) testTaskGodRSR4);
-		}
-		else{
-		    bwprintf(COM2,"RSR God64\n\r");
-		    kernelRun(2,(int) testTaskGodRSR64);
-		    kernelRun(2,(int) testTaskGodRSR64);
-		    kernelRun(2,(int) testTaskGodRSR64);
-		    kernelRun(2,(int) testTaskGodRSR64);
-		    kernelRun(2,(int) testTaskGodRSR64);
-		    kernelRun(2,(int) testTaskGodRSR64);
-		    kernelRun(2,(int) testTaskGodRSR64);
-		    kernelRun(2,(int) testTaskGodRSR64);
-		    kernelRun(2,(int) testTaskGodRSR64);
-		    kernelRun(2,(int) testTaskGodRSR64);
-		    kernelRun(2,(int) testTaskGodRSR64);
-		    kernelRun(2,(int) testTaskGodRSR64);
-		    kernelRun(2,(int) testTaskGodRSR64);
-		    kernelRun(2,(int) testTaskGodRSR64);
-		    kernelRun(2,(int) testTaskGodRSR64);
-		}
-	}else{ //run srr
-
-	    if(1){//run 4 byte
-		bwprintf(COM2,"SRR God4\n\r");
-	    kernelRun(2,(int) testTaskGod4);
-	    kernelRun(2,(int) testTaskGod4);
-	    kernelRun(2,(int) testTaskGod4);
-	    kernelRun(2,(int) testTaskGod4);
-	    kernelRun(2,(int) testTaskGod4);
-	    kernelRun(2,(int) testTaskGod4);
-	    kernelRun(2,(int) testTaskGod4);
-	    kernelRun(2,(int) testTaskGod4);
-	    kernelRun(2,(int) testTaskGod4);
-	    kernelRun(2,(int) testTaskGod4);
-	    kernelRun(2,(int) testTaskGod4);
-	    kernelRun(2,(int) testTaskGod4);
-	    kernelRun(2,(int) testTaskGod4);
-	    kernelRun(2,(int) testTaskGod4);
-	    kernelRun(2,(int) testTaskGod4);
-		}
-		else{
-		//run 64 byte
-		bwprintf(COM2,"SRR God64\n\r");
-
-	    kernelRun(2,(int) testTaskGod64);
-	    kernelRun(2,(int) testTaskGod64);
-	    kernelRun(2,(int) testTaskGod64);
-	    kernelRun(2,(int) testTaskGod64);
-	    kernelRun(2,(int) testTaskGod64);
-	    kernelRun(2,(int) testTaskGod64);
-	    kernelRun(2,(int) testTaskGod64);
-	    kernelRun(2,(int) testTaskGod64);
-	    kernelRun(2,(int) testTaskGod64);
-	    kernelRun(2,(int) testTaskGod64);
-	    kernelRun(2,(int) testTaskGod64);
-	    kernelRun(2,(int) testTaskGod64);
-	    kernelRun(2,(int) testTaskGod64);
-	    kernelRun(2,(int) testTaskGod64);
-	    kernelRun(2,(int) testTaskGod64);
-		}
-		//testMemCpy();
-		return 0;
-	}
-}
-
-*/
 }
 
 

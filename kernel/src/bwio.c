@@ -225,17 +225,21 @@ void bwformat ( int channel, char *fmt, va_list va ) {
 				bwputc( channel, va_arg( va, char ) );
 				break;
 			case 's':
-				bwputw( channel, w, 0, va_arg( va, char* ) );
+				lz = ' ';
+				bwputw( channel, w, lz, va_arg( va, char* ) );
 				break;
 			case 'u':
+				lz = '0';
 				bwui2a( va_arg( va, unsigned int ), 10, bf );
 				bwputw( channel, w, lz, bf );
 				break;
 			case 'd':
+				lz = '0';
 				bwi2a( va_arg( va, int ), bf );
 				bwputw( channel, w, lz, bf );
 				break;
 			case 'x':
+				lz = '0';
 				bwui2a( va_arg( va, unsigned int ), 16, bf );
 				bwputw( channel, w, lz, bf );
 				break;
