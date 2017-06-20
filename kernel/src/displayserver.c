@@ -113,8 +113,6 @@ void displayServer() {
     char msg[64];
     int msgCap = 64;
     int msgLen = -1;
-    char rpl[4];
-    int rplLen = 4;
     int cursorCol = 0;
     // sensor variables'
     const int maxCursor = SENSOR_LIST_SIZE + 5;

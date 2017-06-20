@@ -241,6 +241,7 @@ void trainServer(){
 									commandMsg[2] = path[i] - 80;
 									commandMsg[3] = 0;
 									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+									update_switch(path[i] - 80, &t); //updates the display
 									break;
 								case S:
 									if (node[path[i]].SnextNodeIndex == path[i-1]) break;
@@ -250,6 +251,7 @@ void trainServer(){
 									commandMsg[2] = path[i] - 80;
 									commandMsg[3] = 0;
 									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+									update_switch(path[i] - 80, &t); //updates the display
 									break;
 								default:
 									bwassert( 0, COM2, "<trainServer>: Got an invalid single switch configuration.");
@@ -267,11 +269,13 @@ void trainServer(){
 									commandMsg[2] = path[i] == 99 ? 153 : 155;
 									commandMsg[3] = 0;
 									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+									update_switch(path[i] == 99 ? 153 : 155, &t); //updates the display
 									commandMsg[0] = 'S';
 									commandMsg[1] = 34;
 									commandMsg[2] = path[i] == 99 ? 154 : 156;
 									commandMsg[3] = 0;
 									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+									update_switch(path[i] == 99 ? 154 : 156, &t); //updates the display
 									break;
 
 								case SC:
@@ -282,11 +286,13 @@ void trainServer(){
 									commandMsg[2] = path[i] == 99 ? 153 : 155;
 									commandMsg[3] = 0;
 									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+									update_switch(path[i] == 99 ? 153 : 155, &t); //updates the display
 									commandMsg[0] = 'S';
 									commandMsg[1] = 33;
 									commandMsg[2] = path[i] == 99 ? 154 : 156;
 									commandMsg[3] = 0;
 									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+									update_switch(path[i] == 99 ? 154 : 156, &t); //updates the display
 									break;
 								default:
 									bwassert( 0, COM2, "<trainServer>: Got an invalid multi switch configuration.");
