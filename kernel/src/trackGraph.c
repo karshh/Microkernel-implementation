@@ -107,7 +107,7 @@ void TrackGraphInit(TrackGraph * t) {
 	node[sensor2i("C10")].nextNodeIndex = switch2i(16);
 	node[sensor2i("C11")].nextNodeIndex = switch2i(13);
 	node[sensor2i("C12")].nextNodeIndex = sensor2i("A04");
-	node[sensor2i("C13")].nextNodeIndex = sensor2i("E08");
+	node[sensor2i("C13")].nextNodeIndex = sensor2i("E07");
 	node[sensor2i("C14")].nextNodeIndex = switch2i(11);
 	node[sensor2i("C15")].nextNodeIndex = sensor2i("D12");
 	node[sensor2i("C16")].nextNodeIndex = sensor2i("C06"); 
@@ -118,7 +118,7 @@ void TrackGraphInit(TrackGraph * t) {
 	node[sensor2i("D05")].nextNodeIndex = sensor2i("E06");
 	node[sensor2i("D06")].nextNodeIndex = switch2i(8);
 	node[sensor2i("D07")].nextNodeIndex = switch2i(8);
-	node[sensor2i("D08")].nextNodeIndex = sensor2i("E07");
+	node[sensor2i("D08")].nextNodeIndex = sensor2i("E08");
 	node[sensor2i("D09")].nextNodeIndex = sensor2i("E12");
 	node[sensor2i("D10")].nextNodeIndex = switch2i(9);
 	node[sensor2i("D11")].nextNodeIndex = sensor2i("C16");
@@ -133,8 +133,8 @@ void TrackGraphInit(TrackGraph * t) {
 	node[sensor2i("E04")].nextNodeIndex = sensor2i("E05");
 	node[sensor2i("E05")].nextNodeIndex = sensor2i("D06");
 	node[sensor2i("E06")].nextNodeIndex = switch2i(10);
-	node[sensor2i("E07")].nextNodeIndex = sensor2i("C14");
-	node[sensor2i("E08")].nextNodeIndex = sensor2i("D07");
+	node[sensor2i("E07")].nextNodeIndex = sensor2i("D07");
+	node[sensor2i("E08")].nextNodeIndex = sensor2i("C14");
 	node[sensor2i("E09")].nextNodeIndex = switch2i(9);
 	node[sensor2i("E10")].nextNodeIndex = sensor2i("E13");
 	node[sensor2i("E11")].nextNodeIndex = sensor2i("D10");

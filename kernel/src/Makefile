@@ -19,7 +19,7 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 ARFLAGS = rcs
 LDFLAGS = -init main -Map m.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
-SRC = bwio.o time.o icu.o pkstring.o dictionary.o buffer.o trackGraph.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o server.o controller.o ui.o
+SRC = bwio.o time.o icu.o pkstring.o dictionary.o buffer.o trackGraph.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o nameserver.o clockserver.o ioserver.o commandserver.o trainserver.o displayserver.o deathserver.o usertasks.o controller.o ui.o
 
 
 all: clean $(SRC) install
@@ -29,6 +29,48 @@ all: clean $(SRC) install
 #	$(XCC) -S $(CFLAGS) .c
 #.o: .s
 #	$(AS) $(ASFLAGS) -o .o .s
+
+
+nameserver.s: nameserver.c
+	$(XCC) -S $(CFLAGS) nameserver.c
+nameserver.o: nameserver.s
+	$(AS) $(ASFLAGS) -o nameserver.o nameserver.s
+
+clockserver.s: clockserver.c
+	$(XCC) -S $(CFLAGS) clockserver.c
+clockserver.o: clockserver.s
+	$(AS) $(ASFLAGS) -o clockserver.o clockserver.s
+
+ioserver.s: ioserver.c
+	$(XCC) -S $(CFLAGS) ioserver.c
+ioserver.o: ioserver.s
+	$(AS) $(ASFLAGS) -o ioserver.o ioserver.s
+
+deathserver.s: deathserver.c
+	$(XCC) -S $(CFLAGS) deathserver.c
+deathserver.o: deathserver.s
+	$(AS) $(ASFLAGS) -o deathserver.o deathserver.s
+
+displayserver.s: displayserver.c
+	$(XCC) -S $(CFLAGS) displayserver.c
+displayserver.o: displayserver.s
+	$(AS) $(ASFLAGS) -o displayserver.o displayserver.s
+
+commandserver.s: commandserver.c
+	$(XCC) -S $(CFLAGS) commandserver.c
+commandserver.o: commandserver.s
+	$(AS) $(ASFLAGS) -o commandserver.o commandserver.s
+
+trainserver.s: trainserver.c
+	$(XCC) -S $(CFLAGS) trainserver.c
+trainserver.o: trainserver.s
+	$(AS) $(ASFLAGS) -o trainserver.o trainserver.s
+
+usertasks.s: usertasks.c
+	$(XCC) -S $(CFLAGS) usertasks.c
+usertasks.o: usertasks.s
+	$(AS) $(ASFLAGS) -o usertasks.o usertasks.s
+
 controller.s: controller.c
 	$(XCC) -S $(CFLAGS) controller.c
 controller.o: controller.s
@@ -116,12 +158,6 @@ bwio.s: bwio.c
 
 bwio.o: bwio.s
 	$(AS) $(ASFLAGS) -o bwio.o bwio.s
-
-server.s: server.c
-	$(XCC) -S $(CFLAGS) server.c
-server.o: server.s
-	$(AS) $(ASFLAGS) -o server.o server.s
-
 
 test.s: test.c
 	$(XCC) -S $(CFLAGS) test.c
