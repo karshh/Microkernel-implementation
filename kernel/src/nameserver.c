@@ -99,10 +99,7 @@ void NameServerTask(){
 
 
 
-void initStorage(TimeStorage * t) {
-	t->size = 0;
-}
-
+/*
 int insertIntoStorage(TimeStorage * t, StorageNode * n) {
 	
 	if (t->size >= STORAGE_CAPACITY) return 0;
@@ -141,3 +138,4 @@ int deleteFromStorage(TimeStorage * t, StorageNode * n) {
 	(t->size)--;
 	return 1;
 }
+*/

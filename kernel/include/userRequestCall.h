@@ -48,12 +48,14 @@ char Getc(int tid, int uart);
 int Putc(int tid, int uart, char ch);
 
 int Putx( int tid, int channel, char c );
+int sPutx( int tid, int channel, char c ,char *buff);
 
 int Putr( int tid, int channel, unsigned int reg );
 
 int Putstr( int tid, int channel, char *str );
 
 void Putw( int tid, int channel, int n, char fc, char *bf );
+int sPutw( int tid, int channel, int n, char fc, char *bf, char *buff);
 
 void IOFormat ( int tid, int channel, char *fmt, va_list va );
 

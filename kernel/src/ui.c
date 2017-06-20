@@ -3,6 +3,7 @@
 #include "userRequestCall.h"
 #include "server.h"
 #include "controller.h"
+#include "ui.h"
 
 #define SENSOR_BIT_MASK_1 0x80
 #define SENSOR_BIT_MASK_2 0x40

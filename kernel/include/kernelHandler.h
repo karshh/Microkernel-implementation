@@ -17,20 +17,20 @@ typedef enum KERNELSTATEtype {
 
 
 typedef struct kernelHandler{
-	
+	int KernelState;
+	TD * activeTask;
+	//priority queues
+	unsigned int priotiyBitLookup;  
+	//int Mod37BitPosition[37] ; // map a bit value mod 37 to its position
+
+	int MultiplyDeBruijnBitPosition[32];
+	TD * priorityHead[32];
+	TD * priorityTail[32];
+
+
 	//list of TD's
 	TD TDList[MAX_TID];
-	//priority queues
-	volatile TD * priorityHead[32];
-	volatile TD * priorityTail[32];
-	unsigned int priotiyBitLookup;  
-
-	//free list
-	volatile TD * freeHead;
-	volatile TD * freeTail;
-
-	volatile TD * activeTask;
-
+			
 	volatile int nameServer; //k2
 	volatile int clockServer;//k3
 	volatile int ioServerUART1S;//k4
@@ -57,30 +57,32 @@ typedef struct kernelHandler{
 		if we need to allow mutliple, we should do something like freeHead, free tail, where we push these tasks to a
 		list/queue.
 	*/
+
 	volatile int await_TIMER;
 	volatile int await_UART1SEND;
 	volatile int await_UART1RECEIVE;
 	volatile int await_UART2SEND;
 	volatile int await_UART2RECEIVE; 
 
-	volatile int KernelState;
 	//memm offset for user task space
 	int memOffset;
-	//an idea from ben to safely allocate space is to have 
-	//wondering if this should be placed in another datastructure to limit cache misses
-	char taskSpace[MAX_STACKSIZE+16];//add extra padding to deal with wierd offsets
-	
+//free list
+	TD * freeHead;
+	TD * freeTail;
+/*
+*/	
 } kernelHandler;
 
 // return 1 if kernel handler was succesfully initialized. 
-int initKernel(kernelHandler * ks, int priority, int code);
+int initKernel(kernelHandler * ks, int priority, int code,int memOffset);
 
 void  exitKernel(kernelHandler * ks);
 
 // run the kernel
-void kernelRun();
+void kernelRun(int priority, int code) ;
+void kernelExecute(kernelHandler *ks); 
 
-int getNextTID(kernelHandler  * ks, int * TID);
+inline int getNextTID(kernelHandler  * ks, int * TID); //inline to make cache checks better
 
 void kernelTestRun(int priority, int code);
 
@@ -93,12 +95,12 @@ TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code)
 
 
 //temporary queue functions for now
-int kernel_queuePush(kernelHandler * ks,volatile TD * task);
-int kernel_queuePop_priority(kernelHandler * ks, volatile TD ** task, volatile int priority);
-int kernel_queuePop(kernelHandler * ks, volatile TD ** task);
+inline int kernel_queuePush(kernelHandler * ks, TD * task);
+//inline int kernel_queuePop_priority(kernelHandler * ks, TD ** task, int priority);
+inline int kernel_queuePop(kernelHandler * ks, TD ** task);
 
-int free_Push(kernelHandler * ks,volatile TD * task);
-int free_Pop(kernelHandler * ks, volatile TD ** task);
+int free_Push(kernelHandler * ks, TD * task);
+int free_Pop(kernelHandler * ks, TD ** task);
 
 #endif
 

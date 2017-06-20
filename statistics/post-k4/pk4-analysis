@@ -67,3 +67,56 @@ if printf calls putc for everycharacter 3761.92 microseconds, or about 1/3 a clo
 2)we need to tighten our SRR/ RSR. is there anyplace we are copying data, such as the reply? is it character by character or a memcpy? how efficient is the mem-cpy? perhaps we need to ease up on some of the volatile commands, as that can effect our stats as well.I'll be focusing on this.
 
 3) From the K2 info, our RSR/SSR is between 1~ 1.01 which is good.
+
+
+Group	Length	Caches	SB4R	Opt	Time(micro seconds) newmem	newc/b newOverhead
+PK	4	off	yes	off	462.87	
+PK	64	off	yes	off	1981.38
+PK	4	on	yes	off	61.03
+PK	64	on	yes	off	91.56
+
+PK	4	off	yes	on	230.93
+PK	64	off	yes	on	735.50
+PK	4	on	yes	on	30.51		    25.6	0.01	25.2
+PK	64	on	yes	on	52.899		    26.2	0.01	25.2
+-----------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------
+
+16/6/17
+modified test to make sure instructions take use of caches
+
+					time		over	c/b
+PK	4	on	yes	on	13.25	 	13.19	0.015
+PK	64	on	yes	on	14.17	    	13.19	0.015	
+
+note: a send/recieve does the same number of context switches are running 3 Passe.
+So if Cost of SRR = 3 * OH (context switch) + X (cost specific to SRR)
+      cost of 3Pass = 3*OH + Y (cost of doing 3 passes).
+	So CSRR - C3PASS = X - Y. 
+	Since i assume the ammount of extra work done by 3 passes is neglible (1 lines of code to set ret val)
+	Y = 0;
+	so X = CSSR - C3PASS;
+					
+3 passes				9.15
+PKSSR					13.99
+
+X = 5.024
+OH = 2.98 <- need to make this tighter.
+
+
+
+
+
+----------------------------------------------------------------------------------------------------
+inlining, and new scheduler,code re-arrangement
+					time		over	c/b
+PK	4	on	yes	on	10.241	 	10.179  0.016
+PK	64	on	yes	on	11.181	    	10.179	0.016	
+
+3 Passes				 6.575
+PKSSR					10.179
+
+X=3.603
+OH=2.191
+
+close....so close....

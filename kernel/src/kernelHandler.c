@@ -11,19 +11,60 @@
 
 
 int getNextTID(kernelHandler  * ks, int * TID){
-	volatile TD * task = 0;
+	TD * task = 0;
 	if(!free_Pop(ks,&task)) return -1;
 	*TID = task->TID;
 	return 0;
 }
 
-void exitKernel(kernelHandler * ks){
-	//clean up after kernel when exiting.
-	disableInterrupts();
-	stopTimer(TIMER1_BASE);
-	stopTimer(TIMER4_BASE);
+int free_Pop(kernelHandler * ks, TD ** task){
+	if (!ks->freeTail ) return 0;
+	
+	TD * poppedtask =  ks->freeTail;
+	TD * nextTail = poppedtask->nextTD;
+
+	if(nextTail == 0){
+		ks->freeTail = 0;
+		ks->freeHead = 0;
+	}
+	else{
+		nextTail->prevTD = 0;
+		ks->freeTail = nextTail;
+	}
+
+	poppedtask->nextTD = 0;
+	poppedtask->prevTD = 0;
+	*task = poppedtask;
+	return 1;
 }
-int initKernel(kernelHandler * ks, int priority, int code){
+
+int free_Push(kernelHandler * ks, TD * task){
+	//puts or priority queue at task's priority
+
+	if(ks->freeHead == 0){
+		//this priority is empty
+		//will modify to modify bitstring later
+		ks->freeHead = task;
+		ks->freeTail = task;
+		task->nextTD = 0;
+		task->prevTD = 0;
+		task->state = FREE;
+	}else{
+		TD * prevHead = ks->freeHead;
+		prevHead->nextTD = task;
+		task->prevTD = prevHead;
+		task->nextTD = 0;
+		task->state = FREE;
+		ks->freeHead = task;
+	}
+	return 1;
+	
+}
+
+
+int initKernel(kernelHandler * ks, int priority, int code,int memOffset){
+	ks->memOffset = memOffset;
+
 	//reset previous IRQ state, in case if last run state is bad
 	ks->KernelState = KERINIT;
 	disableInterrupts();
@@ -66,10 +107,6 @@ int initKernel(kernelHandler * ks, int priority, int code){
     	ks->await_UART1RECEIVE = -1;
     	ks->await_UART2SEND = -1;
     	ks->await_UART2RECEIVE = -1;
-
-	int memOffset = (int) &(ks->taskSpace[MAX_STACKSIZE-1]);
-	memOffset = memOffset - (memOffset%16);
-	ks->memOffset = memOffset;
 
 	for (TID = 0; TID<MAX_TID;TID++){
 		initTD(&ks->TDList[TID],TID,memOffset);
@@ -120,13 +157,52 @@ Timer clock speeds
 	startTimer(TIMER1_BASE, 508, 5085,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
 	//startTimer(TIMER1_BASE, 508, 5084,PERIODIC);//tmer 1 used to keep track of clock ticks every 10ms
 	toggleTimer3Interrupt(1);//timer3 to keep timer 1 from clock skewing
-	
 	startTimer(TIMER4_BASE, 0,0,0); //TIMER 4 cares not for other arguments
 	ks->idleTaskRunning = 0;
 	ks->clockTaskRunning = 0;
 	ks->clockNotifierTaskRunning= 0;
 	ks->totalIdleRunningTime =0;
 	
+	//needed for fast priority queue pop
+	ks->MultiplyDeBruijnBitPosition[ 0] = 0;
+	ks->MultiplyDeBruijnBitPosition[ 1] = 1;
+	ks->MultiplyDeBruijnBitPosition[ 2] = 28;
+	ks->MultiplyDeBruijnBitPosition[ 3] = 2;
+	ks->MultiplyDeBruijnBitPosition[ 4] = 29;
+
+	ks->MultiplyDeBruijnBitPosition[ 5] = 14;
+	ks->MultiplyDeBruijnBitPosition[ 6] = 24;
+	ks->MultiplyDeBruijnBitPosition[ 7] = 3;
+	ks->MultiplyDeBruijnBitPosition[ 8] = 30;
+	ks->MultiplyDeBruijnBitPosition[ 9] = 22;
+
+	ks->MultiplyDeBruijnBitPosition[10] = 20;
+	ks->MultiplyDeBruijnBitPosition[11] = 15;
+	ks->MultiplyDeBruijnBitPosition[12] = 25;
+	ks->MultiplyDeBruijnBitPosition[13] = 17;
+	ks->MultiplyDeBruijnBitPosition[14] = 4;
+
+	ks->MultiplyDeBruijnBitPosition[15] = 8;
+	ks->MultiplyDeBruijnBitPosition[16] = 31;
+	ks->MultiplyDeBruijnBitPosition[17] = 27;
+	ks->MultiplyDeBruijnBitPosition[18] = 13;
+	ks->MultiplyDeBruijnBitPosition[19] = 23;
+
+	ks->MultiplyDeBruijnBitPosition[20] = 21;
+	ks->MultiplyDeBruijnBitPosition[21] = 19;
+	ks->MultiplyDeBruijnBitPosition[22] = 16;
+	ks->MultiplyDeBruijnBitPosition[23] = 7;
+	ks->MultiplyDeBruijnBitPosition[24] = 26;
+
+	ks->MultiplyDeBruijnBitPosition[25] = 12;
+	ks->MultiplyDeBruijnBitPosition[26] = 18;
+	ks->MultiplyDeBruijnBitPosition[27] = 6;
+	ks->MultiplyDeBruijnBitPosition[28] = 11;
+	ks->MultiplyDeBruijnBitPosition[29] = 5;
+
+	ks->MultiplyDeBruijnBitPosition[30] = 10;
+	ks->MultiplyDeBruijnBitPosition[31] = 9;
+
 
 	//everthing good by this point
 
@@ -139,86 +215,22 @@ Timer clock speeds
 void kernelRun(int priority, int code) {
 
 	kernelHandler ks;
-	if(initKernel(&ks, priority, code)){
+
+	//an idea from ben to safely allocate space is to have 
+	//wondering if this should be placed in another datastructure to limit cache misses
+	char taskSpace[MAX_STACKSIZE+16];//add extra padding to deal with wierd offsets
+
+	int memOffset = (int) &(taskSpace[MAX_STACKSIZE-1]);
+	memOffset = memOffset - (memOffset%16);
+
+
+	if(initKernel(&ks, priority, code,memOffset)){
 		//if we return non-zero initialization failed and we don't go further
 		return;
 	}
-	
-	request * r;
-	
-	message m;
-	volatile TD * task =0;
-	//int old_idle = 0;
-	while(kernel_queuePop(&ks, &task)) {
-
-		if (ks.KernelState == KERQUIT){
-			//hard quit for now
-			break;
-		}
-
-
-		task->state = ACTIVE;
-		ks.activeTask = task;
-		TD *td = (TD *)task;
-/*************************************
- diagnostic code
-*************************************/
-	  	if(ks.activeTask->priority ==31){
-		// 	 //makes assumption a 31 prioty task is an idle task
-		 	ks.idleTaskRunning = 1;
-		  	ks.lastIdleRunningTime = getTicks4(0);
-			
-		 }
-
-/*************************************
-end diagnostic code
-*************************************/
-
-
-		r = activate(ks.activeTask);
-
-
-		if(ks.idleTaskRunning ){
-					ks.totalIdleRunningTime += getTicks4(0) -ks.lastIdleRunningTime;
-					ks.idleTaskRunning = 0;
-		}
-
-/*************************************
- diagnostic code
-*************************************/
-
-		 //if(r == 0){
-		 //if interupt print diagnostic info.
-		 //print only if diagnostic info changes:
-		 //	int new_idle = 100 * ks.totalIdleRunningTime / getTicks4(0);
-		 // 	if(old_idle - new_idle){
-		 	//	old_idle = new_idle;
-		//  		bwprintf(COM2,"\033[s\033[?25l\033[1;90H idle:%d%% \033[u\033[?25h",old_idle);
-		// 	}
-		// }
-
-
-
-/*************************************
-end diagnostic code
-*************************************/
-
-
-
-
-
-		if(!processRequest(&ks, td, r, &m)){
-			bwprintf(COM2,"PROCESS request failed[TID:%d]!\n\r", td->TID);
-			 break;
-		}
-		if(task->state == ACTIVE)kernel_queuePush(&ks, task);
-
-		//we are done with task so setting active task to null
-		ks.activeTask = 0;
-	}
-	exitKernel(&ks);
-
+	kernelExecute(&ks);
 }
+	
 
 TD * setTask(kernelHandler * ks,  int TID, int parentTID,int priority, int code){
 	TD * td = &(ks->TDList[TID]);
@@ -238,7 +250,102 @@ return  td;
 
 }
 
-int kernel_queuePush(kernelHandler * ks, volatile TD * task){
+
+
+
+void exitKernel(kernelHandler * ks){
+	//clean up after kernel when exiting.
+	disableInterrupts();
+	stopTimer(TIMER1_BASE);
+	stopTimer(TIMER4_BASE);
+}
+
+
+
+void kernelExecute(kernelHandler * ks) {
+	request * r;
+	
+	//message m;
+	//TD * task =0;
+	//int old_idle = 0;
+
+
+/*
+*/
+
+
+	while(kernel_queuePop(ks, &ks->activeTask)) {
+
+	
+		//task->state = ACTIVE;
+		ks->activeTask->state = ACTIVE;
+		//ks.activeTask = task;
+		//TD *td = (TD *)task;
+/*************************************
+ diagnostic code
+*************************************/
+
+	  	if(ks->activeTask->priority ==31){
+		// 	 //makes assumption a 31 prioty task is an idle task
+		 	ks->idleTaskRunning = 1;
+		  	ks->lastIdleRunningTime = getTicks4(0);
+			
+		 }
+
+/*************************************
+end diagnostic code
+*************************************/
+
+
+		r = activate(ks->activeTask);
+
+		if(ks->idleTaskRunning ){
+					ks->totalIdleRunningTime += getTicks4(0) -ks->lastIdleRunningTime;
+					ks->idleTaskRunning = 0;
+		}
+
+/*************************************
+ diagnostic code
+*************************************/
+/*
+		 if(r == 0){
+		 //if interupt print diagnostic info.
+		 //print only if diagnostic info changes:
+		 	int new_idle = 100 * ks->totalIdleRunningTime / getTicks4(0);
+		 	if(old_idle - new_idle){
+		 		old_idle = new_idle;
+		  		bwprintf(COM2,"\033[s\033[?25l\033[1;90H idle:%d%% \033[u\033[?25h",old_idle);
+		 	}
+		 }
+
+*/
+
+/*************************************
+end diagnostic code
+*************************************/
+
+		processRequest(ks, ks->activeTask, r);
+		/*
+		if(!processRequest(ks, ks->activeTask, r)){
+			bwprintf(COM2,"PROCESS request failed[TID:%d]!\n\r", ks->activeTask->TID);
+			break;
+		}
+*/
+		if(ks->activeTask->state == ACTIVE)kernel_queuePush(ks, ks->activeTask);
+
+		if (ks->KernelState == KERQUIT){
+			//hard quit for now
+			break;
+		}
+
+
+		//we are done with task so setting active task to null
+	//	ks->activeTask = 0;
+	}
+	exitKernel(ks);
+
+}
+int kernel_queuePush(kernelHandler * ks, TD * task){
 	//puts or priority queue at task's priority
 	int priority = task->priority;
 
@@ -251,17 +358,15 @@ int kernel_queuePush(kernelHandler * ks, volatile TD * task){
 		ks->priotiyBitLookup ^= (-f ^ ks->priotiyBitLookup) & mask;
 		//finish setting bit
 
-
-
 		ks->priorityHead[priority] = task;
 		ks->priorityTail[priority] = task;
 		task->nextTD = 0;
-		task->prevTD = 0;
+		//task->prevTD = 0;
 		task->state = READY;
 	}else{
-		volatile TD * prevHead = ks->priorityHead[priority];
+		TD * prevHead = ks->priorityHead[priority];
 		prevHead->nextTD = task;
-		task->prevTD = prevHead;
+	//	task->prevTD = prevHead;
 		task->nextTD = 0;
 		task->state = READY;
 		ks->priorityHead[priority] = task;
@@ -269,122 +374,35 @@ int kernel_queuePush(kernelHandler * ks, volatile TD * task){
 	return 1;
 	
 }
+int kernel_queuePop(kernelHandler * ks, TD ** task){
+	//unsigned int v = ks->priotiyBitLookup;     // 32-bit word input to count zero bits on right
+	unsigned int c;     // c will be the number of zero bits on the right,
+			    // so if v is 1101000 (base 2), then c will be 3
+	if(ks->priotiyBitLookup == 0) return 0;//if bit string is zero then no flags are checked
+	c = ks->MultiplyDeBruijnBitPosition[((unsigned int)((-(ks->priotiyBitLookup) & (ks->priotiyBitLookup)) * 0x077CB531U)) >>27];
 
-int free_Push(kernelHandler * ks, volatile TD * task){
-	//puts or priority queue at task's priority
-
-	if(ks->freeHead == 0){
-		//this priority is empty
-		//will modify to modify bitstring later
-		ks->freeHead = task;
-		ks->freeTail = task;
-		task->nextTD = 0;
-		task->prevTD = 0;
-		task->state = FREE;
-	}else{
-		volatile TD * prevHead = ks->freeHead;
-		prevHead->nextTD = task;
-		task->prevTD = prevHead;
-		task->nextTD = 0;
-		task->state = FREE;
-		ks->freeHead = task;
-	}
-	return 1;
+	if (!ks->priorityTail[c] ) return 0;
 	
-}
-
-
-int kernel_queuePop_priority(kernelHandler * ks, volatile TD ** task, volatile int priority){
-	if (!ks->priorityTail[priority] ) return 0;
-	
-	volatile TD * poppedtask =  ks->priorityTail[priority];
-	volatile TD * nextTail = poppedtask->nextTD;
+	TD * poppedtask =  ks->priorityTail[c];
+	TD * nextTail = poppedtask->nextTD;
 
 	if(nextTail == 0){
 		//set bit for this priority
-		unsigned int mask = 1 <<priority;
+		unsigned int mask = 1 <<c;
 		int  f=0;         // conditional flag
 		ks->priotiyBitLookup ^= (-f ^ ks->priotiyBitLookup) & mask;
 		//finish setting bit
-
-
-
-		ks->priorityTail[priority] = 0;
-		ks->priorityHead[priority] = 0;
+		ks->priorityTail[c] = 0;
+		ks->priorityHead[c] = 0;
 	}
 	else{
-		nextTail->prevTD = 0;
-		ks->priorityTail[priority] = nextTail;
+	//	nextTail->prevTD = 0;
+		ks->priorityTail[c] = nextTail;
 	}
-
 	poppedtask->nextTD = 0;
-	poppedtask->prevTD = 0;
+	//poppedtask->prevTD = 0;
 	*task = poppedtask;
 	return 1;
 }
 
-int free_Pop(kernelHandler * ks, volatile TD ** task){
-	if (!ks->freeTail ) return 0;
-	
-	volatile TD * poppedtask =  ks->freeTail;
-	volatile TD * nextTail = poppedtask->nextTD;
-
-	if(nextTail == 0){
-		ks->freeTail = 0;
-		ks->freeHead = 0;
-	}
-	else{
-		nextTail->prevTD = 0;
-		ks->freeTail = nextTail;
-	}
-
-	poppedtask->nextTD = 0;
-	poppedtask->prevTD = 0;
-	*task = poppedtask;
-	return 1;
-}
-int kernel_queuePop(kernelHandler * ks, volatile TD ** task){
-
-	unsigned int v = ks->priotiyBitLookup;     // 32-bit word input to count zero bits on right
-	unsigned int c;     // c will be the number of zero bits on the right,
-			    // so if v is 1101000 (base 2), then c will be 3
-	if(v == 0) return 0;//if bit string is zero then no flags are checked
-	//bit hack to count trailing zeroes. # of trailing zeroes are the first free priority queue
-	//33% faster than 3 * lg(N) + 4 for N bit words
-	// NOTE: if 0 == v, then c = 31.dd
-	if (v & 0x1) 
-	{
-	  // special case for odd v (assumed to happen half of the time)
-	  c = 0;
-	}
-	else
-	{
-	  c = 1;
-	  if ((v & 0xffff) == 0) 
-	  {  
-	    v >>= 16;  
-	    c += 16;
-	  }
-	  if ((v & 0xff) == 0) 
-	  {  
-	    v >>= 8;  
-	    c += 8;
-	  }
-	  if ((v & 0xf) == 0) 
-	  {  
-	    v >>= 4;
-	    c += 4;
-	  }
-	  if ((v & 0x3) == 0) 
-	  {  
-	    v >>= 2;
-	    c += 2;
-	  }
-	  c -= v & 0x1;
-	}	
-
-	//priority queue c
-	kernel_queuePop_priority(ks,task,c);
-	return 1;
-}
 

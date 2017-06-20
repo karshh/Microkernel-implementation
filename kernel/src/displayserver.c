@@ -195,6 +195,19 @@ void displayServer() {
 	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KQuiting Kernel.\033[34;1H>");
 					Death_TID = Create(0,(void*) DeathServer);
 	            	break;
+			
+			case COMMAND_LOCKEDTRAINL:
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KTrain Reverse Locked.Cannot turn on Train %d's lights.\033[34;1H>",  msg[1]);
+			break;
+
+			case COMMAND_LOCKEDTRAINT:
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KTrain Reverse Locked.Cannot Change Train %d's speed.\033[34;1H>",  msg[1]);
+			break;
+
+			case COMMAND_LOCKEDTRAINR:
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KTrain Reverse Locked.Cannot Reverse Train %d.\033[34;1H>",  msg[1]);
+			break;
+
 
 	        	default:
 	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KIncorrect Command.\033[34;1H>");

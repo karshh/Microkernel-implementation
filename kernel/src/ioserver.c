@@ -85,11 +85,11 @@ void UART2Receive_Notifier() {
 }
 
 void UART1_SendServer() {
+	bigCircularBuffer UART1_sendQ;
 	bwassert(!RegisterAs("UART1S"), COM2, "Failed to register Uart1SendServer.\r\n");
 	// create and init circular buffer queues.
-	circularBuffer UART1_sendQ;
 
-	circularBufferInit(&UART1_sendQ);
+	circularBufferInitB(&UART1_sendQ);
 	
 	// create notifier tasks
 	volatile int UART1Send_TID = Create(1, (void *) UART1Send_Notifier);
@@ -105,12 +105,14 @@ void UART1_SendServer() {
     char reply[6];
 
     // extra variables used.
-	int c = 0;
+	char c = 0;
+	int msgLen = 0;
 
 	while(1) {
-		bwassert(Receive(&_tid, msg, msgCap) >= 0, COM2, "<UART1SendServer>: Receive error.\r\n");
+		msgLen =Receive(&_tid, msg, msgCap);
+		bwassert(msgLen >= 0, COM2, "<UART1SendServer>: Receive error.\r\n");
 		if (_tid == UART1Send_TID) {
-			if (getFromBuffer(&c, &UART1_sendQ)) {
+			if (getFromBufferB(&c, &UART1_sendQ)) {
 				reply[0] = (char) c;
 				reply[1] = 0;
             			Reply(UART1Send_TID, reply, 2);
@@ -134,10 +136,10 @@ void UART1_SendServer() {
 				}
 			    case 11: // UART1 Putc
 				if(alive){
-				//if dead rplyblck
-					bwassert(addToBuffer((BUFFER_TYPE) msg[1], &UART1_sendQ), COM2, "<UART1SendServer>: Buffer full. Could not add %c[%d]\r\n", msg[1], msg[1]);
-
-					if (UART1Send_blocked && getFromBuffer(&c, &UART1_sendQ)) {
+				//if dead rplyblcpli	
+					msgLen -= 2;
+					bwassert(addToBufferB((BUFFER_TYPE) msg[1], &UART1_sendQ), COM2, "<UART1SendServer>: Buffer full. Could not add %c[%d]\r\n", msg[1], msg[1]);
+					if (UART1Send_blocked && getFromBufferB(&c, &UART1_sendQ)) {
 								reply[0] = (char) c;
 								reply[1] = 0;
 						Reply(UART1Send_TID, reply, 2);
@@ -157,11 +159,11 @@ void UART1_SendServer() {
 }
 
 void UART2_SendServer() {
+	bigCircularBuffer UART2_sendQ;
 	bwassert(!RegisterAs("UART2S"), COM2, "Failed to register Uart2SendServer.\r\n");
 	// create and init circular buffer queues.
-	circularBuffer UART2_sendQ;
 
-	circularBufferInit(&UART2_sendQ);
+	circularBufferInitB(&UART2_sendQ);
 	
 	// create notifier tasks
 	volatile int UART2Send_TID = Create(1, (void *) UART2Send_Notifier);
@@ -173,17 +175,20 @@ void UART2_SendServer() {
 	
 	// message passing required variables.
     int _tid = -1;
-    char msg[7];
-    int msgCap = 7;
+    char msg[66]; //messages in blocks of 66 (char 0= messgae type, char 65 = 0, 1-64 possibly null terminated string
+    int msgCap = 66;
+	int msgLen =0;
+	volatile int i;
     char reply[6];
 
     // extra variables used.
-	int c = 0;
-
+	char c = 0;
+	char * str = 0;
 	while(1) {
-		bwassert(Receive(&_tid, msg, msgCap) >= 0, COM2, "<UART2SendServer>: Receive error.\r\n");
+		msgLen =Receive(&_tid, msg, msgCap);
+		bwassert(msgLen >= 0, COM2, "<UART2SendServer>: Receive error.\r\n");
 		if (_tid == UART2Send_TID) {
-			if (getFromBuffer(&c, &UART2_sendQ)) {
+			if (getFromBufferB(&c, &UART2_sendQ)) {
 				reply[0] = (char) c;
 				reply[1] = 0;
             			Reply(UART2Send_TID, reply, 2);
@@ -207,17 +212,21 @@ void UART2_SendServer() {
 					Exit();
 				}
 
-	     			case 21: // UART2 Putc
+	     			case 21: // UART2 Putstr
 					if(alive){
-						if (msg[1]) {
-							bwassert(addToBuffer((BUFFER_TYPE) msg[1], &UART2_sendQ), COM2, "<UART2Server>: Buffer full. Could not add %c[%d]\r\n", msg[1], msg[1]);
-							if (UART2Send_blocked && getFromBuffer(&c, &UART2_sendQ)) {
-										reply[0] = (char) c;
-										reply[1] = 0;
+						msgLen -= 2;
+						str = &msg[1];
+						for(i=0;i<msgLen;i++){
+						
+							bwassert(addToBufferB((BUFFER_TYPE) str[i], &UART2_sendQ), COM2, "<UART2Server>: Buffer full. Could not add %c[%d]\r\n", msg[1], msg[1]);
+							if (UART2Send_blocked && getFromBufferB(&c, &UART2_sendQ)) {
+								reply[0] = (char) c;
+								reply[1] = 0;
 								Reply(UART2Send_TID, reply, 2);
 								UART2Send_blocked = 0;
 							}
 						}
+
 						Reply(_tid, "1", 2);
 					}
 					break;
@@ -339,4 +348,5 @@ void UART1_ReceiveServer() {
 
 	}
 }
+
 

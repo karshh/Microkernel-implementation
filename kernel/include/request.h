@@ -5,6 +5,9 @@
 #define _REQUEST_
 typedef enum requestType {
 	NONE,
+	SEND,
+	RECEIVE,
+	REPLY,
 	MYTID,
 	MYPARENTID,
 	CREATE,
@@ -13,9 +16,6 @@ typedef enum requestType {
 	CREATEIOSERVER,
 	PASS,
 	EXIT,
-	SEND,
-	RECEIVE,
-	REPLY,
 	WHOIS,
 	REGISTER,
 	AWAITEVENT,

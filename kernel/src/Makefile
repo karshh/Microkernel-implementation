@@ -1,7 +1,7 @@
 #
 # Makefile for busy-wait IO library
 #
-XCC     = gcc -O2
+XCC     = gcc -O3
 AS	= as
 AR	= ar
 LD	= ld
@@ -23,7 +23,6 @@ SRC = bwio.o time.o icu.o pkstring.o dictionary.o buffer.o trackGraph.o td.o ker
 
 
 all: clean $(SRC) install
-
 # new file preable
 #.s: .c
 #	$(XCC) -S $(CFLAGS) .c
@@ -203,7 +202,6 @@ trackB.o: trackB.s
 
 test.elf:test.o
 	$(LD) $(LDFLAGS) -o $@ $(SRC) test.o -lgcc
-
 k1.elf: k1.o
 	$(LD) $(LDFLAGS) -o $@ $(SRC) k1.o -lgcc
 
