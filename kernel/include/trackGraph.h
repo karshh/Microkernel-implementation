@@ -38,9 +38,8 @@ typedef struct TrackGraphNode {
 typedef struct TrackGraph {
 	TrackGraphNode node[102];
 } TrackGraph;
-
-
-int findNextSensor(TrackGraph * t, int sensor);
+int findAltSensor(TrackGraph * t, int i);
+int findNextSensor(TrackGraph * t, int i);
 
 int sensor2i(char * c);
 

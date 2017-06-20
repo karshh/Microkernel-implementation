@@ -63,7 +63,7 @@ int parseCommand(char * input, int * arg1, int * arg2);
 
 int nextState(int state, char c, int * terminator, int *train, int * speed, int *sw , char *swd,int *sens);
 
-void update_switch(int sw, TrackGraph * t);
+void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor);
 #endif
 
 

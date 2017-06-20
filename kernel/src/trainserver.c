@@ -88,7 +88,7 @@ void trainServer(){
 		commandMsg[2] = i;
 		commandMsg[3] = 0;
 		bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-		update_switch(i, &t); //updates the display
+		update_switch(i, &t, &trainExpectedSensor[0]); //updates the display
 	}
 
 	node[99].switchConfig = CS;
@@ -104,7 +104,7 @@ void trainServer(){
 	commandMsg[2] = 154;
 	commandMsg[3] = 0;
 	bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-	update_switch(154, &t); //updates the display
+	update_switch(154, &t, &trainExpectedSensor[0]); //updates the display
 
 	node[100].switchConfig = CS;
 	commandMsg[0] = 'S';
@@ -119,7 +119,7 @@ void trainServer(){
 	commandMsg[2] = 156;
 	commandMsg[3] = 0;
 	bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-	update_switch(156, &t); //updates the display
+	update_switch(156, &t, &trainExpectedSensor[0]); //updates the display
 		
 
 	//send message to display that init is done. allow command line input
@@ -241,7 +241,7 @@ void trainServer(){
 									commandMsg[2] = path[i] - 80;
 									commandMsg[3] = 0;
 									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-									update_switch(path[i] - 80, &t); //updates the display
+									update_switch(path[i] - 80, &t, &trainExpectedSensor[0]); //updates the display
 									break;
 								case S:
 									if (node[path[i]].SnextNodeIndex == path[i-1]) break;
@@ -251,7 +251,7 @@ void trainServer(){
 									commandMsg[2] = path[i] - 80;
 									commandMsg[3] = 0;
 									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-									update_switch(path[i] - 80, &t); //updates the display
+									update_switch(path[i] - 80, &t, &trainExpectedSensor[0]); //updates the display
 									break;
 								default:
 									bwassert( 0, COM2, "<trainServer>: Got an invalid single switch configuration.");
@@ -269,13 +269,13 @@ void trainServer(){
 									commandMsg[2] = path[i] == 99 ? 153 : 155;
 									commandMsg[3] = 0;
 									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-									update_switch(path[i] == 99 ? 153 : 155, &t); //updates the display
+									update_switch(path[i] == 99 ? 153 : 155, &t, &trainExpectedSensor[0]); //updates the display
 									commandMsg[0] = 'S';
 									commandMsg[1] = 34;
 									commandMsg[2] = path[i] == 99 ? 154 : 156;
 									commandMsg[3] = 0;
 									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-									update_switch(path[i] == 99 ? 154 : 156, &t); //updates the display
+									update_switch(path[i] == 99 ? 154 : 156, &t, &trainExpectedSensor[0]); //updates the display
 									break;
 
 								case SC:
@@ -286,13 +286,13 @@ void trainServer(){
 									commandMsg[2] = path[i] == 99 ? 153 : 155;
 									commandMsg[3] = 0;
 									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-									update_switch(path[i] == 99 ? 153 : 155, &t); //updates the display
+									update_switch(path[i] == 99 ? 153 : 155, &t, &trainExpectedSensor[0]); //updates the display
 									commandMsg[0] = 'S';
 									commandMsg[1] = 33;
 									commandMsg[2] = path[i] == 99 ? 154 : 156;
 									commandMsg[3] = 0;
 									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-									update_switch(path[i] == 99 ? 154 : 156, &t); //updates the display
+									update_switch(path[i] == 99 ? 154 : 156, &t, &trainExpectedSensor[0]); //updates the display
 									break;
 								default:
 									bwassert( 0, COM2, "<trainServer>: Got an invalid multi switch configuration.");
@@ -414,103 +414,7 @@ void trainServer(){
 				commandMsg[2] = sw;
 				commandMsg[3] = 0;
 				bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-				update_switch(sw, &t); //updates the display
-
-				if (sw <= 18) {
-					switch (node[sw+80].switchConfig) {
-						case S:
-							for (i = 58; i < 80; i++) {
-								if (node[sw+80].CnextNodeIndex == trainExpectedSensor[i]) {
-									trainExpectedSensor[i] = node[sw+80].SnextNodeIndex;
-									dspMsg[0] = 3; //hardcoded to indicate expected sensor
-									dspMsg[1] = i;
-									dspMsg[2] = trainExpectedSensor[i];
-									dspMsg[3] = 0;
-									bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-								}
-							}
-							break;
-						case C:
-							for (i = 58; i < 80; i++) {
-								if (node[sw+80].SnextNodeIndex == trainExpectedSensor[i]) {
-									trainExpectedSensor[i] = node[sw+80].CnextNodeIndex;
-									dspMsg[0] = 3; //hardcoded to indicate expected sensor
-									dspMsg[1] = i;
-									dspMsg[2] = trainExpectedSensor[i];
-									dspMsg[3] = 0;
-									bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-								}
-							}
-							break;
-						default:
-							bwassert(0, COM2, "<trainServer>: Incorrect switch configuration.");
-							break;
-					}
-
-				} else if (sw == 153 || sw == 154) {
-					switch (node[99].switchConfig) {
-						case CS:
-							for (i = 58; i < 80; i++) {
-								if (node[99].SCnextNodeIndex == trainExpectedSensor[i]) {
-									trainExpectedSensor[i] = node[99].CSnextNodeIndex;
-									dspMsg[0] = 3; //hardcoded to indicate expected sensor
-									dspMsg[1] = i;
-									dspMsg[2] = trainExpectedSensor[i];
-									dspMsg[3] = 0;
-									bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-								}
-							}
-							break;
-						case SC:
-							for (i = 58; i < 80; i++) {
-								if (node[99].CSnextNodeIndex == trainExpectedSensor[i]) {
-									trainExpectedSensor[i] = node[99].SCnextNodeIndex;
-									dspMsg[0] = 3; //hardcoded to indicate expected sensor
-									dspMsg[1] = i;
-									dspMsg[2] = trainExpectedSensor[i];
-									dspMsg[3] = 0;
-									bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-								}
-							}
-							break;
-						default:
-							bwassert(0, COM2, "<trainServer>: Incorrect multi-switch configuration.");
-							break;
-
-					}
-				} else if (sw == 155 || sw == 156) {
-					switch (node[100].switchConfig) {
-						case CS:
-							for (i = 58; i < 80; i++) {
-								if (node[100].SCnextNodeIndex == trainExpectedSensor[i]) {
-									trainExpectedSensor[i] = node[100].CSnextNodeIndex;
-									dspMsg[0] = 3; //hardcoded to indicate expected sensor
-									dspMsg[1] = i;
-									dspMsg[2] = trainExpectedSensor[i];
-									dspMsg[3] = 0;
-									bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-								}
-							}
-							break;
-						case SC:
-							for (i = 58; i < 80; i++) {
-								if (node[100].CSnextNodeIndex == trainExpectedSensor[i]) {
-									trainExpectedSensor[i] = node[100].SCnextNodeIndex;
-									dspMsg[0] = 3; //hardcoded to indicate expected sensor
-									dspMsg[1] = i;
-									dspMsg[2] = trainExpectedSensor[i];
-									dspMsg[3] = 0;
-									bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-								}
-							}
-							break;
-						default:
-							bwassert(0, COM2, "<trainServer>: Incorrect multi-switch configuration.");
-							break;
-
-					}
-
-				}
+				update_switch(sw, &t, &trainExpectedSensor[0]); //updates the display
 
 		        Reply(_tid, "1", 2);
 		        break;

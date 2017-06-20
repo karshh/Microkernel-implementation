@@ -2,14 +2,17 @@
 #include "trackGraph.h"
 #include "userRequestCall.h"
 
-void update_switch(int sw, TrackGraph * t){
+void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor){
 	//updates the display
 	int dspTID = WhoIs("displayServer");
+    char dspMsg[64];
 	char msg[4];
 	int msgLen = 4;
     char rpl[3];
     int rpllen = 3;
     TrackGraphNode * node = t->node;
+
+    volatile int i = 0;
 
 	if(sw <= 18 ){
 			msg[0] = '0'; //no warning
@@ -18,6 +21,20 @@ void update_switch(int sw, TrackGraph * t){
 			msg[3] = 0;
 
 		bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+
+
+        for (i = 58; i < 80; i++) {
+            if (findAltSensor(t, sw+80) == trainExpectedSensor[i]) {
+                trainExpectedSensor[i] = findNextSensor(t, sw+80);
+                if (trainExpectedSensor[i] <= 0) break;
+                dspMsg[0] = 3; //hardcoded to indicate expected sensor
+                dspMsg[1] = i;
+                dspMsg[2] = trainExpectedSensor[i];
+                dspMsg[3] = 0;
+                bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+            }
+        }
+
 	}
 	else if(sw <= 154){
 		//warns the user if we have a double curve switch
@@ -44,12 +61,23 @@ void update_switch(int sw, TrackGraph * t){
             msg[1] = node[99].switchConfig == SC  ? 'C' : 'S';
 			msg[2] = 19;
 			msg[3] = 0;
-			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed.");
 
-
+            for (i = 58; i < 80; i++) {
+                if (findAltSensor(t, 99) == trainExpectedSensor[i]) {
+                    trainExpectedSensor[i] = findNextSensor(t, 99);
+                    if (trainExpectedSensor[i] <= 0) break;
+                    dspMsg[0] = 3; //hardcoded to indicate expected sensor
+                    dspMsg[1] = i;
+                    dspMsg[2] = trainExpectedSensor[i];
+                    dspMsg[3] = 0;
+                    bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+                }
+            }
 		}
 		
 	}
+
 	else if(sw <= 156){
 		//warns the user if we have a double curve switch
 		if (node[100].switchConfig == CC){
@@ -75,11 +103,24 @@ void update_switch(int sw, TrackGraph * t){
             msg[1] = node[100].switchConfig == SC  ? 'C' : 'S';
 			msg[2] = 21;
 			msg[3] = 0;
-			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed.");
+            
+            for (i = 58; i < 80; i++) {
+                if (findAltSensor(t, 100) == trainExpectedSensor[i]) {
+                    trainExpectedSensor[i] = findNextSensor(t, 100);
+                    if (trainExpectedSensor[i] <= 0) break;
+                    dspMsg[0] = 3; //hardcoded to indicate expected sensor
+                    dspMsg[1] = i;
+                    dspMsg[2] = trainExpectedSensor[i];
+                    dspMsg[3] = 0;
+                    bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+                }
+            }
 
 		}
 
 	}
+
 }
 
 
