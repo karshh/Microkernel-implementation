@@ -414,12 +414,110 @@ void trainServer(){
 				commandMsg[2] = sw;
 				commandMsg[3] = 0;
 				bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-		        Reply(_tid, "1", 2);
 				update_switch(sw, &t); //updates the display
+
+				if (sw <= 18) {
+					switch (node[sw+80].switchConfig) {
+						case S:
+							for (i = 58; i < 80; i++) {
+								if (node[sw+80].CnextNodeIndex == trainExpectedSensor[i]) {
+									trainExpectedSensor[i] = node[sw+80].SnextNodeIndex;
+									dspMsg[0] = 3; //hardcoded to indicate expected sensor
+									dspMsg[1] = i;
+									dspMsg[2] = trainExpectedSensor[i];
+									dspMsg[3] = 0;
+									bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+								}
+							}
+							break;
+						case C:
+							for (i = 58; i < 80; i++) {
+								if (node[sw+80].SnextNodeIndex == trainExpectedSensor[i]) {
+									trainExpectedSensor[i] = node[sw+80].CnextNodeIndex;
+									dspMsg[0] = 3; //hardcoded to indicate expected sensor
+									dspMsg[1] = i;
+									dspMsg[2] = trainExpectedSensor[i];
+									dspMsg[3] = 0;
+									bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+								}
+							}
+							break;
+						default:
+							bwassert(0, COM2, "<trainServer>: Incorrect switch configuration.");
+							break;
+					}
+
+				} else if (sw == 153 || sw == 154) {
+					switch (node[99].switchConfig) {
+						case CS:
+							for (i = 58; i < 80; i++) {
+								if (node[99].SCnextNodeIndex == trainExpectedSensor[i]) {
+									trainExpectedSensor[i] = node[99].CSnextNodeIndex;
+									dspMsg[0] = 3; //hardcoded to indicate expected sensor
+									dspMsg[1] = i;
+									dspMsg[2] = trainExpectedSensor[i];
+									dspMsg[3] = 0;
+									bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+								}
+							}
+							break;
+						case SC:
+							for (i = 58; i < 80; i++) {
+								if (node[99].CSnextNodeIndex == trainExpectedSensor[i]) {
+									trainExpectedSensor[i] = node[99].SCnextNodeIndex;
+									dspMsg[0] = 3; //hardcoded to indicate expected sensor
+									dspMsg[1] = i;
+									dspMsg[2] = trainExpectedSensor[i];
+									dspMsg[3] = 0;
+									bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+								}
+							}
+							break;
+						default:
+							bwassert(0, COM2, "<trainServer>: Incorrect multi-switch configuration.");
+							break;
+
+					}
+				} else if (sw == 155 || sw == 156) {
+					switch (node[100].switchConfig) {
+						case CS:
+							for (i = 58; i < 80; i++) {
+								if (node[100].SCnextNodeIndex == trainExpectedSensor[i]) {
+									trainExpectedSensor[i] = node[100].CSnextNodeIndex;
+									dspMsg[0] = 3; //hardcoded to indicate expected sensor
+									dspMsg[1] = i;
+									dspMsg[2] = trainExpectedSensor[i];
+									dspMsg[3] = 0;
+									bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+								}
+							}
+							break;
+						case SC:
+							for (i = 58; i < 80; i++) {
+								if (node[100].CSnextNodeIndex == trainExpectedSensor[i]) {
+									trainExpectedSensor[i] = node[100].SCnextNodeIndex;
+									dspMsg[0] = 3; //hardcoded to indicate expected sensor
+									dspMsg[1] = i;
+									dspMsg[2] = trainExpectedSensor[i];
+									dspMsg[3] = 0;
+									bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+								}
+							}
+							break;
+						default:
+							bwassert(0, COM2, "<trainServer>: Incorrect multi-switch configuration.");
+							break;
+
+					}
+
+				}
+
+		        Reply(_tid, "1", 2);
 		        break;
 
 			default:
 		        bwassert(0, COM2, "<trainServer>: Illegal request code from userTask <%d>:[%s].\r\n", _tid,msg);
+		        break;
 			}
 
 		}
