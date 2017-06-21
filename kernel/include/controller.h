@@ -36,7 +36,8 @@
 #define DFA_RV_1 16
 #define DFA_RV_2 17
 #define DFA_RV_3 18
-#define DFA_SW_1 28
+#define DFA_SW_1 28 	//normal sw ## c/s
+#define DFA_SW_2 61	//mutiswitch sw 19/20 CS/SC note: swd = D when CS, swd = T when SC
 #define DFA_L_1 31
 #define DFA_L_2 32
 #define DFA_L_3 33

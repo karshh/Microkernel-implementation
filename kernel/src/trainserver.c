@@ -331,6 +331,13 @@ void trainServer(){
 				if(sw <= 18) {
 					node[80+sw].switchConfig = swd == 'C' ? C : S;
 
+				} else if (sw == 19) {
+				//for mutliswitch nodes 19-20 (19 = 153/154 and 20 = 155/156, D = CS and T = SC
+				// CC and SS are invalid states (perhaps SS might be needed for reversing?)
+						node[99].switchConfig = swd == 'D' ? CS : SC;
+				} else if (sw == 20) {
+						node[100].switchConfig = swd == 'D' ? CS : SC;
+/*
 				} else if (sw == 153) {
 					switch (node[99].switchConfig) {
 						case SC:
@@ -407,14 +414,56 @@ void trainServer(){
 							break;
 
 					}
+*/
 				}
+				if(sw < 19){
+					commandMsg[0] = 'S';
+					commandMsg[1] = swd == 'S' ? 33 : 34;
+					commandMsg[2] = sw;
+					commandMsg[3] = 0;
+					bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+					update_switch(sw, &t, &trainExpectedSensor[0]); //updates the display
+				}else if(sw == 19){
+					//s == 33 , C = 34
+					//D = CS = 34:33	 T = SC = 33:34
 
-				commandMsg[0] = 'S';
-				commandMsg[1] = swd == 'S' ? 33 : 34;
-				commandMsg[2] = sw;
-				commandMsg[3] = 0;
-				bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-				update_switch(sw, &t, &trainExpectedSensor[0]); //updates the display
+
+					commandMsg[0] = 'S'; 
+					commandMsg[1] = swd == 'D' ? 34 : 33;
+					commandMsg[2] = 153;
+					commandMsg[3] = 0;
+					bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+
+					commandMsg[0] = 'S';
+					commandMsg[1] = swd == 'D' ? 33 : 34; 
+					commandMsg[2] = 154;
+					commandMsg[3] = 0;
+					bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+					update_switch(154 , &t, &trainExpectedSensor[0]); //updates the display
+
+					//update_switch(sw, &t, &trainExpectedSensor[0]); //updates the display
+
+				}else if(sw == 20){
+					//s == 33 , C = 34
+					//D = CS = 34:33	 T = SC = 33:34
+
+
+					commandMsg[0] = 'S'; 
+					commandMsg[1] = swd == 'D' ? 34 : 33;
+					commandMsg[2] = 155;
+					commandMsg[3] = 0;
+					bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+
+					commandMsg[0] = 'S';
+					commandMsg[1] = swd == 'D' ? 33 : 34; 
+					commandMsg[2] = 156;
+					commandMsg[3] = 0;
+					bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+					update_switch(156, &t, &trainExpectedSensor[0]); //updates the display
+
+					//update_switch(sw, &t, &trainExpectedSensor[0]); //updates the display
+
+				}
 
 		        Reply(_tid, "1", 2);
 		        break;

@@ -37,6 +37,7 @@ void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor){
 
 	}
 	else if(sw <= 154){
+	//else if(sw == 19){
 		//warns the user if we have a double curve switch
 		if (node[99].switchConfig == CC){
 			msg[0] = 1; // warning
@@ -58,27 +59,28 @@ void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor){
 			msg[3] = 0;
 			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
 			msg[0] = '0'; //no warning
-            msg[1] = node[99].switchConfig == SC  ? 'C' : 'S';
+            		msg[1] = node[99].switchConfig == SC  ? 'C' : 'S';
 			msg[2] = 19;
 			msg[3] = 0;
 			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed.");
 
-            for (i = 58; i < 80; i++) {
-                if (findAltSensor(t, 99) == trainExpectedSensor[i]) {
-                    trainExpectedSensor[i] = findNextSensor(t, 99);
-                    if (trainExpectedSensor[i] <= 0) break;
-                    dspMsg[0] = 3; //hardcoded to indicate expected sensor
-                    dspMsg[1] = i;
-                    dspMsg[2] = trainExpectedSensor[i];
-                    dspMsg[3] = 0;
-                    bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-                }
-            }
+            		for (i = 58; i < 80; i++) {
+                		if (findAltSensor(t, 99) == trainExpectedSensor[i]) {
+                    			trainExpectedSensor[i] = findNextSensor(t, 99);
+                    			if (trainExpectedSensor[i] <= 0) break;
+                    			dspMsg[0] = 3; //hardcoded to indicate expected sensor
+                    			dspMsg[1] = i;
+                    			dspMsg[2] = trainExpectedSensor[i];
+                    			dspMsg[3] = 0;
+                    			bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+                		}
+            		}
 		}
 		
 	}
 
 	else if(sw <= 156){
+	//else if(sw == 20){
 		//warns the user if we have a double curve switch
 		if (node[100].switchConfig == CC){
 			msg[0] = 1; // warning
@@ -100,22 +102,22 @@ void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor){
 			msg[3] = 0;
 			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
 			msg[0] = '0'; //no warning
-            msg[1] = node[100].switchConfig == SC  ? 'C' : 'S';
+            		msg[1] = node[100].switchConfig == SC  ? 'C' : 'S';
 			msg[2] = 21;
 			msg[3] = 0;
 			bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed.");
             
-            for (i = 58; i < 80; i++) {
-                if (findAltSensor(t, 100) == trainExpectedSensor[i]) {
-                    trainExpectedSensor[i] = findNextSensor(t, 100);
-                    if (trainExpectedSensor[i] <= 0) break;
-                    dspMsg[0] = 3; //hardcoded to indicate expected sensor
-                    dspMsg[1] = i;
-                    dspMsg[2] = trainExpectedSensor[i];
-                    dspMsg[3] = 0;
-                    bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-                }
-            }
+            		for (i = 58; i < 80; i++) {
+                		if (findAltSensor(t, 100) == trainExpectedSensor[i]) {
+                    			trainExpectedSensor[i] = findNextSensor(t, 100);
+			    		if (trainExpectedSensor[i] <= 0) break;
+			    		dspMsg[0] = 3; //hardcoded to indicate expected sensor
+			    		dspMsg[1] = i;
+			    		dspMsg[2] = trainExpectedSensor[i];
+			    		dspMsg[3] = 0;
+			    		bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+                		}
+            		}
 
 		}
 
@@ -216,15 +218,16 @@ int parseCommand(char * input, int * arg1, int * arg2){
 							 return COMMAND_LOCKEDTRAINT;
 						break;
 					case(DFA_SW_1):
+					case(DFA_SW_2):
 
 						*arg1 = sw;
 						*arg2 = swd;
 
-            			msg[0] = 'S';
+            					msg[0] = 'S';
 						msg[1] = sw;
 						msg[2] = swd;
 						msg[3] = '\0';
-						if( sw > 18  && sw < 153)return COMMAND_INVALID;
+						if( sw > 20  && sw < 153)return COMMAND_INVALID;
 					
 						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Switch command.\r\n");
 
@@ -296,13 +299,13 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
                     return 13; //r
                     break; 
                 case 's':
-                    return 19; //r
+                    return 19; //s
                     break;  
                 case 'l':
-                    return 29; //r
+                    return 29; //l
                     break;      
                 case 'i':
-                    return 45; //t
+                    return 45; //i
                     break;
                 default :
                     return DFA_ERROR;
@@ -652,11 +655,17 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
                 case '6':
                 case '7':
                 case '8':
-                case '9':
-                    { *sw = (*sw * 10) + (c- '0');
+		    { *sw = (*sw * 10) + (c- '0');
 
                     }
                     return 24;
+                    break;
+
+                case '9': 
+                    { *sw = (*sw * 10) + (c- '0');
+
+                    }
+                    return 57; //sw [1][2]
                     break;
                 case ' ':
                     return 27;
@@ -669,6 +678,10 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
         case 23: //just a 'sw [2]'
             switch(c){
                 case '0':
+                    { *sw = (*sw * 10) + (c- '0');
+                    }
+                    return 57; //sw [2][0]
+                    break;
                 case '1':
                 case '2':
                 case '3':
@@ -1208,6 +1221,70 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
                     break;  
             }
             break;
+        case 57: //just a 'sw [[19][20]]'
+            switch(c){
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    { *sw = (*sw * 10) + (c- '0');
+
+                    }
+                    return 26; // 'sw 19#' or 'sw 20#'
+                    break;
+                case ' ':
+                    return 58;//'sw [[19][20]] '
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 58: //just a 'sw [[19][20]] '
+            switch(c){
+                case 'C':
+                   return 59; // 'sw 19/20 C'
+                    break;
+                case 'S':
+                    return 60;//'sw 19/20 S'
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+        case 59: //just a 'sw [[19][20]] C'
+            switch(c){
+                case 'S':
+                    *terminator = 1;
+                    *swd = 'D';
+                    return 61;//'sw 19/20 S'
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 60: //just a 'sw [[19][20]] S'
+            switch(c){
+                case 'C':
+                    *terminator = 1;
+                    *swd = c;
+                    *swd = 'T';
+                    return 61;//'sw 19/20 SC'
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+
+
 
         default:
             return DFA_ERROR;
