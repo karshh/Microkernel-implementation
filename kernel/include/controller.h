@@ -53,7 +53,7 @@
 
 
 // Passing in a integer  buffer of size 28
-int getSensorData(char * s);
+inline int getSensorData(char * s);
 
 // This function parses the input, and then based on the command typed by the user,
 // returns one of the command macros above. The menu will use the macro response to

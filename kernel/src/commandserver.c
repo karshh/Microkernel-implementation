@@ -14,7 +14,7 @@
 
 void commandServer() {
 	bwassert(!RegisterAs("commandServer"), COM2, "Could not register as command server.\r\n");
-	int cDelTid =  Create(4, (void *) commandReverseDelayServer);
+	int cDelTid =  Create(5, (void *) commandReverseDelayServer);
 	int csTID = WhoIs("clockServer");
 	int iosUS1TID = WhoIs("UART1S");
 	int iosUR1TID = WhoIs("UART1R");
@@ -96,10 +96,12 @@ void commandServer() {
 					//calculate the time (in ticks, based on a 24 hr time period, when the delay should end
 					delMsg[0] = msg[1]; //set train
 					delMsg[1] = msg[2]; //set trainspeed
-					if(trainMutex[(int)msg[1]] ==0)
+					if(trainMutex[(int)msg[1]] ==0){
 						Reply(_tid, "1", 2);
-					else
+					}
+					else{
 						Reply(_tid, "0", 2);
+					}
 			
 					if(trainMutex[(int)msg[1]]==0){
 						trainMutex[(int)msg[1]] = 1;
