@@ -105,7 +105,7 @@ void displayServer() {
 	int Prompt_TID = -1;
 	int Death_TID = -1;
 	int Sensors_TID = Create(4, (void *) displaySensors);
-	int Clock_TID = Create(4, (void *) displayClock);
+	int Clock_TID = Create(5, (void *) displayClock);
 	int Train_TID = Create(4, (void *) trainServer);
 
 
@@ -261,7 +261,7 @@ void displayServer() {
 	                		Printf(iosTID, COM2, "\033[s\033[?25l\033[34;1H\033[K\033[35;1H\033[KInitializing Switches.\033[34;1H>\033[u\033[?25h");
 				else{
 	                		Printf(iosTID, COM2, "\033[s\033[?25l\033[34;1H\033[K\033[35;1H\033[K\033[34;1H>\033[u\033[?25h");
-					Prompt_TID = Create(4, (void *) UserPrompt);
+					Prompt_TID = Create(5, (void *) UserPrompt);
 				}
 					
 			} else if (msg[0] == 3) {//3 is train sensor update

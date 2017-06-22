@@ -325,7 +325,7 @@ void trainServer(){
 
 		        break;
 
-			case 'S':
+			case 'S': //switch
 				sw = msg[1];
 				swd = msg[2];
 				if(sw <= 18) {
