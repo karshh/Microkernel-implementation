@@ -122,74 +122,80 @@ int getSensorData(char * s){
 	int rpllen = 3;
 
 	bwassert(Send(commandTID, msg, 3, rpl, rpllen) >= 0, COM2, "<getSensorData>: Polling sensors failed."); //poll sensors
-
-	char i = 0;
+	
+	int i = 0;
+	char b[10];
+	//volatile char b[10];
+	
 	int counter=0;
-	for(i = 0; i< 5; i++){
-		volatile char b1 = Getc(iosTID,COM1); //get char for this module
+	for(i = 0; i<10;i++)
+		b[i] = Getc(iosTID,COM1); //get char for this module
 
-		volatile char b2 = Getc(iosTID,COM1); //get char for this module
-		if (b1 & SENSOR_BIT_MASK_1){ 
+	for(i = 0; i< 5; i++){
+		//volatile char b1 = Getc(iosTID,COM1); //get char for this module
+
+		//volatile char b2 = Getc(iosTID,COM1); //get char for this module
+		if (b[i*2] & SENSOR_BIT_MASK_1){ 
 			s[counter] = (i * 16) +1;
 			counter ++;
 	 	}
-		if (b1 & SENSOR_BIT_MASK_2){ 
+		if (b[i*2] & SENSOR_BIT_MASK_2){ 
 			s[counter] = (i * 16) +2;
 			counter ++;
 	 	}
-		if (b1 & SENSOR_BIT_MASK_3){ 
+		if (b[i*2] & SENSOR_BIT_MASK_3){ 
 			s[counter] = (i * 16) +3;
 			counter ++;
 	 	}
-		if (b1 & SENSOR_BIT_MASK_4){ 
+		if (b[i*2] & SENSOR_BIT_MASK_4){ 
 			s[counter] = (i * 16) +4;
 			counter ++;
 	 	}
-		if (b1 & SENSOR_BIT_MASK_5){ 
+		if (b[i*2] & SENSOR_BIT_MASK_5){ 
 			s[counter] = (i * 16) +5;
 			counter ++;
 	 	}
-		if (b1 & SENSOR_BIT_MASK_6){ 
+		if (b[i*2] & SENSOR_BIT_MASK_6){ 
 			s[counter] = (i * 16) +6;
 			counter ++;
 	 	}
-		if (b1 & SENSOR_BIT_MASK_7){ 
+		if (b[i*2] & SENSOR_BIT_MASK_7){ 
 			s[counter] = (i * 16) +7;
 			counter ++;
 	 	}
-		if (b1 & SENSOR_BIT_MASK_8){ 
+		if (b[i*2] & SENSOR_BIT_MASK_8){ 
 			s[counter] = (i * 16) +8;
 			counter ++;
 	 	}
-		if (b2 & SENSOR_BIT_MASK_1){ 
+		if (b[i*2+1] & SENSOR_BIT_MASK_1){ 
 			s[counter] = (i * 16) +9;
 			counter ++;
 	 	}
-		if (b2 & SENSOR_BIT_MASK_2){ 
+		if (b[i*2+1] & SENSOR_BIT_MASK_2){ 
 			s[counter] = (i * 16) +10;
 			counter ++;
 	 	}
-		if (b2 & SENSOR_BIT_MASK_3){ 
+		if (b[i*2+1] & SENSOR_BIT_MASK_3){ 
 			s[counter] = (i * 16) +11;
 			counter ++;
 	 	}
-		if (b2 & SENSOR_BIT_MASK_4){ 
+		if (b[i*2+1] & SENSOR_BIT_MASK_4){ 
 			s[counter] = (i * 16) +12;
 			counter ++;
 	 	}
-		if (b2 & SENSOR_BIT_MASK_5){ 
+		if (b[i*2+1] & SENSOR_BIT_MASK_5){ 
 			s[counter] = (i * 16) +13;
 			counter ++;
 	 	}
-		if (b2 & SENSOR_BIT_MASK_6){ 
+		if (b[i*2+1] & SENSOR_BIT_MASK_6){ 
 			s[counter] = (i * 16) +14;
 			counter ++;
 	 	}
-		if (b2 & SENSOR_BIT_MASK_7){ 
+		if (b[i*2+1] & SENSOR_BIT_MASK_7){ 
 			s[counter] = (i * 16) +15;
 			counter ++;
 	 	}
-		if (b2 & SENSOR_BIT_MASK_8){ 
+		if (b[i*2+1] & SENSOR_BIT_MASK_8){ 
 			s[counter] = (i * 16) +16;
 			counter ++;
 	 	}

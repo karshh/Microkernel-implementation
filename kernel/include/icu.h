@@ -12,6 +12,7 @@ void toggleTimer3Interrupt(int _switch);
 
 void toggleUART1VICInterrupt(int _switch);
 void toggleUART1SendInterrupt(int _switch);
+
 void toggleUART1ReceiveInterrupt(int _switch);
 
 void toggleUART2VICInterrupt(int _switch);

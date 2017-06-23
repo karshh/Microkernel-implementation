@@ -20,14 +20,14 @@ void toggleUART1SendInterrupt(int _switch) {
          if (_switch) {
                 *((int *) (UART1_BASE + UART_CTLR_OFFSET)) |= (TIEN_MASK | MSIEN_MASK) ;
         } else {
-                *((int *) (UART1_BASE + UART_CTLR_OFFSET)) &= ~(TIEN_MASK | MSIEN_MASK);
+                *((int *) (UART1_BASE + UART_CTLR_OFFSET)) &= ~(TIEN_MASK );
         }
 }
 
 
 void toggleUART1ReceiveInterrupt(int _switch) {
          if (_switch) {
-		*((int *) (UART1_BASE + UART_CTLR_OFFSET)) |= RIEN_MASK;
+		*((int *) (UART1_BASE + UART_CTLR_OFFSET)) |= (RIEN_MASK | MSIEN_MASK);
         } else {
 		*((int *) (UART1_BASE + UART_CTLR_OFFSET)) &= ~RIEN_MASK;
 	}
@@ -77,8 +77,6 @@ int checkInterrupts() {
 	if (vic1 >> TIMER2_INT == 1) ans |= 0x4;
 	if (vic2 >> UART1_INT == 1) ans |= 0x8; 
 	if (vic2 >> UART2_INT == 1) ans |= 0x10; 
-
-	
 	return ans;
 }
 

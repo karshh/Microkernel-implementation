@@ -10,6 +10,7 @@
 #include "ui.h"
 #include "trackGraph.h"
 #include "pkstring.h"
+#include "controller.h"
 
 void displayTrack() {
 
@@ -924,9 +925,56 @@ bwprintf(COM2,"Quiting\n\r");
 	Exit();
 }
 
+void sensTest(){
+	CreateNameServer(1, (void *) NameServerTask);
+	CreateClockServer(2, (void *) clockServer);
+	Create(31, (void *) idleTask);
 
 
 
+	 CreateIOServer(2, (void *) UART1_ReceiveServer, UART1R);
+	 CreateIOServer(2, (void *) UART1_SendServer, UART1S);
+
+
+
+	Create(3, (void *) commandServer);
+	int j;
+	int startTime =0;
+	int total =0;
+	char recentSensors[64];
+	for(j=0;j<100;j++){
+		startTime = getTicks4us(0);
+/*
+		Putc(ios,COM1,0x85);
+		bwprintf(COM2, "putc \n\r");
+		Getc(ior,COM1);
+		Getc(ior,COM1);
+		bwprintf(COM2, "2 gets!!!!! \n\r");
+		//getSensorData(recentSensors);
+		Getc(ior,COM1);
+		Getc(ior,COM1);
+		bwprintf(COM2, "2 gets!!!!! \n\r");
+		//getSensorData(recentSensors);
+		Getc(ior,COM1);
+		Getc(ior,COM1);
+		bwprintf(COM2, "2 gets!!!!! \n\r");
+		//getSensorData(recentSensors);
+		Getc(ior,COM1);
+		Getc(ior,COM1);
+		bwprintf(COM2, "2 gets!!!!! \n\r");
+		Getc(ior,COM1);
+		Getc(ior,COM1);
+		bwprintf(COM2, "2 gets!!!!! \n\r");
+*/
+		getSensorData(recentSensors);
+		total += getTicks4us(startTime);
+		//getSensorData(recentSensors);
+		bwprintf(COM2, "poll: %d\n\r",j);
+	}
+		bwprintf(COM2, "average time: %d\n\r",total/100);
+
+Quit();
+}
 int main(void) {
     // turning on data and instruction cache.
      asm volatile (
@@ -937,6 +985,7 @@ int main(void) {
         "MCR p15, 0, r0, c1, c0, 0 \n");
 
     // kernelRun(2,(int) FirstUserTask);
+    kernelRun(8,(int) sensTest);
 	
     velocityModel vm;
     velocityModelInit(&vm);

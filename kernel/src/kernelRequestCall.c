@@ -493,9 +493,43 @@ int processInterrupt(kernelHandler *ks){
 	if (x & 0x8) {
 		// UART1
 		intrVal = *((int *) (UART1_BASE + UART_INTR_OFFSET));
-		*((int *) (UART1_BASE + UART_INTR_OFFSET)) = 1;
+//bwprintf(COM2,"%x %x ",*UART1_FLAG & CTS_MASK, *UART1_FLAG & TXFE_MASK);
+//bwprintf(COM2,"%x %d %d\n\r",intrVal, ks->uart1_MX, ks->uart1_TX);
 
-		if (intrVal & TIS_MASK) {
+		//	toggleUART1SendInterrupt(0);
+		if(intrVal & MIS_MASK){
+			*((int *) (UART1_BASE + UART_INTR_OFFSET)) = 1;
+			if (*UART1_FLAG & CTS_MASK) {
+       				ks->uart1_MX  = 1;
+       				if (ks->uart1_TX) {
+                			*((int *) (UART1_BASE + UART_CTLR_OFFSET)) |= TIEN_MASK;
+         				//*uart1_ctrl |= TIEN_MASK;
+         				ks->uart1_TX= 0;
+       				}
+     			}
+		}
+
+   		if (intrVal & TIS_MASK) {
+     			int disable_tis = 1;
+     			if (ks->uart1_MX) {
+    				if (ks->await_UART1SEND > -1) {
+            				(ks->TDList[ks->await_UART1SEND]).state = ACTIVE;
+            				kernel_queuePush(ks, &(ks->TDList[ks->await_UART1SEND]));
+            				ks->await_UART1SEND = -1;
+         				disable_tis = 0;
+
+    				}
+       				ks->uart1_MX = 0;
+     			} else {
+       				ks->uart1_TX = 1;
+     			}
+     			if (disable_tis) {
+                		*((int *) (UART1_BASE + UART_CTLR_OFFSET)) &= ~TIEN_MASK;
+     			}
+   		}
+
+
+		/*if (intrVal & TIS_MASK) {
 			toggleUART1SendInterrupt(0);
     		if (ks->await_UART1SEND > -1) {
             		(ks->TDList[ks->await_UART1SEND]).state = ACTIVE;
@@ -504,16 +538,21 @@ int processInterrupt(kernelHandler *ks){
     		}
 
 		}
-
+*/
 		if (intrVal & RIS_MASK) {
-			toggleUART1ReceiveInterrupt(0);
-    		if (ks->await_UART1RECEIVE > -1) {
-            		(ks->TDList[ks->await_UART1RECEIVE]).state = ACTIVE;
-            		kernel_queuePush(ks, &(ks->TDList[ks->await_UART1RECEIVE]));
-            		ks->await_UART1RECEIVE = -1;
-    		}
+
+			//toggleUART1ReceiveInterrupt(0);
+    			if (ks->await_UART1RECEIVE > -1) {
+
+			        (ks->TDList[ks->await_UART1RECEIVE]).state = ACTIVE;
+            			(ks->TDList[ks->await_UART1RECEIVE]).reqVal = *UART1_DATA;
+
+            			kernel_queuePush(ks, &(ks->TDList[ks->await_UART1RECEIVE]));
+            			ks->await_UART1RECEIVE = -1;
+    			}
 		}
 
+//bwprintf(COM2,"enduart 1: %x %d %d \n\r",intrVal, ks->uart1_MX, ks->uart1_TX);
 	}
 	if (x & 0x10) {
 		// UART2
@@ -579,8 +618,10 @@ int kernel_AwaitEvent(TD * t, request * r, kernelHandler * ks){
            	bwassert(ks->await_UART1SEND  == -1, COM2, "<Kernel>: Could not await TD<%d>, as TD<%d> waiting on await_UART1SEND.\r\n", t->TID, ks->await_UART1SEND);
 			t->state = EVENT_BLOCKED;
 			ks->await_UART1SEND = t->TID;
-            toggleUART1VICInterrupt(1);
+            		toggleUART1VICInterrupt(1);
 			toggleUART1SendInterrupt(1);
+			ks->uart1_MX =0;
+			ks->uart1_TX =0;
 
 			return 1;
 			break;
