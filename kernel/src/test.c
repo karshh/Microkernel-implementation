@@ -924,7 +924,31 @@ bwprintf(COM2,"Quiting\n\r");
 	Exit();
 }
 
+void sensTest(){
+	CreateNameServer(1, (void *) NameServerTask);
+	CreateClockServer(2, (void *) clockServer);
+	Create(31, (void *) idleTask);
 
+	bwassert(CreateIOServer(2, (void *) UART1_ReceiveServer, UART1R)>=0, COM2, "Failed Create UART1TR Server.\n\r");
+	bwassert(CreateIOServer(2, (void *) UART1_SendServer, UART1S)>=0, COM2, "Failed Create UART1TS Server.\n\r");
+
+
+
+	Create(3, (void *) commandServer);
+	int j;
+	int startTime =0;
+	int total =0;
+	char recentSensors[64];
+	for(j=0;j<100;j++){
+		startTime = getTicks4us(0);
+		getSensorData(recentSensors);
+		total += getTicks4us(startTime)/983;
+		bwprintf(COM2, "poll: %d\n\r",j);
+	}
+		bwprintf(COM2, "average time: %d\n\r",total/100);
+
+Quit();
+}
 int main(void) {
     // turning on data and instruction cache.
      asm volatile (
@@ -934,7 +958,7 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
 
-    kernelRun(2,(int) FirstUserTask);
+    kernelRun(8,(int) sensTest);
 	
 
     // TrackGraph t;
