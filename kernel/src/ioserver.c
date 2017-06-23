@@ -21,12 +21,12 @@ void UART1Send_Notifier() {
     // Get the first character to block on before entering the loop.
 	bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART1Send_Notifier>: Error with send.\r\n");
 	while(1) {
-		//Delay(csTID,5);
-		AwaitEvent(UART1_SEND);
-		if ((*UART1_FLAG & TXFE_MASK) && (*UART1_FLAG & CTS_MASK)) {
+		//if ((*UART1_FLAG & TXFE_MASK) && (*UART1_FLAG & CTS_MASK)) {
+		
 			*UART1_DATA = msg[0];
+
+			AwaitEvent(UART1_SEND);
 			bwassert(Send(iosTID, "1", 2, msg, msgLen) >= 0, COM2, "<UART1Send_Notifier>: Error with send.\r\n");
-		}
 	}
 }
 
@@ -38,14 +38,14 @@ void UART1Receive_Notifier() {
     int rplLen = 3;
 
 	while(1) {
-		AwaitEvent(UART1_RECEIVE);
-		if (*UART1_FLAG & RXFF_MASK) {
+		msg[0] = AwaitEvent(UART1_RECEIVE);
+		//if (*UART1_FLAG & RXFF_MASK) {
 			msg[0] = *UART1_DATA;
 			msg[1] = 0;
 			
 			if(!Send(iosTID, msg, 2, rpl, rplLen)) Exit();
 			//bwassert(Send(iosTID, msg, 2, rpl, rplLen) >= 0, COM2, "<UART1Receive_Notifier>: Error with send.\r\n");
-		}
+		//}
 	}
 }
 

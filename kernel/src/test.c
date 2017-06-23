@@ -929,8 +929,8 @@ void sensTest(){
 	CreateClockServer(2, (void *) clockServer);
 	Create(31, (void *) idleTask);
 
-	bwassert(CreateIOServer(2, (void *) UART1_ReceiveServer, UART1R)>=0, COM2, "Failed Create UART1TR Server.\n\r");
-	bwassert(CreateIOServer(2, (void *) UART1_SendServer, UART1S)>=0, COM2, "Failed Create UART1TS Server.\n\r");
+	int ior = CreateIOServer(2, (void *) UART1_ReceiveServer, UART1R);
+	int ios = CreateIOServer(2, (void *) UART1_SendServer, UART1S);
 
 
 
@@ -941,8 +941,31 @@ void sensTest(){
 	char recentSensors[64];
 	for(j=0;j<100;j++){
 		startTime = getTicks4us(0);
+/*
+		Putc(ios,COM1,0x85);
+		bwprintf(COM2, "putc \n\r");
+		Getc(ior,COM1);
+		Getc(ior,COM1);
+		bwprintf(COM2, "2 gets!!!!! \n\r");
+		//getSensorData(recentSensors);
+		Getc(ior,COM1);
+		Getc(ior,COM1);
+		bwprintf(COM2, "2 gets!!!!! \n\r");
+		//getSensorData(recentSensors);
+		Getc(ior,COM1);
+		Getc(ior,COM1);
+		bwprintf(COM2, "2 gets!!!!! \n\r");
+		//getSensorData(recentSensors);
+		Getc(ior,COM1);
+		Getc(ior,COM1);
+		bwprintf(COM2, "2 gets!!!!! \n\r");
+		Getc(ior,COM1);
+		Getc(ior,COM1);
+		bwprintf(COM2, "2 gets!!!!! \n\r");
+*/
 		getSensorData(recentSensors);
-		total += getTicks4us(startTime)/983;
+		total += getTicks4us(startTime);
+		//getSensorData(recentSensors);
 		bwprintf(COM2, "poll: %d\n\r",j);
 	}
 		bwprintf(COM2, "average time: %d\n\r",total/100);

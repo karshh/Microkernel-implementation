@@ -14,6 +14,13 @@ typedef enum KERNELSTATEtype {
 	KERQUIT
 } KERNELSTATEtype ;
 
+typedef enum U1S_State {
+	TX_NOT_ASSERTED,
+	TX_ASSERTED,
+	CTS_ASSERTED,
+	TX_CTS_ASSERTED,
+} U1S_STATE ;
+
 
 
 typedef struct kernelHandler{
@@ -63,6 +70,8 @@ typedef struct kernelHandler{
 	volatile int await_UART1RECEIVE;
 	volatile int await_UART2SEND;
 	volatile int await_UART2RECEIVE; 
+	volatile int uart1_TX;
+	volatile int uart1_MX;
 
 	//memm offset for user task space
 	int memOffset;
