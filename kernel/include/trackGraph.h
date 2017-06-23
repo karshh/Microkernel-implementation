@@ -38,6 +38,23 @@ typedef struct TrackGraphNode {
 typedef struct TrackGraph {
 	TrackGraphNode node[102];
 } TrackGraph;
+
+
+typedef struct velocityModelNode {
+    int numChild;
+    int child[5];
+    int distance[5];
+    int time[70];
+    int count[70];
+} velocityModelNode;
+
+typedef struct velocityModel {
+    velocityModelNode v[81];
+
+} velocityModel;
+
+void velocityModelInit(velocityModel * vm);
+
 int findAltSensor(TrackGraph * t, int i);
 int findNextSensor(TrackGraph * t, int i);
 
