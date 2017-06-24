@@ -1226,6 +1226,393 @@ void velocityModelInit(velocityModel * vm) {
     v[80].child[3] = 0;
     v[80].child[4] = 0;
 
+    // speed 14
+    updateEdgeTime(vm, sensor2i("A03"), sensor2i("C13"), 14, 896);
+    updateEdgeTime(vm, sensor2i("A03"), sensor2i("C11"), 14, 584);
+    updateEdgeTime(vm, sensor2i("A04"), sensor2i("B16"), 14, 644);
+
+    updateEdgeTime(vm, sensor2i("B01"), sensor2i("D14"), 14, 598);
+    updateEdgeTime(vm, sensor2i("B02"), sensor2i("C09"), 14, 525);
+    updateEdgeTime(vm, sensor2i("B04"), sensor2i("C09"), 14, 541);
+    updateEdgeTime(vm, sensor2i("B05"), sensor2i("D03"), 14, 599);
+    updateEdgeTime(vm, sensor2i("B06"), sensor2i("C12"), 14, 508);
+    updateEdgeTime(vm, sensor2i("B13"), sensor2i("D02"), 14, 742);
+    updateEdgeTime(vm, sensor2i("B13"), sensor2i("E02"), 14, 732);
+    updateEdgeTime(vm, sensor2i("B14"), sensor2i("D16"), 14, 254);
+    updateEdgeTime(vm, sensor2i("B15"), sensor2i("A03"), 14, 642);
+    updateEdgeTime(vm, sensor2i("B16"), sensor2i("C10"), 14, 549);
+    updateEdgeTime(vm, sensor2i("B16"), sensor2i("C05"), 14, 754);
+
+    updateEdgeTime(vm, sensor2i("C01"), sensor2i("B04"), 14, 345);
+    updateEdgeTime(vm, sensor2i("C02"), sensor2i("D02"), 14, 762);
+    updateEdgeTime(vm, sensor2i("C05"), sensor2i("C15"), 14, 427);
+    updateEdgeTime(vm, sensor2i("C05"), sensor2i("E11"), 14, 1646);
+    updateEdgeTime(vm, sensor2i("C06"), sensor2i("B15"), 14, 748);
+    updateEdgeTime(vm, sensor2i("C07"), sensor2i("E11"), 14, 1555);
+    updateEdgeTime(vm, sensor2i("C09"), sensor2i("B15"), 14, 550);
+    updateEdgeTime(vm, sensor2i("C10"), sensor2i("B01"), 14, 536);
+    updateEdgeTime(vm, sensor2i("C11"), sensor2i("E16"), 14, 539);
+    updateEdgeTime(vm, sensor2i("C11"), sensor2i("B05"), 14, 518);
+    updateEdgeTime(vm, sensor2i("C12"), sensor2i("A04"), 14, 559);
+    updateEdgeTime(vm, sensor2i("C13"), sensor2i("E07"), 14, 1383);
+    updateEdgeTime(vm, sensor2i("C14"), sensor2i("A04"), 14, 877);
+    updateEdgeTime(vm, sensor2i("C15"), sensor2i("D12"), 14, 655);
+    updateEdgeTime(vm, sensor2i("C16"), sensor2i("C06"), 14, 414);
+
+    updateEdgeTime(vm, sensor2i("D01"), sensor2i("C01"), 14, 915);
+    updateEdgeTime(vm, sensor2i("D01"), sensor2i("B14"), 14, 752);
+    updateEdgeTime(vm, sensor2i("D03"), sensor2i("E05"), 14, 406);
+    updateEdgeTime(vm, sensor2i("D04"), sensor2i("B06"), 14, 592);
+    updateEdgeTime(vm, sensor2i("D05"), sensor2i("E06"), 14, 549);
+    updateEdgeTime(vm, sensor2i("D06"), sensor2i("E10"), 14, 972);
+    updateEdgeTime(vm, sensor2i("D06"), sensor2i("D09"), 14, 1098);
+    updateEdgeTime(vm, sensor2i("D07"), sensor2i("E10"), 14, 1108);
+    updateEdgeTime(vm, sensor2i("D07"), sensor2i("D09"), 14, 1205);
+    updateEdgeTime(vm, sensor2i("D08"), sensor2i("E08"), 14, 551);
+    updateEdgeTime(vm, sensor2i("D09"), sensor2i("E12"), 14, 545);
+    updateEdgeTime(vm, sensor2i("D10"), sensor2i("D08"), 14, 1248);
+    updateEdgeTime(vm, sensor2i("D10"), sensor2i("D05"), 14, 1403);
+    updateEdgeTime(vm, sensor2i("D11"), sensor2i("C16"), 14, 591);
+    updateEdgeTime(vm, sensor2i("D12"), sensor2i("E11"), 14, 411);
+    updateEdgeTime(vm, sensor2i("D13"), sensor2i("B02"), 14, 597);
+    updateEdgeTime(vm, sensor2i("D14"), sensor2i("E14"), 14, 399);
+    updateEdgeTime(vm, sensor2i("D15"), sensor2i("B13"), 14, 221);
+    updateEdgeTime(vm, sensor2i("D16"), sensor2i("E14"), 14, 404);
+
+    updateEdgeTime(vm, sensor2i("E01"), sensor2i("C01"), 14, 751);
+    updateEdgeTime(vm, sensor2i("E01"), sensor2i("B14"), 14, 732);
+    updateEdgeTime(vm, sensor2i("E02"), sensor2i("E15"), 14, 274);
+    updateEdgeTime(vm, sensor2i("E03"), sensor2i("D01"), 14, 262);
+    updateEdgeTime(vm, sensor2i("E05"), sensor2i("D06"), 14, 580);
+    updateEdgeTime(vm, sensor2i("E06"), sensor2i("E03"), 14, 437);
+    updateEdgeTime(vm, sensor2i("E06"), sensor2i("D04"), 14, 391);
+    updateEdgeTime(vm, sensor2i("E07"), sensor2i("D07"), 14, 559);
+    updateEdgeTime(vm, sensor2i("E08"), sensor2i("C14"), 14, 1375);
+    updateEdgeTime(vm, sensor2i("E09"), sensor2i("D08"), 14, 1108);
+    updateEdgeTime(vm, sensor2i("E09"), sensor2i("D05"), 14, 986);
+    updateEdgeTime(vm, sensor2i("E10"), sensor2i("E13"), 14, 549);
+    updateEdgeTime(vm, sensor2i("E11"), sensor2i("D10"), 14, 553);
+    updateEdgeTime(vm, sensor2i("E12"), sensor2i("D11"), 14, 386);
+    updateEdgeTime(vm, sensor2i("E12"), sensor2i("C06"), 14, 1625);
+    updateEdgeTime(vm, sensor2i("E13"), sensor2i("D13"), 14, 403);
+    updateEdgeTime(vm, sensor2i("E13"), sensor2i("D15"), 14, 441);
+    updateEdgeTime(vm, sensor2i("E14"), sensor2i("E09"), 14, 550);
+    updateEdgeTime(vm, sensor2i("E15"), sensor2i("C12"), 14, 549);
+    updateEdgeTime(vm, sensor2i("E16"), sensor2i("E01"), 14, 245);
+
+
+    // speed 13
+    updateEdgeTime(vm, sensor2i("A03"), sensor2i("C13"), 13, 964);
+    updateEdgeTime(vm, sensor2i("A03"), sensor2i("C11"), 13, 627);
+    updateEdgeTime(vm, sensor2i("A04"), sensor2i("B16"), 13, 702);
+
+    updateEdgeTime(vm, sensor2i("B01"), sensor2i("D14"), 13, 647);
+    updateEdgeTime(vm, sensor2i("B02"), sensor2i("C09"), 13, 569);
+    updateEdgeTime(vm, sensor2i("B04"), sensor2i("C09"), 13, 566);
+    updateEdgeTime(vm, sensor2i("B05"), sensor2i("D03"), 13, 647);
+    updateEdgeTime(vm, sensor2i("B06"), sensor2i("C12"), 13, 549);
+    updateEdgeTime(vm, sensor2i("B13"), sensor2i("D02"), 13, 793);
+    updateEdgeTime(vm, sensor2i("B14"), sensor2i("D16"), 13, 264);
+    updateEdgeTime(vm, sensor2i("B15"), sensor2i("A03"), 13, 681);
+    updateEdgeTime(vm, sensor2i("B16"), sensor2i("C10"), 13, 593);
+    updateEdgeTime(vm, sensor2i("B16"), sensor2i("C05"), 13, 807);
+
+    updateEdgeTime(vm, sensor2i("C01"), sensor2i("B04"), 13, 359);
+    updateEdgeTime(vm, sensor2i("C02"), sensor2i("E02"), 13, 793);
+    updateEdgeTime(vm, sensor2i("C02"), sensor2i("D02"), 13, 827);
+    updateEdgeTime(vm, sensor2i("C05"), sensor2i("C15"), 13, 427);
+    updateEdgeTime(vm, sensor2i("C05"), sensor2i("E11"), 13, 1774);
+    updateEdgeTime(vm, sensor2i("C06"), sensor2i("B15"), 13, 792);
+    updateEdgeTime(vm, sensor2i("C09"), sensor2i("B15"), 13, 600);
+    updateEdgeTime(vm, sensor2i("C10"), sensor2i("B01"), 13, 585);
+    updateEdgeTime(vm, sensor2i("C11"), sensor2i("E16"), 13, 569);
+    updateEdgeTime(vm, sensor2i("C11"), sensor2i("B05"), 13, 549);
+    updateEdgeTime(vm, sensor2i("C12"), sensor2i("A04"), 13, 617);
+    updateEdgeTime(vm, sensor2i("C13"), sensor2i("E07"), 13, 1491);
+    updateEdgeTime(vm, sensor2i("C14"), sensor2i("A04"), 13, 978);
+    updateEdgeTime(vm, sensor2i("C15"), sensor2i("D12"), 13, 693);
+    updateEdgeTime(vm, sensor2i("C16"), sensor2i("C06"), 13, 451);
+
+    updateEdgeTime(vm, sensor2i("D01"), sensor2i("C01"), 13, 807);
+    updateEdgeTime(vm, sensor2i("D01"), sensor2i("B14"), 13, 807);
+    updateEdgeTime(vm, sensor2i("D03"), sensor2i("E05"), 13, 437);
+    updateEdgeTime(vm, sensor2i("D04"), sensor2i("B06"), 13, 643);
+    updateEdgeTime(vm, sensor2i("D05"), sensor2i("E06"), 13, 578);
+    updateEdgeTime(vm, sensor2i("D06"), sensor2i("E10"), 13, 1067);
+    updateEdgeTime(vm, sensor2i("D06"), sensor2i("D09"), 13, 1167);
+    updateEdgeTime(vm, sensor2i("D07"), sensor2i("E10"), 13, 1201);
+    updateEdgeTime(vm, sensor2i("D07"), sensor2i("D09"), 13, 1301);
+    updateEdgeTime(vm, sensor2i("D08"), sensor2i("E08"), 13, 598);
+    updateEdgeTime(vm, sensor2i("D09"), sensor2i("E12"), 13, 577);
+    updateEdgeTime(vm, sensor2i("D10"), sensor2i("D08"), 13, 1348);
+    updateEdgeTime(vm, sensor2i("D10"), sensor2i("D05"), 13, 1229);
+    updateEdgeTime(vm, sensor2i("D11"), sensor2i("C16"), 13, 645);
+    updateEdgeTime(vm, sensor2i("D12"), sensor2i("E11"), 13, 435);
+    updateEdgeTime(vm, sensor2i("D13"), sensor2i("B02"), 13, 632);
+    updateEdgeTime(vm, sensor2i("D14"), sensor2i("E14"), 13, 442);
+    updateEdgeTime(vm, sensor2i("D15"), sensor2i("B13"), 13, 244);
+    updateEdgeTime(vm, sensor2i("D16"), sensor2i("E14"), 13, 461);
+
+    updateEdgeTime(vm, sensor2i("E01"), sensor2i("C01"), 13, 811);
+    updateEdgeTime(vm, sensor2i("E01"), sensor2i("B14"), 13, 793);
+    updateEdgeTime(vm, sensor2i("E02"), sensor2i("E15"), 13, 294);
+    updateEdgeTime(vm, sensor2i("E03"), sensor2i("D01"), 13, 263);
+    updateEdgeTime(vm, sensor2i("E05"), sensor2i("D06"), 13, 617);
+    updateEdgeTime(vm, sensor2i("E06"), sensor2i("E03"), 13, 488);
+    updateEdgeTime(vm, sensor2i("E06"), sensor2i("D04"), 13, 445);
+    updateEdgeTime(vm, sensor2i("E07"), sensor2i("D07"), 13, 610);
+    updateEdgeTime(vm, sensor2i("E08"), sensor2i("C14"), 13, 1492);
+    updateEdgeTime(vm, sensor2i("E09"), sensor2i("D08"), 13, 1199);
+    updateEdgeTime(vm, sensor2i("E09"), sensor2i("D05"), 13, 1061);
+    updateEdgeTime(vm, sensor2i("E10"), sensor2i("E13"), 13, 589);
+    updateEdgeTime(vm, sensor2i("E11"), sensor2i("D10"), 13, 574);
+    updateEdgeTime(vm, sensor2i("E12"), sensor2i("D11"), 13, 427);
+    updateEdgeTime(vm, sensor2i("E12"), sensor2i("C06"), 13, 1753);
+    updateEdgeTime(vm, sensor2i("E13"), sensor2i("D13"), 13, 427);
+    updateEdgeTime(vm, sensor2i("E13"), sensor2i("D15"), 13, 467);
+    updateEdgeTime(vm, sensor2i("E14"), sensor2i("E09"), 13, 613);
+    updateEdgeTime(vm, sensor2i("E15"), sensor2i("C12"), 13, 579);
+    updateEdgeTime(vm, sensor2i("E16"), sensor2i("E01"), 13, 265);
+
+    // speed 12
+    updateEdgeTime(vm, sensor2i("A03"), sensor2i("C13"), 12, 1127);
+    updateEdgeTime(vm, sensor2i("A03"), sensor2i("C11"), 12, 738);
+    updateEdgeTime(vm, sensor2i("A04"), sensor2i("B16"), 12, 803);
+
+    updateEdgeTime(vm, sensor2i("B01"), sensor2i("D14"), 12, 741);
+    updateEdgeTime(vm, sensor2i("B02"), sensor2i("C09"), 12, 660);
+    updateEdgeTime(vm, sensor2i("B04"), sensor2i("C09"), 12, 660);
+    updateEdgeTime(vm, sensor2i("B05"), sensor2i("D03"), 12, 734);
+    updateEdgeTime(vm, sensor2i("B06"), sensor2i("C12"), 12, 632);
+    updateEdgeTime(vm, sensor2i("B13"), sensor2i("D02"), 12, 955);
+    updateEdgeTime(vm, sensor2i("B13"), sensor2i("E02"), 12, 914);
+    updateEdgeTime(vm, sensor2i("B14"), sensor2i("D16"), 12, 305);
+    updateEdgeTime(vm, sensor2i("B15"), sensor2i("A03"), 12, 799);
+    updateEdgeTime(vm, sensor2i("B16"), sensor2i("C10"), 12, 692);
+    updateEdgeTime(vm, sensor2i("B16"), sensor2i("C05"), 12, 935);
+
+    updateEdgeTime(vm, sensor2i("C01"), sensor2i("B04"), 12, 399);
+    updateEdgeTime(vm, sensor2i("C02"), sensor2i("E02"), 12, 945);
+    updateEdgeTime(vm, sensor2i("C02"), sensor2i("D02"), 12, 903);
+    updateEdgeTime(vm, sensor2i("C05"), sensor2i("C15"), 12, 518);
+    updateEdgeTime(vm, sensor2i("C05"), sensor2i("E11"), 12, 2045);
+    updateEdgeTime(vm, sensor2i("C06"), sensor2i("B15"), 12, 917);
+    updateEdgeTime(vm, sensor2i("C09"), sensor2i("B15"), 12, 699);
+    updateEdgeTime(vm, sensor2i("C10"), sensor2i("B01"), 12, 667);
+    updateEdgeTime(vm, sensor2i("C11"), sensor2i("E16"), 12, 631);
+    updateEdgeTime(vm, sensor2i("C11"), sensor2i("B05"), 12, 631);
+    updateEdgeTime(vm, sensor2i("C12"), sensor2i("A04"), 12, 710);
+    updateEdgeTime(vm, sensor2i("C13"), sensor2i("E07"), 12, 1701);
+    updateEdgeTime(vm, sensor2i("C14"), sensor2i("A04"), 12, 1122);
+    updateEdgeTime(vm, sensor2i("C15"), sensor2i("D12"), 12, 793);
+    updateEdgeTime(vm, sensor2i("C16"), sensor2i("C06"), 12, 934);
+
+    updateEdgeTime(vm, sensor2i("D01"), sensor2i("C01"), 12, 929);
+    updateEdgeTime(vm, sensor2i("D01"), sensor2i("B14"), 12, 916);
+    updateEdgeTime(vm, sensor2i("D03"), sensor2i("E05"), 12, 503);
+    updateEdgeTime(vm, sensor2i("D04"), sensor2i("B06"), 12, 753);
+    updateEdgeTime(vm, sensor2i("D05"), sensor2i("E06"), 12, 671);
+    updateEdgeTime(vm, sensor2i("D06"), sensor2i("E10"), 12, 1230);
+    updateEdgeTime(vm, sensor2i("D06"), sensor2i("D09"), 12, 1365);
+    updateEdgeTime(vm, sensor2i("D07"), sensor2i("E10"), 12, 1392);
+    updateEdgeTime(vm, sensor2i("D07"), sensor2i("D09"), 12, 1526);
+    updateEdgeTime(vm, sensor2i("D08"), sensor2i("E08"), 12, 698);
+    updateEdgeTime(vm, sensor2i("D09"), sensor2i("E12"), 12, 702);
+    updateEdgeTime(vm, sensor2i("D10"), sensor2i("D08"), 12, 1544);
+    updateEdgeTime(vm, sensor2i("D10"), sensor2i("D05"), 12, 1379);
+    updateEdgeTime(vm, sensor2i("D11"), sensor2i("C16"), 12, 746);
+    updateEdgeTime(vm, sensor2i("D12"), sensor2i("E11"), 12, 518);
+    updateEdgeTime(vm, sensor2i("D13"), sensor2i("B02"), 12, 731);
+    updateEdgeTime(vm, sensor2i("D14"), sensor2i("E14"), 12, 519);
+    updateEdgeTime(vm, sensor2i("D15"), sensor2i("B13"), 12, 317);
+    updateEdgeTime(vm, sensor2i("D16"), sensor2i("E14"), 12, 541);
+
+    updateEdgeTime(vm, sensor2i("E01"), sensor2i("C01"), 12, 952);
+    updateEdgeTime(vm, sensor2i("E01"), sensor2i("B14"), 12, 914);
+    updateEdgeTime(vm, sensor2i("E02"), sensor2i("E15"), 12, 321);
+    updateEdgeTime(vm, sensor2i("E03"), sensor2i("D01"), 12, 305);
+    updateEdgeTime(vm, sensor2i("E05"), sensor2i("D06"), 12, 709);
+    updateEdgeTime(vm, sensor2i("E06"), sensor2i("E03"), 12, 549);
+    updateEdgeTime(vm, sensor2i("E06"), sensor2i("D04"), 12, 510);
+    updateEdgeTime(vm, sensor2i("E07"), sensor2i("D07"), 12, 698);
+    updateEdgeTime(vm, sensor2i("E08"), sensor2i("C14"), 12, 1731);
+    updateEdgeTime(vm, sensor2i("E09"), sensor2i("D08"), 12, 1378);
+    updateEdgeTime(vm, sensor2i("E09"), sensor2i("D05"), 12, 1230);
+    updateEdgeTime(vm, sensor2i("E10"), sensor2i("E13"), 12, 690);
+    updateEdgeTime(vm, sensor2i("E11"), sensor2i("D10"), 12, 659);
+    updateEdgeTime(vm, sensor2i("E12"), sensor2i("D11"), 12, 499);
+    updateEdgeTime(vm, sensor2i("E12"), sensor2i("C06"), 12, 2057);
+    updateEdgeTime(vm, sensor2i("E13"), sensor2i("D13"), 12, 480);
+    updateEdgeTime(vm, sensor2i("E13"), sensor2i("D15"), 12, 524);
+    updateEdgeTime(vm, sensor2i("E14"), sensor2i("E09"), 12, 688);
+    updateEdgeTime(vm, sensor2i("E15"), sensor2i("C12"), 12, 692);
+    updateEdgeTime(vm, sensor2i("E16"), sensor2i("E01"), 12, 316);
+
+    // speed 11
+    updateEdgeTime(vm, sensor2i("A03"), sensor2i("C13"), 11, 1307);
+    updateEdgeTime(vm, sensor2i("A03"), sensor2i("C11"), 11, 854);
+    updateEdgeTime(vm, sensor2i("A04"), sensor2i("B16"), 11, 952);
+
+    updateEdgeTime(vm, sensor2i("B02"), sensor2i("C09"), 11, 761);
+    updateEdgeTime(vm, sensor2i("B04"), sensor2i("C09"), 11, 785);
+    updateEdgeTime(vm, sensor2i("B05"), sensor2i("D03"), 11, 861);
+    updateEdgeTime(vm, sensor2i("B06"), sensor2i("C12"), 11, 767);
+    updateEdgeTime(vm, sensor2i("B13"), sensor2i("D02"), 11, 1082);
+    updateEdgeTime(vm, sensor2i("B13"), sensor2i("E02"), 11, 1014);
+    updateEdgeTime(vm, sensor2i("B14"), sensor2i("D16"), 11, 383);
+    updateEdgeTime(vm, sensor2i("B15"), sensor2i("A03"), 11, 958);
+    updateEdgeTime(vm, sensor2i("B16"), sensor2i("C10"), 11, 859);
+    updateEdgeTime(vm, sensor2i("B16"), sensor2i("C05"), 11, 1056);
+
+    updateEdgeTime(vm, sensor2i("C01"), sensor2i("B04"), 11, 438);
+    updateEdgeTime(vm, sensor2i("C02"), sensor2i("D02"), 11, 1097);
+    updateEdgeTime(vm, sensor2i("C05"), sensor2i("C15"), 11, 630);
+    updateEdgeTime(vm, sensor2i("C05"), sensor2i("E11"), 11, 2398);
+    updateEdgeTime(vm, sensor2i("C06"), sensor2i("B15"), 11, 1083);
+    updateEdgeTime(vm, sensor2i("C09"), sensor2i("B15"), 11, 820);
+    updateEdgeTime(vm, sensor2i("C11"), sensor2i("E16"), 11, 778);
+    updateEdgeTime(vm, sensor2i("C11"), sensor2i("B05"), 11, 742);
+    updateEdgeTime(vm, sensor2i("C12"), sensor2i("A04"), 11, 846);
+    updateEdgeTime(vm, sensor2i("C13"), sensor2i("E07"), 11, 1976);
+    updateEdgeTime(vm, sensor2i("C15"), sensor2i("D12"), 11, 915);
+    updateEdgeTime(vm, sensor2i("C16"), sensor2i("C06"), 11, 658);
+
+    updateEdgeTime(vm, sensor2i("D01"), sensor2i("C01"), 11, 1052);
+    updateEdgeTime(vm, sensor2i("D01"), sensor2i("B14"), 11, 1098);
+    updateEdgeTime(vm, sensor2i("D03"), sensor2i("E05"), 11, 584);
+    updateEdgeTime(vm, sensor2i("D04"), sensor2i("B06"), 11, 888);
+    updateEdgeTime(vm, sensor2i("D05"), sensor2i("E06"), 11, 816);
+    updateEdgeTime(vm, sensor2i("D06"), sensor2i("E10"), 11, 1419);
+    updateEdgeTime(vm, sensor2i("D06"), sensor2i("D09"), 11, 1568);
+    updateEdgeTime(vm, sensor2i("D07"), sensor2i("E10"), 11, 1586);
+    updateEdgeTime(vm, sensor2i("D07"), sensor2i("D09"), 11, 1778);
+    updateEdgeTime(vm, sensor2i("D08"), sensor2i("E08"), 11, 818);
+    updateEdgeTime(vm, sensor2i("D10"), sensor2i("D05"), 11, 1657);
+    updateEdgeTime(vm, sensor2i("D11"), sensor2i("C16"), 11, 866);
+    updateEdgeTime(vm, sensor2i("D12"), sensor2i("E11"), 11, 609);
+    updateEdgeTime(vm, sensor2i("D13"), sensor2i("B02"), 11, 854);
+    updateEdgeTime(vm, sensor2i("D15"), sensor2i("B13"), 11, 383);
+    updateEdgeTime(vm, sensor2i("D16"), sensor2i("E14"), 11, 661);
+
+    updateEdgeTime(vm, sensor2i("E01"), sensor2i("C01"), 11, 1084);
+    updateEdgeTime(vm, sensor2i("E01"), sensor2i("B14"), 11, 1018);
+    updateEdgeTime(vm, sensor2i("E02"), sensor2i("E15"), 11, 366);
+    updateEdgeTime(vm, sensor2i("E03"), sensor2i("D01"), 11, 465);
+    updateEdgeTime(vm, sensor2i("E05"), sensor2i("D06"), 11, 841);
+    updateEdgeTime(vm, sensor2i("E06"), sensor2i("E03"), 11, 640);
+    updateEdgeTime(vm, sensor2i("E06"), sensor2i("D04"), 11, 596);
+    updateEdgeTime(vm, sensor2i("E07"), sensor2i("D07"), 11, 817);
+    updateEdgeTime(vm, sensor2i("E09"), sensor2i("D05"), 11, 1463);
+    updateEdgeTime(vm, sensor2i("E10"), sensor2i("E13"), 11, 791);
+    updateEdgeTime(vm, sensor2i("E11"), sensor2i("D10"), 11, 772);
+    updateEdgeTime(vm, sensor2i("E12"), sensor2i("D11"), 11, 549);
+    updateEdgeTime(vm, sensor2i("E12"), sensor2i("C06"), 11, 2385);
+    updateEdgeTime(vm, sensor2i("E13"), sensor2i("D13"), 11, 573);
+    updateEdgeTime(vm, sensor2i("E13"), sensor2i("D15"), 11, 590);
+    updateEdgeTime(vm, sensor2i("E14"), sensor2i("E09"), 11, 813);
+    updateEdgeTime(vm, sensor2i("E15"), sensor2i("C12"), 11, 854);
+    updateEdgeTime(vm, sensor2i("E16"), sensor2i("E01"), 11, 365);
+
+    // speed 10
+    updateEdgeTime(vm, sensor2i("A03"), sensor2i("C13"), 10, 1757);
+    updateEdgeTime(vm, sensor2i("A03"), sensor2i("C11"), 10, 1159);
+
+    updateEdgeTime(vm, sensor2i("B02"), sensor2i("C09"), 10, 1037);
+    updateEdgeTime(vm, sensor2i("B13"), sensor2i("D02"), 10, 1403);
+    updateEdgeTime(vm, sensor2i("B14"), sensor2i("D16"), 10, 528);
+    updateEdgeTime(vm, sensor2i("B15"), sensor2i("A03"), 10, 1323);
+
+    updateEdgeTime(vm, sensor2i("C01"), sensor2i("B04"), 10, 569);
+    updateEdgeTime(vm, sensor2i("C06"), sensor2i("B15"), 10, 1427);
+    updateEdgeTime(vm, sensor2i("C07"), sensor2i("E11"), 10, 2500);
+    updateEdgeTime(vm, sensor2i("C09"), sensor2i("B15"), 10, 1103);
+    updateEdgeTime(vm, sensor2i("C11"), sensor2i("E16"), 10, 1104);
+    updateEdgeTime(vm, sensor2i("C13"), sensor2i("E07"), 10, 2713);
+
+    updateEdgeTime(vm, sensor2i("D01"), sensor2i("C01"), 10, 1464);
+    updateEdgeTime(vm, sensor2i("D01"), sensor2i("B14"), 10, 1433);
+    updateEdgeTime(vm, sensor2i("D05"), sensor2i("E06"), 10, 1107);
+    updateEdgeTime(vm, sensor2i("D06"), sensor2i("E10"), 10, 1952);
+    updateEdgeTime(vm, sensor2i("D06"), sensor2i("D09"), 10, 2135);
+    updateEdgeTime(vm, sensor2i("D07"), sensor2i("E10"), 10, 2196);
+    updateEdgeTime(vm, sensor2i("D07"), sensor2i("D09"), 10, 2378);
+    updateEdgeTime(vm, sensor2i("D10"), sensor2i("D05"), 10, 2256);
+    updateEdgeTime(vm, sensor2i("D15"), sensor2i("B13"), 10, 488);
+    updateEdgeTime(vm, sensor2i("D16"), sensor2i("E14"), 10, 874);
+
+    updateEdgeTime(vm, sensor2i("E01"), sensor2i("C01"), 10, 1464);
+    updateEdgeTime(vm, sensor2i("E01"), sensor2i("B14"), 10, 1341);
+    updateEdgeTime(vm, sensor2i("E03"), sensor2i("D01"), 10, 488);
+    updateEdgeTime(vm, sensor2i("E05"), sensor2i("D06"), 10, 1159);
+    updateEdgeTime(vm, sensor2i("E06"), sensor2i("E03"), 10, 869);
+    updateEdgeTime(vm, sensor2i("E07"), sensor2i("D07"), 10, 1087);
+    updateEdgeTime(vm, sensor2i("E09"), sensor2i("D05"), 10, 1951);
+    updateEdgeTime(vm, sensor2i("E10"), sensor2i("E13"), 10, 1067);
+    updateEdgeTime(vm, sensor2i("E11"), sensor2i("D10"), 10, 1098);
+    updateEdgeTime(vm, sensor2i("E12"), sensor2i("C06"), 10, 3195);
+    updateEdgeTime(vm, sensor2i("E13"), sensor2i("D15"), 10, 793);
+    updateEdgeTime(vm, sensor2i("E14"), sensor2i("E09"), 10, 1097);
+    updateEdgeTime(vm, sensor2i("E16"), sensor2i("E01"), 10, 442);
+
+    // speed 9
+    updateEdgeTime(vm, sensor2i("A03"), sensor2i("C13"), 9, 1952);
+    updateEdgeTime(vm, sensor2i("A03"), sensor2i("C11"), 9, 1237);
+    updateEdgeTime(vm, sensor2i("A04"), sensor2i("B16"), 9, 1423);
+
+    updateEdgeTime(vm, sensor2i("B02"), sensor2i("C09"), 9, 1097);
+    updateEdgeTime(vm, sensor2i("B04"), sensor2i("C09"), 9, 1159);
+    updateEdgeTime(vm, sensor2i("B05"), sensor2i("D03"), 9, 1281);
+    updateEdgeTime(vm, sensor2i("B06"), sensor2i("C12"), 9, 1159);
+    updateEdgeTime(vm, sensor2i("B13"), sensor2i("D02"), 9, 1592);
+    updateEdgeTime(vm, sensor2i("B13"), sensor2i("E02"), 9, 1525);
+    updateEdgeTime(vm, sensor2i("B14"), sensor2i("D16"), 9, 569);
+    updateEdgeTime(vm, sensor2i("B15"), sensor2i("A03"), 9, 1443);
+    updateEdgeTime(vm, sensor2i("B16"), sensor2i("C10"), 9, 1178);
+
+    updateEdgeTime(vm, sensor2i("C01"), sensor2i("B04"), 9, 658);
+    updateEdgeTime(vm, sensor2i("C02"), sensor2i("E02"), 9, 1586);
+    updateEdgeTime(vm, sensor2i("C02"), sensor2i("D02"), 9, 1585);
+    updateEdgeTime(vm, sensor2i("C06"), sensor2i("B15"), 9, 1587);
+    updateEdgeTime(vm, sensor2i("C09"), sensor2i("B15"), 9, 1219);
+    updateEdgeTime(vm, sensor2i("C11"), sensor2i("E16"), 9, 1158);
+    updateEdgeTime(vm, sensor2i("C11"), sensor2i("B05"), 9, 1062);
+    updateEdgeTime(vm, sensor2i("C12"), sensor2i("A04"), 9, 1199);
+    updateEdgeTime(vm, sensor2i("C13"), sensor2i("E07"), 9, 2911);
+    updateEdgeTime(vm, sensor2i("C16"), sensor2i("C06"), 9, 923);
+
+    updateEdgeTime(vm, sensor2i("D01"), sensor2i("C01"), 9, 1647);
+    updateEdgeTime(vm, sensor2i("D01"), sensor2i("B14"), 9, 1586);
+    updateEdgeTime(vm, sensor2i("D02"), sensor2i("E04"), 9, 671);
+    updateEdgeTime(vm, sensor2i("D03"), sensor2i("E05"), 9, 854);
+    updateEdgeTime(vm, sensor2i("D04"), sensor2i("B06"), 9, 1281);
+    updateEdgeTime(vm, sensor2i("D05"), sensor2i("E06"), 9, 1211);
+    updateEdgeTime(vm, sensor2i("D06"), sensor2i("E10"), 9, 2125);
+    updateEdgeTime(vm, sensor2i("D07"), sensor2i("D09"), 9, 2623);
+    updateEdgeTime(vm, sensor2i("D09"), sensor2i("E12"), 9, 1174);
+    updateEdgeTime(vm, sensor2i("D11"), sensor2i("C16"), 9, 1402);
+    updateEdgeTime(vm, sensor2i("D13"), sensor2i("B02"), 9, 1280);
+    updateEdgeTime(vm, sensor2i("D15"), sensor2i("B13"), 9, 560);
+    updateEdgeTime(vm, sensor2i("D16"), sensor2i("E14"), 9, 976);
+
+    updateEdgeTime(vm, sensor2i("E01"), sensor2i("C01"), 9, 1586);
+    updateEdgeTime(vm, sensor2i("E01"), sensor2i("B14"), 9, 1463);
+    updateEdgeTime(vm, sensor2i("E02"), sensor2i("E15"), 9, 579);
+    updateEdgeTime(vm, sensor2i("E03"), sensor2i("D01"), 9, 549);
+    updateEdgeTime(vm, sensor2i("E04"), sensor2i("E05"), 9, 854);
+    updateEdgeTime(vm, sensor2i("E05"), sensor2i("D06"), 9, 1268);
+    updateEdgeTime(vm, sensor2i("E06"), sensor2i("E03"), 9, 976);
+    updateEdgeTime(vm, sensor2i("E06"), sensor2i("D04"), 9, 853);
+    updateEdgeTime(vm, sensor2i("E07"), sensor2i("D07"), 9, 1189);
+    updateEdgeTime(vm, sensor2i("E09"), sensor2i("D05"), 9, 2206);
+    updateEdgeTime(vm, sensor2i("E10"), sensor2i("E13"), 9, 1184);
+    updateEdgeTime(vm, sensor2i("E12"), sensor2i("D11"), 9, 854);
+    updateEdgeTime(vm, sensor2i("E12"), sensor2i("C06"), 9, 3538);
+    updateEdgeTime(vm, sensor2i("E13"), sensor2i("D13"), 9, 854);
+    updateEdgeTime(vm, sensor2i("E13"), sensor2i("D15"), 9, 870);
+    updateEdgeTime(vm, sensor2i("E14"), sensor2i("E09"), 9, 1220);
+    updateEdgeTime(vm, sensor2i("E15"), sensor2i("C12"), 9, 1189);
+    updateEdgeTime(vm, sensor2i("E16"), sensor2i("E01"), 9, 602);
+
 
 
 }

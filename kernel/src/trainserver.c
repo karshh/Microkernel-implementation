@@ -163,8 +163,11 @@ void trainServer(){
 					dspMsg[3] = (getEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[58]) / 10000) % 100;
 					dspMsg[4] = (getEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[58]) / 100) % 100;
 					dspMsg[5] = getEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[58]) % 100;
-					dspMsg[6] = 0;
-					bwassert(Send(dspTID, dspMsg, 6, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+					dspMsg[6] = (v[i].distance[kh] / 10000) % 100;
+					dspMsg[7] = (v[i].distance[kh] / 100) % 100;
+					dspMsg[8] = (v[i].distance[kh]) % 100;
+					dspMsg[9] = 0;
+					bwassert(Send(dspTID, dspMsg, 9, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
 
 				}
 
@@ -230,8 +233,11 @@ void trainServer(){
 						dspMsg[3] = (getEdgeTime(&(t.vm), i, v[i].child[j], msg[1]) / 10000) % 100;
 						dspMsg[4] = (getEdgeTime(&(t.vm), i, v[i].child[j], msg[1]) / 100) % 100;
 						dspMsg[5] = getEdgeTime(&(t.vm), i, v[i].child[j], msg[1]) % 100;
-						dspMsg[6] = 0;
-						bwassert(Send(dspTID, dspMsg, 6, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+						dspMsg[6] = (v[i].distance[j] / 10000) % 100;
+						dspMsg[7] = (v[i].distance[j] / 100) % 100;
+						dspMsg[8] = (v[i].distance[j]) % 100;
+						dspMsg[9] = 0;
+						bwassert(Send(dspTID, dspMsg, 10, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
 					}
 				}
 		        Reply(_tid, "1", 2);

@@ -271,8 +271,10 @@ void displayServer() {
 	       			switchLocation = msg[2] + 6;
        				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;11H\033[1m\033[31m%c\033[0m\033[u\033[?25h", switchLocation, msg[1]);
 			} else if (msg[0] == COMMAND_SENSOREDGE) {
-					int t = (msg[3]*10000) + (msg[4]*100) + msg[5];
-					Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;%dH        \033[s\033[?25l\033[%d;%dH%dms\033[u\033[?25h", msg[1], 53+(20*msg[2]),msg[1], 53+(20*msg[2]), t);
+					int t = ((msg[3]*10000) + (msg[4]*100) + msg[5]);
+					int d = ((msg[6]*10000) + (msg[7]*100) + msg[8]) * 1000;
+
+					Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;%dH                 \033[s\033[?25l\033[%d;%dH%dms[%dum/ms]\033[u\033[?25h", msg[1], 53+(30*msg[2]),msg[1], 53+(30*msg[2]), t, t==0 ? 0 : d/t);
 
 			} else {
 				//0 is for switch mode normal text
