@@ -236,6 +236,24 @@ int findSensorEdge(velocityModel * vm, int s1, int s2) {
 
 }
 
+
+// int getPathLength(velocityModel * vm, int * path, int pathLength) {
+//     volatile int i = 0;
+//     volatile int j = 0;
+//     int s1 = path[0];
+//     int s2 = 0;
+//     int ans = 0;
+
+//     for (i=0; i<pathLength;i++) {
+//         for (j=i+1; j<pathLength && path[j];j++) {
+
+//         }
+//         if (j >= pathLength) break;
+//     }
+
+
+// }
+
 int getEdgeDistance(velocityModel * vm, int s1, int s2) {
 	int edgeNum = findSensorEdge(vm, s1, s2);
 	if (edgeNum < 0) return 0;

@@ -984,22 +984,22 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
 
-    // kernelRun(2,(int) FirstUserTask);
+    kernelRun(2,(int) FirstUserTask);
 	
-    velocityModel vm;
-    velocityModelInit(&vm);
-    volatile int i = 0;
-    volatile int j = 0;
-    volatile int k = 0;
-    for (i = 0; i < 80; i++) {
-        bwprintf(COM2, "%c%d%d\r\n", ((i-1)/16)+'A',((i-1)%16+1)/10, ((i-1)%16+1)%10);
-        bwprintf(COM2, "Child: ");
-        for (j = 0; j < vm.v[i].numChild; j++) {
-            k = vm.v[i].child[j];
-            bwprintf(COM2, "%c%d%d[%d,%d]", ((k-1)/16)+'A',((k-1)%16+1)/10, ((k-1)%16+1)%10, vm.v[i].colCursor, vm.v[i].rowCursor[j]);
-        }
-        bwprintf(COM2, "\r\n");
-    }
+    // velocityModel vm;
+    // velocityModelInit(&vm);
+    // volatile int i = 0;
+    // volatile int j = 0;
+    // volatile int k = 0;
+    // for (i = 0; i < 80; i++) {
+    //     bwprintf(COM2, "%c%d%d\r\n", ((i-1)/16)+'A',((i-1)%16+1)/10, ((i-1)%16+1)%10);
+    //     bwprintf(COM2, "Child: ");
+    //     for (j = 0; j < vm.v[i].numChild; j++) {
+    //         k = vm.v[i].child[j];
+    //         bwprintf(COM2, "%c%d%d[%d,%d]", ((k-1)/16)+'A',((k-1)%16+1)/10, ((k-1)%16+1)%10, vm.v[i].colCursor, vm.v[i].rowCursor[j]);
+    //     }
+    //     bwprintf(COM2, "\r\n");
+    // }
 
 
     // TrackGraph t;
