@@ -1,0 +1,27 @@
+Notes:
+Using trackB
+train 58
+train configuration.       
+ [    ._____.        .      .  ] ---> movement of train
+        ^	
+        |
+	pickup
+
+
+
+speed 4
+
+15.2
+14.7
+15.0
+15.1
+14.8
+14.8
+14.8
+15.0
+14.8
+15.0
+
+16.4 (note this was de-accelerated from a larger speed then down to 4, while the others was accelarated from 0)
+it says in lec 17 online notes:
+"Some trains actually have more than fourteen velocities: they go at different velocities when you decelerate to a speed than when you accelerate to it. (Not many of these trains remain.) "
