@@ -28,7 +28,7 @@ void UserPrompt() {
 	bwassert(iosTID >= 0, COM2, "<UserPrompt>: UART2ReceiveServer has not been set up.\r\n");
 
 
-	char terminalInput[1024];
+	char terminalInput[124];
 	int terminalInputIndex = 0;
 	int cursorCol = 2;
 	volatile char c = 0;
@@ -41,7 +41,7 @@ void UserPrompt() {
 	while (1) {
 		c = Getc(iosTID, COM2);
 
-	    if (c <= 0 || terminalInputIndex >= 1020) continue;
+	    if (c <= 0 || (terminalInputIndex >= 32 && c != 8)) continue;
 	    else if (c == '\r') {
 	        int cleanup = 0;
 	        terminalInput[terminalInputIndex] = 0;
@@ -270,6 +270,10 @@ void displayServer() {
 			} else if (msg[0] == 1) {//1 is switch mode warning
 	       			switchLocation = msg[2] + 6;
        				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;11H\033[1m\033[31m%c\033[0m\033[u\033[?25h", switchLocation, msg[1]);
+			} else if (msg[0] == COMMAND_SENSOREDGE) {
+					int t = (msg[3]*10000) + (msg[4]*100) + msg[5];
+					Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;%dH        \033[s\033[?25l\033[%d;%dH%dms\033[u\033[?25h", msg[1], 53+(20*msg[2]),msg[1], 53+(20*msg[2]), t);
+
 			} else {
 				//0 is for switch mode normal text
 	       			switchLocation = msg[2] + 6;

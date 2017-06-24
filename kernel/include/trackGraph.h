@@ -21,6 +21,24 @@ typedef enum SwitchConfig {
 	CC
 } SwitchConfig;
 
+typedef struct velocityModelNode {
+    int numChild;
+    int child[5];
+    int distance[5];
+    int time[75];
+    int count[75];
+    char rowCursor[5];
+    char colCursor;
+} velocityModelNode;
+
+
+#define VELOCITY_NODES 81
+
+typedef struct velocityModel {
+    velocityModelNode v[VELOCITY_NODES];
+
+} velocityModel;
+
 typedef struct TrackGraphNode {
 	TrackGraphNodeType type;
 	int id1;
@@ -37,32 +55,26 @@ typedef struct TrackGraphNode {
 
 typedef struct TrackGraph {
 	TrackGraphNode node[102];
+	velocityModel vm;
 } TrackGraph;
 
-
-typedef struct velocityModelNode {
-    int numChild;
-    int child[5];
-    int distance[5];
-    int time[70];
-    int count[70];
-} velocityModelNode;
-
-typedef struct velocityModel {
-    velocityModelNode v[81];
-
-} velocityModel;
 
 void velocityModelInit(velocityModel * vm);
 
 int findAltSensor(TrackGraph * t, int i);
+
 int findNextSensor(TrackGraph * t, int i);
 
 int sensor2i(char * c);
 
 int switch2i(int i);
 
+int findSensorEdge(velocityModel * vm, int s1, int s2);
 
+int updateEdgeTime(velocityModel * vm, int s1, int s2, int speed, int t);
+
+int getEdgeDistance(velocityModel * vm, int s1, int s2);
+int getEdgeTime(velocityModel * vm, int s1, int s2, int speed);
 
 void TrackGraphInit(TrackGraph * t);
 

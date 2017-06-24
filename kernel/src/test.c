@@ -985,7 +985,6 @@ int main(void) {
         "MCR p15, 0, r0, c1, c0, 0 \n");
 
     // kernelRun(2,(int) FirstUserTask);
-    kernelRun(8,(int) sensTest);
 	
     velocityModel vm;
     velocityModelInit(&vm);
@@ -997,7 +996,7 @@ int main(void) {
         bwprintf(COM2, "Child: ");
         for (j = 0; j < vm.v[i].numChild; j++) {
             k = vm.v[i].child[j];
-            bwprintf(COM2, "%c%d%d ", ((k-1)/16)+'A',((k-1)%16+1)/10, ((k-1)%16+1)%10);
+            bwprintf(COM2, "%c%d%d[%d,%d]", ((k-1)/16)+'A',((k-1)%16+1)/10, ((k-1)%16+1)%10, vm.v[i].colCursor, vm.v[i].rowCursor[j]);
         }
         bwprintf(COM2, "\r\n");
     }

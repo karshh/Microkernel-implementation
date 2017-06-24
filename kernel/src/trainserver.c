@@ -34,6 +34,7 @@ void trainServer(){
 	TrackGraph t;
 	TrackGraphInit(&t);
 	TrackGraphNode * node = t.node;
+	velocityModelNode * v = t.vm.v;
 
     int _tid = -1;
     char msg[64];
@@ -47,6 +48,7 @@ void trainServer(){
     int rpllen = 3;
 
 	volatile int i=0;
+	volatile int j=0;
 	int msgLen = 0;
 	int dspTID = WhoIs("displayServer");
 
@@ -135,6 +137,10 @@ void trainServer(){
 	int swd;
 	int sens;
 
+	int prevSensor = 0;
+	int curSensor = 0;
+	int prevSensorTime = 0;
+	int curSensorTime = 0;
 
 	while(1){
 
@@ -146,6 +152,25 @@ void trainServer(){
 			// and add that as it's expected sensor.
 			volatile int j = 0;
 			for (j = 0; j < msgLen; j++) {
+				curSensorTime = getTicks4(0);
+				curSensor = msg[j];
+				
+				if (updateEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[58], curSensorTime-prevSensorTime)) {
+					int kh = findSensorEdge(&(t.vm),prevSensor, curSensor);
+					dspMsg[0] = COMMAND_SENSOREDGE;
+					dspMsg[1] = v[prevSensor].rowCursor[kh];
+					dspMsg[2] = v[prevSensor].colCursor;
+					dspMsg[3] = (getEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[58]) / 10000) % 100;
+					dspMsg[4] = (getEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[58]) / 100) % 100;
+					dspMsg[5] = getEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[58]) % 100;
+					dspMsg[6] = 0;
+					bwassert(Send(dspTID, dspMsg, 6, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+
+				}
+
+				prevSensorTime = curSensorTime;
+				prevSensor = curSensor;
+				
 				for (i = 58; i < 80; i++) {
 					if (trainDestinationSensor[i] == msg[j]) {
 
@@ -196,6 +221,19 @@ void trainServer(){
 				commandMsg[2] = train;
 				commandMsg[3] = 0;
 				bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+
+				for (i=1; i < VELOCITY_NODES; i++) {
+					for (j=0; j < v[i].numChild; j++) {
+						dspMsg[0] = COMMAND_SENSOREDGE;
+						dspMsg[1] = v[i].rowCursor[j];
+						dspMsg[2] = v[i].colCursor;
+						dspMsg[3] = (getEdgeTime(&(t.vm), i, v[i].child[j], msg[1]) / 10000) % 100;
+						dspMsg[4] = (getEdgeTime(&(t.vm), i, v[i].child[j], msg[1]) / 100) % 100;
+						dspMsg[5] = getEdgeTime(&(t.vm), i, v[i].child[j], msg[1]) % 100;
+						dspMsg[6] = 0;
+						bwassert(Send(dspTID, dspMsg, 6, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+					}
+				}
 		        Reply(_tid, "1", 2);
 		        break;
 
