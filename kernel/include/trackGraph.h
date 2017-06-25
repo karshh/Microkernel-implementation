@@ -74,6 +74,9 @@ int findSensorEdge(velocityModel * vm, int s1, int s2);
 int updateEdgeTime(velocityModel * vm, int s1, int s2, int speed, int t);
 
 int getEdgeDistance(velocityModel * vm, int s1, int s2);
+
+int setEdgeDistance(velocityModel * vm, int s1, int s2, int d);
+
 int getEdgeTime(velocityModel * vm, int s1, int s2, int speed);
 
 void TrackGraphInit(TrackGraph * t);
@@ -85,7 +88,7 @@ void TrackGraphInit(TrackGraph * t);
 // mutated, make sure to traverse in reverse order.
 int getShortestPath(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength);
 
-
+void implementTrackB(velocityModel * vm, int rc);
 
 /*
 * This function takes in path and pathlength (set through a getShortestPath() call) along with the current train speed, and returns a list of sensors, the distance between them

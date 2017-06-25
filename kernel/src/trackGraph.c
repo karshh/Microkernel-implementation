@@ -245,6 +245,17 @@ int getEdgeDistance(velocityModel * vm, int s1, int s2) {
 }
 
 
+int setEdgeDistance(velocityModel * vm, int s1, int s2, int d) {
+    int edgeNum = findSensorEdge(vm, s1, s2);
+    if (edgeNum < 0) return 0;
+
+    vm->v[s1].distance[edgeNum] = d;
+
+    return 1;
+
+}
+
+
 int updateEdgeTime(velocityModel * vm, int s1, int s2, int speed, int t) {
     int edgeNum = findSensorEdge(vm, s1, s2);
     if (edgeNum < 0 || speed < 0) return 0;
@@ -496,6 +507,10 @@ void velocityModelInit(velocityModel * vm) {
     v[16].child[2] = 0;
     v[16].child[3] = 0;
     v[16].child[4] = 0;
+
+
+
+    implementTrackB(vm, rc);
 
     rc = 3;
     // B01
@@ -1953,11 +1968,32 @@ void velocityModelInit(velocityModel * vm) {
     initGenEdgeTime(vm, "E12", "C08", "D09", "E12", 9);
     initGenEdgeTime(vm, "E12", "D11", "D08", "E08", 9);
 
+
+    // for track B
+    initGenEdgeTime(vm, "A12", "A16", "A10", "C07", 14);
+    initGenEdgeTime(vm, "A15", "A11", "A10", "C07", 14);
+
+    initGenEdgeTime(vm, "A12", "A16", "A10", "C07", 13);
+    initGenEdgeTime(vm, "A15", "A11", "A10", "C07", 13);
+
+    initGenEdgeTime(vm, "A12", "A16", "A10", "C07", 12);
+    initGenEdgeTime(vm, "A15", "A11", "A10", "C07", 12);
+
+    initGenEdgeTime(vm, "A12", "A16", "A10", "C07", 11);
+    initGenEdgeTime(vm, "A15", "A11", "A10", "C07", 11);
+
+    initGenEdgeTime(vm, "A12", "A16", "A10", "C07", 10);
+    initGenEdgeTime(vm, "A15", "A11", "A10", "C07", 10);
+
+    initGenEdgeTime(vm, "A12", "A16", "A10", "C07", 9);
+    initGenEdgeTime(vm, "A15", "A11", "A10", "C07", 9);
+
+
     for (i = 1; i < 81; i++) {
         for (j = 0; j < v[i].numChild; j++) {
-            updateEdgeTime(vm, i, v[i].child[j], 8, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/200);
-            updateEdgeTime(vm, i, v[i].child[j], 7, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/185);
-            updateEdgeTime(vm, i, v[i].child[j], 6, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/125);
+            updateEdgeTime(vm, i, v[i].child[j], 8, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/225);
+            updateEdgeTime(vm, i, v[i].child[j], 7, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/190);
+            updateEdgeTime(vm, i, v[i].child[j], 6, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/130);
             updateEdgeTime(vm, i, v[i].child[j], 5, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/95);
             updateEdgeTime(vm, i, v[i].child[j], 4, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/60);
             updateEdgeTime(vm, i, v[i].child[j], 3, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/25);

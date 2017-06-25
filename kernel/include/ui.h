@@ -2,7 +2,7 @@
 #ifndef _UI_
 #define _UI_
 
-void displayTrack();
+void drawTrackB(int iosTID);
 
 void displayGrid();
 

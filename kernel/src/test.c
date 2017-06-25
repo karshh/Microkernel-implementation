@@ -12,9 +12,8 @@
 #include "pkstring.h"
 #include "controller.h"
 
-void displayTrack() {
 
-}
+
 
 void userTask3() {
     bwprintf(COM2, "USER TASK 3 EXIT, REQUESTING TID.\r\n");
@@ -1021,6 +1020,18 @@ void graphTestTask() {
     Exit();
 
 }
+
+
+void implementTrackB(velocityModel * vm, int rc) {
+    
+}
+
+
+void drawTrackB(int iosTID) {
+
+}
+
+
 int main(void) {
     // turning on data and instruction cache.
      asm volatile (
@@ -1030,7 +1041,7 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
 
-    //kernelRun(2,(int) FirstUserTask);
+    kernelRun(2,(int) FirstUserTask);
 	
 
 

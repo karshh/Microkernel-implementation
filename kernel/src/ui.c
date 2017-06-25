@@ -52,9 +52,6 @@ void displayGrid() {
 		Printf(iosTID, COM2, "\033[%d;203H|", i);
 	}
 
-	// sensor graph.
-
-	displayTrack();
 
 	// table headers
 	Printf(iosTID, COM2,  "\033[3;4HSwitch\033[4;3HPosition");
@@ -109,6 +106,7 @@ void displayGrid() {
 	Printf(iosTID, COM2, "\033[13;43H%s->%s:","A11","C07");
 	Printf(iosTID, COM2, "\033[14;43H%s->%s:","A13","C13");
 	Printf(iosTID, COM2, "\033[15;43H%s->%s:","A16","C13");
+	drawTrackB(iosTID);
 	// module B
 	Printf(iosTID, COM2, "\033[3;73H%s->%s:","B01","D14");
 	Printf(iosTID, COM2, "\033[4;73H%s->%s:","B02","C09");

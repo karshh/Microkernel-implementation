@@ -3,27 +3,42 @@
 #include "kernelHandler.h"
 #include "userRequestCall.h"
 #include "server.h"
+#include "trackGraph.h"
 
 
-void displayTrack() {
-	
- //    int iosTID = WhoIs("UART2S");
-	// bwassert(iosTID >= 0, COM2, "<displayGrid>: IOServer has not been set up.\r\n");
-	// Printf(iosTID, COM2,  "\033[8;34H    _____________________________        ");
-	// Printf(iosTID, COM2,  "\033[9;34H     _____/ /____________________\\    ");
-	// Printf(iosTID, COM2,  "\033[10;34H	        /  /     \\        /     \\     ");
-	// Printf(iosTID, COM2,  "\033[11;34H	        |  |      \\      /      |     ");
-	// Printf(iosTID, COM2,  "\033[12;34H	        |  |       \\    /       |     ");
-	// Printf(iosTID, COM2,  "\033[13;34H         |  |        \\||/        |     ");
-	// Printf(iosTID, COM2,  "\033[14;34H         |  |         ||         |     ");
-	// Printf(iosTID, COM2,  "\033[15;34H         |  |         ||         |     ");
-	// Printf(iosTID, COM2,  "\033[16;34H         |  |        /||\\        |    ");
-	// Printf(iosTID, COM2,  "\033[17;34H         |  |       /    \\       |    ");
-	// Printf(iosTID, COM2,  "\033[18;34H         |  |      /      \\      |    ");
-	// Printf(iosTID, COM2,  "\033[19;34H          \\ \\_____/________\\_____/    ");
-	// Printf(iosTID, COM2,  "\033[20;34H    ______\\ \\____ ________ ______/    ");
- //    Printf(iosTID, COM2,  "\033[21;34H __________\\     \\        /           ");
- //    Printf(iosTID, COM2,  "\033[22;34H____________\\_____\\______/__________  " );
+
+void implementTrackB(velocityModel * vm, int rc) {
+    velocityModelNode * v = vm->v;
+
+    // A12
+    v[12].numChild= 1;
+    v[12].child[0] = sensor2i("A16");
+    v[12].distance[0] =774;
+    v[12].rowCursor[0] = rc;
+    rc++;
+    v[12].child[1] = 0;
+    v[12].child[2] = 0;
+    v[12].child[3] = 0;
+    v[12].child[4] = 0;
+
+    // A15
+    v[15].numChild= 1;
+    v[15].child[0] = sensor2i("A11");
+    v[15].distance[0] =774;
+    v[15].rowCursor[0] = rc;
+    rc++;
+    v[15].child[1] = 0;
+    v[15].child[2] = 0;
+    v[15].child[3] = 0;
+    v[15].child[4] = 0;
+
+}
+
+
+void drawTrackB(int iosTID) {
+
+	Printf(iosTID, COM2, "\033[16;43H%s->%s:","A12","A16");
+	Printf(iosTID, COM2, "\033[17;43H%s->%s:","A15","A11");
 }
 
 
