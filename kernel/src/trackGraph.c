@@ -236,24 +236,6 @@ int findSensorEdge(velocityModel * vm, int s1, int s2) {
 
 }
 
-
-// int getPathLength(velocityModel * vm, int * path, int pathLength) {
-//     volatile int i = 0;
-//     volatile int j = 0;
-//     int s1 = path[0];
-//     int s2 = 0;
-//     int ans = 0;
-
-//     for (i=0; i<pathLength;i++) {
-//         for (j=i+1; j<pathLength && path[j];j++) {
-
-//         }
-//         if (j >= pathLength) break;
-//     }
-
-
-// }
-
 int getEdgeDistance(velocityModel * vm, int s1, int s2) {
 	int edgeNum = findSensorEdge(vm, s1, s2);
 	if (edgeNum < 0) return 0;
@@ -293,6 +275,40 @@ int getEdgeVelocity(velocityModel * vm, int s1, int s2, int speed) {
 void initGenEdgeTime(velocityModel * vm, char* s11, char* s12, char* s21, char* s22, int speed) {
     int v =  getEdgeVelocity(vm, sensor2i(s21), sensor2i(s22), speed);
     updateEdgeTime(vm, sensor2i(s11), sensor2i(s12), speed, v == 0 ? : (getEdgeDistance(vm, sensor2i(s11), sensor2i(s12)) * 1000) /v);
+}
+
+/*
+* This function takes in path and pathlength (set through a getShortestPath() call) and returns a list of sensors, the distance between them
+* and the time between them through arrays passed. Pointers of their length need to be passed in as well in order to be set. 
+*
+* returns 1 if succesful.
+*/
+int getEdgeInfo(TrackGraph * t, int * path, int pathLength, int speed ,
+    int * sensorList, int * sensorLength, int * distanceList, int * timeList, int * infoLength) {
+
+    TrackGraphNode * node = t->node;
+
+
+    *sensorLength = 0;
+    *infoLength = 0;
+
+    volatile int i = 0;
+
+    for (i = pathLength-1; i >= 0; i--) {
+        if (node[path[i]].type == Sensor) {
+            sensorList[*sensorLength] = path[i];
+            *sensorLength += 1;
+        }
+    }
+
+    for (i = 0; i < *sensorLength - 1; i++) {
+        distanceList[*infoLength] = getEdgeDistance(&(t->vm), sensorList[i], sensorList[i+1]);
+        timeList[*infoLength] = getEdgeTime(&(t->vm), sensorList[i], sensorList[i+1], speed);
+        *infoLength += 1;
+    }
+
+    return 1;
+
 }
 
 void velocityModelInit(velocityModel * vm) {

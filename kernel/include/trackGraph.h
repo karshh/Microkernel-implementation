@@ -85,4 +85,18 @@ void TrackGraphInit(TrackGraph * t);
 // mutated, make sure to traverse in reverse order.
 int getShortestPath(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength);
 
+
+
+/*
+* This function takes in path and pathlength (set through a getShortestPath() call) along with the current train speed, and returns a list of sensors, the distance between them
+* and the time between them through arrays passed. Pointers of their length need to be passed in as well in order to be set. 
+*
+* returns 1 if succesful.
+*/
+int getEdgeInfo(
+	/* These will need to be provided in order to parse */
+	TrackGraph * t, int * path, int pathLength, int speed,
+	/* These will be updated with the values you're looking for. Note that since distanceList and timeList will be the same size, infoLength will be containing their size after this function call ends. */
+    int * sensorList, int * sensorLength, int * distanceList, int * timeList, int * infoLength);
+
 #endif

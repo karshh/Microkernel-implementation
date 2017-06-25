@@ -975,6 +975,52 @@ void sensTest(){
 
 Quit();
 }
+
+
+void graphTestTask() {
+
+    TrackGraph t;
+    int path[100];
+    int sensorList[100];
+    int distanceList[100];
+    int timeList[100];
+    int speed = 14;
+    int sensorLength = 0; 
+    int infoLength = 0;
+    volatile int i = 0;
+    int pathLength;
+    TrackGraphInit(&t);
+    if (!getShortestPath(&t, sensor2i("A10"), sensor2i("C11"), path, &pathLength)) {
+        bwprintf(COM2, "DEAD END.\r\n");
+        Exit();
+    }
+    bwprintf(COM2, "Ans: ");
+    for (i = pathLength - 1; i >= 0; i--) {
+        bwprintf(COM2, " %d ", path[i]);
+    }
+
+
+    getEdgeInfo(&t, path, pathLength, speed, sensorList, &sensorLength, distanceList, timeList, &infoLength);
+
+
+    bwprintf(COM2, "\r\nSensors[length=%d]: ", sensorLength);
+    for ( i = 0; i < sensorLength; i++) {
+        bwprintf(COM2, " %d ", sensorList[i]);
+    }
+
+    bwprintf(COM2, "\r\nDistance[length=%d]: ", infoLength);
+    for ( i = 0; i < infoLength; i++) {
+        bwprintf(COM2, " %d ", distanceList[i]);
+    }
+
+    bwprintf(COM2, "\r\nTime[length=%d]: ", infoLength);
+    for ( i = 0; i < infoLength; i++) {
+        bwprintf(COM2, " %d ", timeList[i]);
+    }
+
+    Exit();
+
+}
 int main(void) {
     // turning on data and instruction cache.
      asm volatile (
@@ -984,8 +1030,10 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
 
-    kernelRun(2,(int) FirstUserTask);
+    //kernelRun(2,(int) FirstUserTask);
 	
+
+
     // velocityModel vm;
     // velocityModelInit(&vm);
     // volatile int i = 0;
@@ -1001,20 +1049,6 @@ int main(void) {
     //     bwprintf(COM2, "\r\n");
     // }
 
-
-    // TrackGraph t;
-    // int path[100];
-    // int pathLength;
-    // TrackGraphInit(&t);
-    // if (!getShortestPath(&t, sensor2i("A10"), sensor2i("C11"), path, &pathLength)) {
-    //     bwprintf(COM2, "DEAD END.\r\n");
-    //     return 0;
-    // }
-    // bwprintf(COM2, "Ans: ");
-    // volatile int i = 0;
-    // for (i = pathLength - 1; i >= 0; i--) {
-    //     bwprintf(COM2, " %d ", path[i]);
-    // }
     return 0;
 
 }
