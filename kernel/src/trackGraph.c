@@ -139,7 +139,7 @@ void TrackGraphInit(TrackGraph * t) {
 	node[sensor2i("C08")].nextNodeIndex = switch2i(3);
 	node[sensor2i("C09")].nextNodeIndex = sensor2i("B15");
 	node[sensor2i("C10")].nextNodeIndex = switch2i(16);
-	node[sensor2i("C11")].nextNodeIndex = switch2i(13);
+	node[sensor2i("C11")].nextNodeIndex = switch2i(12);
 	node[sensor2i("C12")].nextNodeIndex = sensor2i("A04");
 	node[sensor2i("C13")].nextNodeIndex = sensor2i("E07");
 	node[sensor2i("C14")].nextNodeIndex = switch2i(11);
@@ -191,7 +191,7 @@ void TrackGraphInit(TrackGraph * t) {
 	node[switch2i(10)].CnextNodeIndex = sensor2i("E03");
 	node[switch2i(11)].CnextNodeIndex = sensor2i("A04");
 	node[switch2i(12)].CnextNodeIndex = switch2i(4);
-	node[switch2i(13)].CnextNodeIndex = sensor2i("E16");
+	node[switch2i(12)].CnextNodeIndex = sensor2i("E16");
 	node[switch2i(14)].CnextNodeIndex = sensor2i("C11");
 	node[switch2i(15)].CnextNodeIndex = sensor2i("C10");
 	node[switch2i(16)].CnextNodeIndex = sensor2i("B03");
@@ -211,7 +211,7 @@ void TrackGraphInit(TrackGraph * t) {
 	node[switch2i(10)].SnextNodeIndex = sensor2i("D04");
 	node[switch2i(11)].SnextNodeIndex = switch2i(12);
 	node[switch2i(12)].SnextNodeIndex = sensor2i("A02");
-	node[switch2i(13)].SnextNodeIndex = sensor2i("B05");
+	node[switch2i(12)].SnextNodeIndex = sensor2i("B05");
 	node[switch2i(14)].SnextNodeIndex = sensor2i("C13");
 	node[switch2i(15)].SnextNodeIndex = sensor2i("C05");
 	node[switch2i(16)].SnextNodeIndex = sensor2i("B01");
@@ -279,6 +279,20 @@ int getEdgeTime(velocityModel * vm, int s1, int s2, int speed) {
     volatile int index = (speed * 5) + edgeNum;
     return vm->v[s1].time[index];
 
+}
+
+
+int getEdgeVelocity(velocityModel * vm, int s1, int s2, int speed) {
+    int edgeNum = findSensorEdge(vm, s1, s2);
+    if (edgeNum < 0 || speed < 0) return 0;
+    int t = getEdgeTime(vm, s1, s2, speed); 
+    return t == 0 ? 0 : (getEdgeDistance(vm, s1, s2)*1000)/t;
+
+}
+
+void initGenEdgeTime(velocityModel * vm, char* s11, char* s12, char* s21, char* s22, int speed) {
+    int v =  getEdgeVelocity(vm, sensor2i(s21), sensor2i(s22), speed);
+    updateEdgeTime(vm, sensor2i(s11), sensor2i(s12), speed, v == 0 ? : (getEdgeDistance(vm, sensor2i(s11), sensor2i(s12)) * 1000) /v);
 }
 
 void velocityModelInit(velocityModel * vm) {
@@ -1249,6 +1263,8 @@ void velocityModelInit(velocityModel * vm) {
     updateEdgeTime(vm, sensor2i("A03"), sensor2i("C11"), 14, 584);
     updateEdgeTime(vm, sensor2i("A04"), sensor2i("B16"), 14, 644);
 
+
+
     updateEdgeTime(vm, sensor2i("B01"), sensor2i("D14"), 14, 598);
     updateEdgeTime(vm, sensor2i("B02"), sensor2i("C09"), 14, 525);
     updateEdgeTime(vm, sensor2i("B04"), sensor2i("C09"), 14, 541);
@@ -1317,6 +1333,41 @@ void velocityModelInit(velocityModel * vm) {
     updateEdgeTime(vm, sensor2i("E14"), sensor2i("E09"), 14, 550);
     updateEdgeTime(vm, sensor2i("E15"), sensor2i("C12"), 14, 549);
     updateEdgeTime(vm, sensor2i("E16"), sensor2i("E01"), 14, 245);
+ 
+    initGenEdgeTime(vm, "A01", "C13", "C13", "E07", 14);
+    initGenEdgeTime(vm, "A05", "C07", "C13", "E07", 14);
+    initGenEdgeTime(vm, "A06", "B10", "C13", "E07", 14);
+    initGenEdgeTime(vm, "A07", "B12", "C13", "E07", 14);
+    initGenEdgeTime(vm, "A08", "C07", "C13", "E07", 14);
+    initGenEdgeTime(vm, "A09", "B08", "C13", "E07", 14);
+    initGenEdgeTime(vm, "A10", "C07", "C13", "E07", 14);
+    initGenEdgeTime(vm, "A11", "C07", "C13", "E07", 14);
+    initGenEdgeTime(vm, "A13", "C13", "C13", "E07", 14);
+    initGenEdgeTime(vm, "A16", "C13", "C13", "E07", 14);
+
+    initGenEdgeTime(vm, "B03", "C02", "D13", "B02", 14);
+    initGenEdgeTime(vm, "B07", "A10", "C13", "E07", 14);
+    initGenEdgeTime(vm, "B09", "A05", "C13", "E07", 14);
+    initGenEdgeTime(vm, "B11", "A08", "C13", "E07", 14);
+
+    initGenEdgeTime(vm, "C02", "E02", "E02", "E15", 14);
+    initGenEdgeTime(vm, "C04", "C06", "C07", "E11", 14);
+    initGenEdgeTime(vm, "C04", "C08", "C13", "E07", 14);
+    initGenEdgeTime(vm, "C05", "C03", "B16", "C05", 14);
+    initGenEdgeTime(vm, "C07", "C03", "C13", "E07", 14);
+    initGenEdgeTime(vm, "C08", "A12", "C13", "E07", 14);
+    initGenEdgeTime(vm, "C08", "A09", "C13", "E07", 14);
+    initGenEdgeTime(vm, "C08", "A07", "C13", "E07", 14);
+    initGenEdgeTime(vm, "C08", "A06", "C13", "E07", 14);
+    initGenEdgeTime(vm, "C10", "B03", "C12", "A04", 14);
+    initGenEdgeTime(vm, "C14", "A02", "C13", "E07", 14);
+    initGenEdgeTime(vm, "C14", "A14", "C13", "E07", 14);
+    initGenEdgeTime(vm, "C14", "A15", "C13", "E07", 14);
+
+    initGenEdgeTime(vm, "D02", "E04", "E02", "E15", 14);
+
+    initGenEdgeTime(vm, "E04", "E05", "E15", "C12", 14);
+    initGenEdgeTime(vm, "E12", "C08", "C05", "C15", 14);
 
 
     // speed 13
@@ -1388,9 +1439,51 @@ void velocityModelInit(velocityModel * vm) {
     updateEdgeTime(vm, sensor2i("E12"), sensor2i("C06"), 13, 1753);
     updateEdgeTime(vm, sensor2i("E13"), sensor2i("D13"), 13, 427);
     updateEdgeTime(vm, sensor2i("E13"), sensor2i("D15"), 13, 467);
-    updateEdgeTime(vm, sensor2i("E14"), sensor2i("E09"), 13, 613);
+    updateEdgeTime(vm, sensor2i("E14"), sensor2i("E09"), 13, 612);
     updateEdgeTime(vm, sensor2i("E15"), sensor2i("C12"), 13, 579);
     updateEdgeTime(vm, sensor2i("E16"), sensor2i("E01"), 13, 265);
+
+
+    initGenEdgeTime(vm, "A01", "C13", "C13", "E07", 13);
+    initGenEdgeTime(vm, "A05", "C07", "C13", "E07", 13);
+    initGenEdgeTime(vm, "A06", "B10", "C13", "E07", 13);
+    initGenEdgeTime(vm, "A07", "B12", "C13", "E07", 13);
+    initGenEdgeTime(vm, "A08", "C07", "C13", "E07", 13);
+    initGenEdgeTime(vm, "A09", "B08", "C13", "E07", 13);
+    initGenEdgeTime(vm, "A10", "C07", "C13", "E07", 13);
+    initGenEdgeTime(vm, "A11", "C07", "C13", "E07", 13);
+    initGenEdgeTime(vm, "A13", "C13", "C13", "E07", 13);
+    initGenEdgeTime(vm, "A16", "C13", "C13", "E07", 13);
+
+    initGenEdgeTime(vm, "B03", "C02", "D13", "B02", 13);
+    initGenEdgeTime(vm, "B07", "A10", "C13", "E07", 13);
+    initGenEdgeTime(vm, "B09", "A05", "C13", "E07", 13);
+    initGenEdgeTime(vm, "B11", "A08", "C13", "E07", 13);
+    initGenEdgeTime(vm, "B13", "E02", "C13", "E07", 13);
+
+
+    initGenEdgeTime(vm, "C04", "C06", "B16", "C05", 13);
+    initGenEdgeTime(vm, "C04", "C08", "C13", "E07", 13);
+    initGenEdgeTime(vm, "C05", "C03", "B16", "C05", 13);
+    initGenEdgeTime(vm, "C07", "E11", "B16", "C05", 13);
+    initGenEdgeTime(vm, "C07", "C03", "C13", "E07", 13);
+    initGenEdgeTime(vm, "C08", "A12", "C13", "E07", 13);
+    initGenEdgeTime(vm, "C08", "A09", "C13", "E07", 13);
+    initGenEdgeTime(vm, "C08", "A07", "C13", "E07", 13);
+    initGenEdgeTime(vm, "C08", "A06", "C13", "E07", 13);
+    initGenEdgeTime(vm, "C10", "B03", "C12", "A04", 13);
+    initGenEdgeTime(vm, "C13", "A02", "C13", "E07", 13);
+    initGenEdgeTime(vm, "C13", "A13", "C13", "E07", 13);
+    initGenEdgeTime(vm, "C13", "A15", "C13", "E07", 13);
+    initGenEdgeTime(vm, "C14", "A02", "C13", "E07", 13);
+    initGenEdgeTime(vm, "C14", "A14", "C13", "E07", 13);
+    initGenEdgeTime(vm, "C14", "A15", "C13", "E07", 13);
+
+    initGenEdgeTime(vm, "D02", "E04", "E02", "E15", 13);
+
+    initGenEdgeTime(vm, "E04", "E05", "E15", "C12", 13);
+    initGenEdgeTime(vm, "E12", "C08", "C05", "C15", 13);
+
 
     // speed 12
     updateEdgeTime(vm, sensor2i("A03"), sensor2i("C13"), 12, 1127);
@@ -1425,6 +1518,7 @@ void velocityModelInit(velocityModel * vm) {
     updateEdgeTime(vm, sensor2i("C15"), sensor2i("D12"), 12, 793);
     updateEdgeTime(vm, sensor2i("C16"), sensor2i("C06"), 12, 934);
 
+
     updateEdgeTime(vm, sensor2i("D01"), sensor2i("C01"), 12, 929);
     updateEdgeTime(vm, sensor2i("D01"), sensor2i("B14"), 12, 916);
     updateEdgeTime(vm, sensor2i("D03"), sensor2i("E05"), 12, 503);
@@ -1444,6 +1538,8 @@ void velocityModelInit(velocityModel * vm) {
     updateEdgeTime(vm, sensor2i("D14"), sensor2i("E14"), 12, 519);
     updateEdgeTime(vm, sensor2i("D15"), sensor2i("B13"), 12, 317);
     updateEdgeTime(vm, sensor2i("D16"), sensor2i("E14"), 12, 541);
+
+
 
     updateEdgeTime(vm, sensor2i("E01"), sensor2i("C01"), 12, 952);
     updateEdgeTime(vm, sensor2i("E01"), sensor2i("B14"), 12, 914);
@@ -1465,6 +1561,44 @@ void velocityModelInit(velocityModel * vm) {
     updateEdgeTime(vm, sensor2i("E14"), sensor2i("E09"), 12, 688);
     updateEdgeTime(vm, sensor2i("E15"), sensor2i("C12"), 12, 692);
     updateEdgeTime(vm, sensor2i("E16"), sensor2i("E01"), 12, 316);
+
+
+
+    initGenEdgeTime(vm, "A01", "C13", "C13", "E07", 12);
+    initGenEdgeTime(vm, "A05", "C07", "C13", "E07", 12);
+    initGenEdgeTime(vm, "A06", "B10", "C13", "E07", 12);
+    initGenEdgeTime(vm, "A07", "B12", "C13", "E07", 12);
+    initGenEdgeTime(vm, "A08", "C07", "C13", "E07", 12);
+    initGenEdgeTime(vm, "A09", "B08", "C13", "E07", 12);
+    initGenEdgeTime(vm, "A10", "C07", "C13", "E07", 12);
+    initGenEdgeTime(vm, "A11", "C07", "C13", "E07", 12);
+    initGenEdgeTime(vm, "A13", "C13", "C13", "E07", 12);
+    initGenEdgeTime(vm, "A16", "C13", "C13", "E07", 12);
+
+    initGenEdgeTime(vm, "B03", "C02", "D13", "B02", 12);
+    initGenEdgeTime(vm, "B07", "A10", "C13", "E07", 12);
+    initGenEdgeTime(vm, "B09", "A05", "C13", "E07", 12);
+    initGenEdgeTime(vm, "B11", "A08", "C13", "E07", 12);
+
+
+    initGenEdgeTime(vm, "C04", "C06", "B16", "C05", 12);
+    initGenEdgeTime(vm, "C04", "C08", "C13", "E07", 12);
+    initGenEdgeTime(vm, "C05", "C03", "B16", "C05", 12);
+    initGenEdgeTime(vm, "C07", "E11", "B16", "C05", 12);
+    initGenEdgeTime(vm, "C07", "C03", "C13", "E07", 12);
+    initGenEdgeTime(vm, "C08", "A12", "C13", "E07", 12);
+    initGenEdgeTime(vm, "C08", "A09", "C13", "E07", 12);
+    initGenEdgeTime(vm, "C08", "A07", "C13", "E07", 12);
+    initGenEdgeTime(vm, "C08", "A06", "C13", "E07", 12);
+    initGenEdgeTime(vm, "C10", "B03", "C12", "A04", 12);
+    initGenEdgeTime(vm, "C14", "A02", "C13", "E07", 12);
+    initGenEdgeTime(vm, "C14", "A14", "C13", "E07", 12);
+    initGenEdgeTime(vm, "C14", "A15", "C13", "E07", 12);
+
+    initGenEdgeTime(vm, "D02", "E04", "E02", "E15", 12);
+
+    initGenEdgeTime(vm, "E04", "E05", "E15", "C12", 12);
+    initGenEdgeTime(vm, "E12", "C08", "C05", "C15", 12);
 
     // speed 11
     updateEdgeTime(vm, sensor2i("A03"), sensor2i("C13"), 11, 1307);
@@ -1527,9 +1661,56 @@ void velocityModelInit(velocityModel * vm) {
     updateEdgeTime(vm, sensor2i("E12"), sensor2i("C06"), 11, 2385);
     updateEdgeTime(vm, sensor2i("E13"), sensor2i("D13"), 11, 573);
     updateEdgeTime(vm, sensor2i("E13"), sensor2i("D15"), 11, 590);
-    updateEdgeTime(vm, sensor2i("E14"), sensor2i("E09"), 11, 813);
+    updateEdgeTime(vm, sensor2i("E14"), sensor2i("E09"), 11, 812);
     updateEdgeTime(vm, sensor2i("E15"), sensor2i("C12"), 11, 854);
     updateEdgeTime(vm, sensor2i("E16"), sensor2i("E01"), 11, 365);
+
+
+    initGenEdgeTime(vm, "A01", "C13", "C13", "E07", 11);
+    initGenEdgeTime(vm, "A05", "C07", "C13", "E07", 11);
+    initGenEdgeTime(vm, "A06", "B10", "C13", "E07", 11);
+    initGenEdgeTime(vm, "A07", "B12", "C13", "E07", 11);
+    initGenEdgeTime(vm, "A08", "C07", "C13", "E07", 11);
+    initGenEdgeTime(vm, "A09", "B08", "C13", "E07", 11);
+    initGenEdgeTime(vm, "A10", "C07", "C13", "E07", 11);
+    initGenEdgeTime(vm, "A11", "C07", "C13", "E07", 11);
+    initGenEdgeTime(vm, "A13", "C13", "C13", "E07", 11);
+    initGenEdgeTime(vm, "A16", "C13", "C13", "E07", 11);
+
+    initGenEdgeTime(vm, "B01", "D14", "D13", "B02", 11);
+    initGenEdgeTime(vm, "B03", "C02", "D13", "B02", 11);
+    initGenEdgeTime(vm, "B07", "A10", "C13", "E07", 11);
+    initGenEdgeTime(vm, "B09", "A05", "C13", "E07", 11);
+    initGenEdgeTime(vm, "B11", "A08", "C13", "E07", 11);
+
+
+    initGenEdgeTime(vm, "C02", "E02", "B13", "D02", 11);
+    initGenEdgeTime(vm, "C04", "C06", "B16", "C05", 11);
+    initGenEdgeTime(vm, "C04", "C08", "C13", "E07", 11);
+    initGenEdgeTime(vm, "C05", "C03", "B16", "C05", 11);
+    initGenEdgeTime(vm, "C07", "E11", "B16", "C05", 11);
+    initGenEdgeTime(vm, "C07", "C03", "C13", "E07", 11);
+    initGenEdgeTime(vm, "C08", "A12", "C13", "E07", 11);
+    initGenEdgeTime(vm, "C08", "A09", "C13", "E07", 11);
+    initGenEdgeTime(vm, "C08", "A07", "C13", "E07", 11);
+    initGenEdgeTime(vm, "C08", "A06", "C13", "E07", 11);
+    initGenEdgeTime(vm, "C10", "B03", "C12", "A04", 11);
+    initGenEdgeTime(vm, "C10", "B01", "C05", "C15", 11);
+    initGenEdgeTime(vm, "C14", "A02", "C13", "E07", 11);
+    initGenEdgeTime(vm, "C14", "A14", "C13", "E07", 11);
+    initGenEdgeTime(vm, "C14", "A15", "C13", "E07", 11);
+    initGenEdgeTime(vm, "C14", "A04", "B16", "C05", 11);
+
+    initGenEdgeTime(vm, "D02", "E04", "E02", "E15", 11);
+    initGenEdgeTime(vm, "D09", "E12", "E11", "D10", 11);
+    initGenEdgeTime(vm, "D10", "D08", "D07", "D09", 11);
+    initGenEdgeTime(vm, "D14", "E14", "C10", "B01", 11);
+
+    initGenEdgeTime(vm, "E04", "E05", "E15", "C12", 11);
+    initGenEdgeTime(vm, "E08", "C14", "C14", "A04", 11);
+    initGenEdgeTime(vm, "E09", "D08", "D06", "D09", 11);
+    initGenEdgeTime(vm, "E12", "C08", "C05", "C15", 11);
+
 
     // speed 10
     updateEdgeTime(vm, sensor2i("A03"), sensor2i("C13"), 10, 1757);
@@ -1545,7 +1726,7 @@ void velocityModelInit(velocityModel * vm) {
     updateEdgeTime(vm, sensor2i("C07"), sensor2i("E11"), 10, 2500);
     updateEdgeTime(vm, sensor2i("C09"), sensor2i("B15"), 10, 1103);
     updateEdgeTime(vm, sensor2i("C11"), sensor2i("E16"), 10, 1104);
-    updateEdgeTime(vm, sensor2i("C13"), sensor2i("E07"), 10, 2713);
+    updateEdgeTime(vm, sensor2i("C13"), sensor2i("E07"), 10, 2712);
 
     updateEdgeTime(vm, sensor2i("D01"), sensor2i("C01"), 10, 1464);
     updateEdgeTime(vm, sensor2i("D01"), sensor2i("B14"), 10, 1433);
@@ -1571,6 +1752,78 @@ void velocityModelInit(velocityModel * vm) {
     updateEdgeTime(vm, sensor2i("E13"), sensor2i("D15"), 10, 793);
     updateEdgeTime(vm, sensor2i("E14"), sensor2i("E09"), 10, 1097);
     updateEdgeTime(vm, sensor2i("E16"), sensor2i("E01"), 10, 442);
+
+
+    initGenEdgeTime(vm, "A01", "C13", "C13", "E07", 10);
+    initGenEdgeTime(vm, "A04", "B16", "D06", "D09", 10);
+    initGenEdgeTime(vm, "A05", "C07", "C13", "E07", 10);
+    initGenEdgeTime(vm, "A06", "B10", "C13", "E07", 10);
+    initGenEdgeTime(vm, "A07", "B12", "C13", "E07", 10);
+    initGenEdgeTime(vm, "A08", "C07", "C13", "E07", 10);
+    initGenEdgeTime(vm, "A09", "B08", "C13", "E07", 10);
+    initGenEdgeTime(vm, "A10", "C07", "C13", "E07", 10);
+    initGenEdgeTime(vm, "A11", "C07", "C13", "E07", 10);
+    initGenEdgeTime(vm, "A13", "C13", "C13", "E07", 10);
+    initGenEdgeTime(vm, "A16", "C13", "C13", "E07", 10);
+
+    initGenEdgeTime(vm, "B01", "D14", "A01", "C13", 10);
+    initGenEdgeTime(vm, "B03", "C02", "A01", "C13", 10);
+    initGenEdgeTime(vm, "B04", "C09", "D16", "E14", 10);
+    initGenEdgeTime(vm, "B05", "D03", "B01", "D14", 10);
+    initGenEdgeTime(vm, "B06", "C12", "B02", "C09", 10);
+    initGenEdgeTime(vm, "B07", "A10", "C13", "E07", 10);
+    initGenEdgeTime(vm, "B09", "A05", "C13", "E07", 10);
+    initGenEdgeTime(vm, "B11", "A08", "C13", "E07", 10);
+    initGenEdgeTime(vm, "B13", "D02", "E01", "C01", 10);
+    initGenEdgeTime(vm, "B13", "E02", "B01", "D14", 10);
+    initGenEdgeTime(vm, "B16", "C10", "A03", "C11", 10);
+    initGenEdgeTime(vm, "B16", "C05", "A03", "C13", 10);
+
+    initGenEdgeTime(vm, "C01", "B04", "B03", "C02", 10);
+    initGenEdgeTime(vm, "C02", "D02", "B13", "E02", 10);
+    initGenEdgeTime(vm, "C02", "E02", "B13", "D02", 10);
+    initGenEdgeTime(vm, "C04", "C06", "B16", "C05", 10);
+    initGenEdgeTime(vm, "C04", "C08", "C13", "E07", 10);
+    initGenEdgeTime(vm, "C05", "C03", "B16", "C05", 10);
+    initGenEdgeTime(vm, "C05", "C15", "C07", "E11", 10);
+    initGenEdgeTime(vm, "C05", "E11", "C07", "E11", 10);
+    initGenEdgeTime(vm, "C07", "C03", "C13", "E07", 10);
+    initGenEdgeTime(vm, "C08", "A12", "C13", "E07", 10);
+    initGenEdgeTime(vm, "C08", "A09", "C13", "E07", 10);
+    initGenEdgeTime(vm, "C08", "A07", "C13", "E07", 10);
+    initGenEdgeTime(vm, "C08", "A06", "C13", "E07", 10);
+    initGenEdgeTime(vm, "C10", "B03", "C05", "C15", 10);
+    initGenEdgeTime(vm, "C10", "B01", "C05", "C15", 10);
+    initGenEdgeTime(vm, "C11", "B05", "B05", "D03", 10);
+    initGenEdgeTime(vm, "C12", "A04", "C06", "B15", 10);
+    initGenEdgeTime(vm, "C14", "A02", "C13", "E07", 10);
+    initGenEdgeTime(vm, "C14", "A14", "C13", "E07", 10);
+    initGenEdgeTime(vm, "C14", "A15", "C13", "E07", 10);
+    initGenEdgeTime(vm, "C14", "A04", "B16", "C05", 10);
+    initGenEdgeTime(vm, "C15", "D12", "B06", "C12", 10);
+    initGenEdgeTime(vm, "C16", "C06", "B06", "C12", 10);
+
+    initGenEdgeTime(vm, "D02", "E04", "C02", "D02", 10);
+    initGenEdgeTime(vm, "D03", "E05", "C11", "B05", 10);
+    initGenEdgeTime(vm, "D04", "B06", "B01", "D14", 10);
+    initGenEdgeTime(vm, "D08", "E08", "E07", "D07", 10);
+    initGenEdgeTime(vm, "D09", "E12", "E11", "D10", 10);
+    initGenEdgeTime(vm, "D10", "D08", "D07", "D09", 10);
+    initGenEdgeTime(vm, "D11", "C16", "C15", "D12", 10);
+    initGenEdgeTime(vm, "D12", "E11", "C16", "C06", 10);
+    initGenEdgeTime(vm, "D13", "B02", "B01", "D14", 10);
+    initGenEdgeTime(vm, "D14", "E14", "C10", "B01", 10);
+
+    initGenEdgeTime(vm, "E02", "E15", "D02", "E04", 10);
+    initGenEdgeTime(vm, "E04", "E05", "D02", "E04", 10);
+    initGenEdgeTime(vm, "E06", "D04", "A03", "C11", 10);
+    initGenEdgeTime(vm, "E08", "C14", "C14", "A04", 10);
+    initGenEdgeTime(vm, "E09", "D08", "D06", "D09", 10);
+    initGenEdgeTime(vm, "E12", "C08", "C05", "C15", 10);
+    initGenEdgeTime(vm, "E12", "D11", "D08", "E08", 10);
+    initGenEdgeTime(vm, "E13", "D13", "C10", "B01", 10);
+    initGenEdgeTime(vm, "E15", "C12", "E04", "E05", 10);
+
 
     // speed 9
     updateEdgeTime(vm, sensor2i("A03"), sensor2i("C13"), 9, 1952);
@@ -1631,6 +1884,58 @@ void velocityModelInit(velocityModel * vm) {
     updateEdgeTime(vm, sensor2i("E15"), sensor2i("C12"), 9, 1189);
     updateEdgeTime(vm, sensor2i("E16"), sensor2i("E01"), 9, 602);
 
+
+
+    initGenEdgeTime(vm, "A01", "C13", "C13", "E07", 9);
+    initGenEdgeTime(vm, "A05", "C07", "C13", "E07", 9);
+    initGenEdgeTime(vm, "A06", "B10", "C13", "E07", 9);
+    initGenEdgeTime(vm, "A07", "B12", "C13", "E07", 9);
+    initGenEdgeTime(vm, "A08", "C07", "C13", "E07", 9);
+    initGenEdgeTime(vm, "A09", "B08", "C13", "E07", 9);
+    initGenEdgeTime(vm, "A10", "C07", "C13", "E07", 9);
+    initGenEdgeTime(vm, "A11", "C07", "C13", "E07", 9);
+    initGenEdgeTime(vm, "A13", "C13", "C13", "E07", 9);
+    initGenEdgeTime(vm, "A16", "C13", "C13", "E07", 9);
+
+    initGenEdgeTime(vm, "B01", "D14", "D13", "B02", 9);
+    initGenEdgeTime(vm, "B03", "C02", "D13", "B02", 9);
+    initGenEdgeTime(vm, "B07", "A10", "C13", "E07", 9);
+    initGenEdgeTime(vm, "B09", "A05", "C13", "E07", 9);
+    initGenEdgeTime(vm, "B11", "A08", "C13", "E07", 9);
+    initGenEdgeTime(vm, "B16", "C05", "A03", "C13", 9);
+
+    initGenEdgeTime(vm, "C04", "C06", "B16", "C05", 9);
+    initGenEdgeTime(vm, "C04", "C08", "C13", "E07", 9);
+    initGenEdgeTime(vm, "C05", "C03", "B16", "C05", 9);
+    initGenEdgeTime(vm, "C05", "C15", "B16", "C05", 9);
+    initGenEdgeTime(vm, "C05", "E11", "C05", "C15", 9);
+    initGenEdgeTime(vm, "C07", "C03", "C13", "E07", 9);
+    initGenEdgeTime(vm, "C07", "E11", "B16", "C05", 9);
+    initGenEdgeTime(vm, "C08", "A12", "C13", "E07", 9);
+    initGenEdgeTime(vm, "C08", "A09", "C13", "E07", 9);
+    initGenEdgeTime(vm, "C08", "A07", "C13", "E07", 9);
+    initGenEdgeTime(vm, "C08", "A06", "C13", "E07", 9);
+    initGenEdgeTime(vm, "C10", "B03", "C12", "A04", 9);
+    initGenEdgeTime(vm, "C10", "B01", "C05", "C15", 9);
+    initGenEdgeTime(vm, "C14", "A02", "C13", "E07", 9);
+    initGenEdgeTime(vm, "C14", "A14", "C13", "E07", 9);
+    initGenEdgeTime(vm, "C14", "A15", "C13", "E07", 9);
+    initGenEdgeTime(vm, "C14", "A04", "B16", "C05", 9);
+    initGenEdgeTime(vm, "C15", "D12", "B16", "C05", 9);
+
+    initGenEdgeTime(vm, "D06", "D09", "D07", "D09", 9);
+    initGenEdgeTime(vm, "D07", "E10", "D07", "D09", 9);
+    initGenEdgeTime(vm, "D08", "E08", "E07", "D07", 9);
+    initGenEdgeTime(vm, "D10", "D08", "D07", "D09", 9);
+    initGenEdgeTime(vm, "D10", "D05", "D07", "D09", 9);
+    initGenEdgeTime(vm, "D12", "E11", "C16", "C06", 9);
+    initGenEdgeTime(vm, "D14", "E14", "C10", "B01", 9);
+
+    initGenEdgeTime(vm, "E08", "C14", "C14", "A04", 9);
+    initGenEdgeTime(vm, "E09", "D08", "D06", "D09", 9);
+    initGenEdgeTime(vm, "E11", "D10", "D09", "E12", 9);
+    initGenEdgeTime(vm, "E12", "C08", "D09", "E12", 9);
+    initGenEdgeTime(vm, "E12", "D11", "D08", "E08", 9);
 
 
 }
