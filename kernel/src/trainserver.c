@@ -10,8 +10,85 @@
 #include "icu.h"
 #include "controller.h"
 #include "time.h"
+void trainVelocityServer(){
+	//keeps track of velocity model for all trains....
+   	//perhaps should be admin/worker model, one for each train. 
+	//where each 
+	//trainserver should comminicate to velocityModelServer whenn is, ss, and sensor pings occurs
+	int parentTID = MyParentTid();
 
 
+	//either make genric for single train or array-ify 
+	int train54TID  = Create(4,(void *)trainStopServer);
+	int velocity54 = 0;
+	int stopDistance =0;
+	int hasStopValue = 0;
+	int isDying = 0;
+	int stateChanged = 0;
+
+    	int _tid = -1;
+	char msg[64];
+    	int msgCap = 64;
+	while(1){
+		msgLen = Receive(&_tid, msg, msgCap);
+		bwassert(msgLen >= 0, COM2, "<trainVelocityServer>: Receive error.\r\n");
+		if (_tid == parentTID) {
+			switch(msg[0]){
+				case 'Q':
+					//time to quit
+					isDying = 1;
+					Reply(_tid, "1", 2);
+					//if child is reply blocked, it stays reply blocked, and current task goes send-blocked
+					break;
+				case 'J':
+					//new stop sensor info,start this bitch
+				
+					hasStopValue = 1;
+				case 'S':
+					//new sensor info
+				default:
+		        		bwassert(0, COM2, "<trainVelocityServer>: Illegal request code from userTask <%d>:[%s].\r\n", _tid,msg);
+		        		break;
+
+			}
+
+		}else if(_tid == train54TID){
+			//check child message (G = get status, S = just stopped)
+			//child asking for current velocity info 
+			switch(msg[0]){
+				case 'G':
+					//get status (looks at hasStopped Value
+					if(isDying){
+						Reply(_tid, "Q", 2);
+						//if dying, child should die to prevent it from communicating to command server
+					}else if(hasStopValue){
+						Reply(_tid, "1", 2);
+					}
+
+					break;
+				case 'S':
+					hasStopValue = 0;
+					break;
+				default:
+					bwassert(0, COM2, "<trainVelocityServer>: child croaked with wierd request<%d>:[%s].\r\n", _tid,msg);
+		        		break;
+
+			}
+			//if no stop value, child should be reply-blocked until its available
+		} else{
+		       bwassert(0, COM2, "<trainVelocityServer>: Who this bitch? <%d>:[%s].\r\n", _tid,msg);
+		       break;
+		}
+		
+	}
+
+	
+}
+
+void trainStopServer(){
+	Exit();
+
+}
 void trainServer(){
 //keep track of train speeds, and sends instructions to ioserver
 	bwassert(!RegisterAs("trainServer"), COM2, "Failed to register trainServer.\r\n");
@@ -22,6 +99,7 @@ void trainServer(){
 		Pass();
 		sensorTID = WhoIs("displaySensors");
 	}
+	int velTID = Create(4,(void *)velocityModelServer);
 	//keep track of train speeds
 	int trainSpeed[80];
 	int trainCurrentSensor[80];
@@ -51,6 +129,7 @@ void trainServer(){
 	volatile int j=0;
 	int msgLen = 0;
 	int dspTID = WhoIs("displayServer");
+	
 
 	for (i=0; i < 80; i++){
 			trainCurrentSensor[i] = 0;
@@ -136,6 +215,7 @@ void trainServer(){
 	int sw;
 	int swd;
 	int sens;
+	int dist;
 
 	int prevSensor = 0;
 	int curSensor = 0;
@@ -263,7 +343,14 @@ void trainServer(){
 			case 'J': // ss command
 				train = msg[1];
 				sens = msg[2];
+				dist = msg[3];
+
+				
 				if (train >= 58 && train < 80) {
+					if (sens == 90 ){
+					 // Next sensor
+						sens = trainExpectedSensor[train];
+					}
 
 					int path[102];
 					int pathLength = 0;

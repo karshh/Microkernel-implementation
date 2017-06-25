@@ -47,16 +47,18 @@ void UserPrompt() {
 	        terminalInput[terminalInputIndex] = 0;
 	        int arg1;
 	        int arg2;
+	        int arg3;
 
 	        msg[0] = COMMAND_LOADING;
 	        msg[1] = 0;
 	        bwassert(Send(parentTID, msg, 2, rpl, rpllen) >= 0, COM2, "<UserPrompt>: could not send prompt response to server. \r\n");
 
-		msg[0] = parseCommand(terminalInput, &arg1, &arg2);
+		msg[0] = parseCommand(terminalInput, &arg1, &arg2, &arg3);
 	        msg[1] = arg1;
 	        msg[2] = arg2;
-	        msg[3] = 0;
-	        bwassert(Send(parentTID, msg, 4, rpl, rpllen) >= 0, COM2, "<UserPrompt>: could not send prompt response to server. \r\n");
+	        msg[3] = arg3;
+	        msg[4] = 0;
+	        bwassert(Send(parentTID, msg, 5, rpl, rpllen) >= 0, COM2, "<UserPrompt>: could not send prompt response to server. \r\n");
             for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
             terminalInputIndex = 0;
             cursorCol = 2;
@@ -181,7 +183,7 @@ void displayServer() {
 	                break;
 
 	        	case COMMAND_SS:
-	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KPath for train %d set up en route to sensor %d.\033[34;1H>",msg[1],msg[2]);
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KPath for train %d set up en route to sensor %d and stop %d mm\033[34;1H>",msg[1],msg[2],msg[3]);
 	                break;
 
 	        	case COMMAND_SSW:

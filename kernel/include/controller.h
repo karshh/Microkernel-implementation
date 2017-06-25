@@ -42,7 +42,9 @@
 #define DFA_L_1 31
 #define DFA_L_2 32
 #define DFA_L_3 33
-#define DFA_SS_1 44
+#define DFA_SS_1 44 //SS ### ###
+#define DFA_SS_2 43 //ss ### #1
+#define DFA_SS_3 62 //ss ### #1 [#]^[1-*]
 #define DFA_IS_1 56 //change
 #define DFA_SENSOR_PING 90
 
@@ -62,10 +64,10 @@ inline int getSensorData(char * s);
 //
 // The parameters of the user input are to be passed into arg1 and arg2 so that the 
 // View can incorporate them into the message.
-int parseCommand(char * input, int * arg1, int * arg2);
+int parseCommand(char * input, int * arg1, int * arg2, int * arg3);
 
 
-int nextState(int state, char c, int * terminator, int *train, int * speed, int *sw , char *swd,int *sens);
+int nextState(int state, char c, int * terminator, int *train, int * speed, int *sw , char *swd,int *sens, int * dist);
 
 void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor);
 #endif
