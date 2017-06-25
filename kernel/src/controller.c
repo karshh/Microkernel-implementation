@@ -127,7 +127,7 @@ void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor){
 
 
 
-int parseCommand(char * input, int * arg1, int * arg2){
+int parseCommand(char * input, int * arg1, int * arg2, int * arg3){
 	int trainTID = WhoIs("trainServer");
     bwassert(trainTID >= 0, COM2, "<parseCommand>: trainServer has not been set up.\r\n");
 	int state = DFA_INIT;
@@ -138,11 +138,12 @@ int parseCommand(char * input, int * arg1, int * arg2){
 	int sw = 0; //switch
 	char swd =0;
 	int sens =0;
+	int dist = 0;
 	//if character is null terminator, its a empty string
 	if(input[0] == '\0') { return COMMAND_EMPTY;}
 	while(1){
 		//if(input[counter] == '\0') { state = -2; break;}
-		state = nextState(state,input[counter], &terminator, &train, &speed, &sw, &swd, &sens);
+		state = nextState(state,input[counter], &terminator, &train, &speed, &sw, &swd, &sens, &dist);
 		if(state < 0 ) 
 			break;
 		if(input[counter+1] == '\0')
@@ -238,15 +239,17 @@ int parseCommand(char * input, int * arg1, int * arg2){
 						return COMMAND_PN;
 						break;
 					case(DFA_SS_1):
+					case(DFA_SS_2):
+					case(DFA_SS_3):
 						*arg1 = train;
 						*arg2 = sens;
+						*arg3 = dist;
 
-
-
-                        msg[0] = 'J';
-                        msg[1] = train;
-                        msg[2] = sens;
-                        msg[3] = '\0';
+                        			msg[0] = 'J';
+                        			msg[1] = train;
+                        			msg[2] = sens;
+                        			msg[3] = dist;
+                        			msg[4] = '\0';
 
                         bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Init sensor command.\r\n");
 
@@ -279,7 +282,7 @@ int parseCommand(char * input, int * arg1, int * arg2){
 /********************************************************************************************************
 	DFA function
 ********************************************************************************************************/
-int nextState(int state, char c, int * terminator, int *train, int * speed, int *sw , char *swd, int * sens){
+int nextState(int state, char c, int * terminator, int *train, int * speed, int *sw , char *swd, int * sens, int * dist){
     switch(state){
         case DFA_INIT:
             switch(c){
@@ -980,6 +983,14 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
                     }
                     return 41;//ss ### [ABCDE];
                     break;
+                case 'N':
+                    { *sens = 90;
+                    }
+			*dist = 0;
+			*terminator = 1;
+                    return 44;//ss ### [ABCDE];
+                    break;
+
                 default :
                     return DFA_ERROR;
                     break;  
@@ -992,8 +1003,27 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
                     break;
  
                 case '1':
+                    { *sens += (c - '0');
+                    }
+            	    *terminator = 1;
+	 	    *dist = 0;
                     return 43;//ss ### #1;
                     break;
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+                    { *sens += (c - '0');
+                    }
+
+			*terminator = 1;
+			*dist = 0;
+                    	return 44;//ss ### #[29];
+                    	break;
                 default :
                     return DFA_ERROR;
                     break;  
@@ -1013,6 +1043,7 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
                     { *sens += (c - '0');
                     }
                     *terminator = 1;
+		    *dist = 0;
                     return 44;//ss ### #0[19];
                     break;
                 default :
@@ -1022,6 +1053,11 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
             break;
         case 43: //just a 'ss ### #1'
             switch(c){
+		case ' ':
+                    *terminator = 0;
+		    *dist = 0;
+                    return 62;//'ss ### #1 '
+                    break;
                 case '0':
                 case '1':
                 case '2':
@@ -1029,8 +1065,10 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
                 case '4':
                 case '5':
                 case '6':
-                    { *sens += (c - '0')+10;
+                    { *sens -= 1;
+                     *sens += (c - '0')+10;
                     }
+		    *dist = 0;
                     *terminator = 1;
                     return 44;//ss ### #1[06];
                     break;
@@ -1283,6 +1321,39 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
                     break;  
             }
             break;
+        case 44: //just a 'ss ### ###'
+            switch(c){
+                case ' ':
+                    *terminator = 0;
+		    *dist = 0;
+                    return 62;//'ss ### ### '
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+        case 62: //just a 'ss ### ### [#]^[0-*]'
+            switch(c){
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                case '0':
+                    *terminator = 1;
+		    *dist = *dist *10 + (c-'0');
+                    return 62;//'ss ### ### [#]^[1-*]'
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+
 
 
 

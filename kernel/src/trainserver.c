@@ -136,6 +136,7 @@ void trainServer(){
 	int sw;
 	int swd;
 	int sens;
+	int dist;
 
 	int prevSensor = 0;
 	int curSensor = 0;
@@ -263,7 +264,14 @@ void trainServer(){
 			case 'J': // ss command
 				train = msg[1];
 				sens = msg[2];
+				dist = msg[3];
+
+				
 				if (train >= 58 && train < 80) {
+					if (sens == 90 ){
+					 // Next sensor
+						sens = trainExpectedSensor[train];
+					}
 
 					int path[102];
 					int pathLength = 0;
