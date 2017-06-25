@@ -1937,6 +1937,19 @@ void velocityModelInit(velocityModel * vm) {
     initGenEdgeTime(vm, "E12", "C08", "D09", "E12", 9);
     initGenEdgeTime(vm, "E12", "D11", "D08", "E08", 9);
 
+    for (i = 1; i < 81; i++) {
+        for (j = 0; j < v[i].numChild; j++) {
+            updateEdgeTime(vm, i, v[i].child[j], 8, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/200);
+            updateEdgeTime(vm, i, v[i].child[j], 7, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/185);
+            updateEdgeTime(vm, i, v[i].child[j], 6, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/125);
+            updateEdgeTime(vm, i, v[i].child[j], 5, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/95);
+            updateEdgeTime(vm, i, v[i].child[j], 4, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/60);
+            updateEdgeTime(vm, i, v[i].child[j], 3, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/25);
+            updateEdgeTime(vm, i, v[i].child[j], 2, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/15);
+            updateEdgeTime(vm, i, v[i].child[j], 1, (getEdgeDistance(vm, i, v[i].child[j]) * 1000)/7);
+        }
+    }
+
 
 }
 

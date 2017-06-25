@@ -10,6 +10,7 @@
 #include "icu.h"
 #include "controller.h"
 #include "time.h"
+
 void trainVelocityServer(){
 	//keeps track of velocity model for all trains....
    	//perhaps should be admin/worker model, one for each train. 
@@ -25,6 +26,7 @@ void trainVelocityServer(){
 	int hasStopValue = 0;
 	int isDying = 0;
 	int stateChanged = 0;
+	int msgLen = 0;
 
     	int _tid = -1;
 	char msg[64];
@@ -99,7 +101,7 @@ void trainServer(){
 		Pass();
 		sensorTID = WhoIs("displaySensors");
 	}
-	int velTID = Create(4,(void *)velocityModelServer);
+	//int velTID = Create(4,(void *)velocityModelServer);
 	//keep track of train speeds
 	int trainSpeed[80];
 	int trainCurrentSensor[80];
@@ -243,9 +245,9 @@ void trainServer(){
 					dspMsg[3] = (getEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[58]) / 10000) % 100;
 					dspMsg[4] = (getEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[58]) / 100) % 100;
 					dspMsg[5] = getEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[58]) % 100;
-					dspMsg[6] = (v[i].distance[kh] / 10000) % 100;
-					dspMsg[7] = (v[i].distance[kh] / 100) % 100;
-					dspMsg[8] = (v[i].distance[kh]) % 100;
+					dspMsg[6] = (getEdgeDistance(&(t.vm), prevSensor, curSensor) / 10000) % 100;
+					dspMsg[7] = (getEdgeDistance(&(t.vm), prevSensor, curSensor)  / 100) % 100;
+					dspMsg[8] = getEdgeDistance(&(t.vm), prevSensor, curSensor)  % 100;
 					dspMsg[9] = 0;
 					bwassert(Send(dspTID, dspMsg, 9, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
 
