@@ -979,20 +979,27 @@ Quit();
 void graphTestTask() {
 
     TrackGraph t;
+    TrackGraphNode * node = t.node;
     int path[100];
     int sensorList[100];
     int distanceList[100];
     int timeList[100];
-    int speed = 14;
+    int speed = 0;
     int sensorLength = 0; 
     int infoLength = 0;
     volatile int i = 0;
     int pathLength;
     TrackGraphInit(&t);
-    if (!getShortestPath(&t, sensor2i("A10"), sensor2i("C11"), path, &pathLength)) {
+    if (!getShortestPath(&t, sensor2i("A03"), sensor2i("E07"), path, &pathLength)) {
         bwprintf(COM2, "DEAD END.\r\n");
         Exit();
     }
+
+    
+    bwprintf(COM2, "edge nuumber A3 C13:%d \n\r ",findNextSensor(&t, sensor2i("E07")));
+    bwprintf(COM2, "edge nuumber A3 C13:%d \n\r ",getEdgeDistance((&t.vm), sensor2i("E07"), sensor2i("D07")));
+    bwprintf(COM2, "edge nuumber C13 E07:%d \n\r ",getEdgeDistance((&t.vm), sensor2i("C13"), sensor2i("E07")));
+    bwprintf(COM2, "edge nuumber A3 E07:%d \n\r ",getEdgeDistance((&t.vm), sensor2i("C13"), sensor2i("D07")));
     bwprintf(COM2, "Ans: ");
     for (i = pathLength - 1; i >= 0; i--) {
         bwprintf(COM2, " %d ", path[i]);
@@ -1041,7 +1048,7 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
 
-    kernelRun(2,(int) FirstUserTask);
+    kernelRun(2,(int) graphTestTask);
 	
 
 

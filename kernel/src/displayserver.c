@@ -297,6 +297,18 @@ void displayServer() {
 			}
 			Reply(_tid, "1", 2);
 		} else {
+			switch((int)msg[0]){
+				case 'V':
+					{
+						int v = ((msg[2]*10000) + (msg[3]*100) + msg[4]);
+						int a = ((msg[5]*10000) + (msg[6]*100) + msg[7]);
+						int p = ((msg[8]*10000) + (msg[9]*100) + msg[10]);
+					Printf(iosTID, COM2,"\033[s\033[?25l\033[%d;35H%d\033[u\033[?25h", msg[1] - 52, v) ;
+		  			Printf(iosTID,COM2,"\033[s\033[?25l\033[2;68HDelta Time: %10d Delta Dist:%10d \033[u\033[?25h", a-p ,(v*(a-p))/1000);
+					}
+				default:
+					break;
+			}
 			Reply(_tid, "1", 2);
 		}
 	}
