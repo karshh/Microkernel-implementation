@@ -511,7 +511,7 @@ void trainServer(){
 			Delay(csTID, 5);
 	}
 	// why do we have this massive delay here?
-	//Delay(csTID,436);
+	Delay(csTID,436);
 	//send message to display thaat switches are initilizaing
 	msg[0] = 2; //no warning
 	msg[1] = 1;
@@ -569,6 +569,7 @@ void trainServer(){
 	msg[3] = 0;
 		bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
 
+		Delay(csTID, 5);
 	int train;
 	int speed;
 	int sw;
@@ -664,7 +665,15 @@ void trainServer(){
 						*/ trainSpeed[i] = 0;
 						trainDestinationSensor[i] = 0;
 					}
-					if (trainExpectedSensor[i] == msg[j]) {
+					if (trainExpectedSensor[i] == msg[j] ) {
+						trainCurrentSensor[i] = msg[j];
+						trainExpectedSensor[i] = findNextSensor(&t, msg[j]);
+						dspMsg[0] = 3; //hardcoded to indicate expected sensor
+						dspMsg[1] = i;
+						dspMsg[2] = trainExpectedSensor[i];
+						dspMsg[3] = 0;
+						bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+					}else if(msg[j] == findNextSensor(&t,trainExpectedSensor[i])){
 						trainCurrentSensor[i] = msg[j];
 						trainExpectedSensor[i] = findNextSensor(&t, msg[j]);
 						dspMsg[0] = 3; //hardcoded to indicate expected sensor

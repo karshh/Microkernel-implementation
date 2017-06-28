@@ -37,7 +37,7 @@ int findAltSensor(TrackGraph * t, int i) {
 				i = node[i].switchConfig == CS ? node[i].CSnextNodeIndex : node[i].SCnextNodeIndex;
 				break;
 			default:
-				bwassert(0, COM2, "<findNextSensor>: Why the hell did we end up here? FIGURE THIS OUT!");
+				bwassert(0, COM2, "<findALTSensor>: Why the hell did we end up here? FIGURE THIS OUT![ALT] %d node %d", node[i].type,i);
 		}
 	}
 	return -1;
@@ -61,7 +61,7 @@ int findNextSensor(TrackGraph * t, int i) {
 				i = node[i].switchConfig == CS ? node[i].CSnextNodeIndex : node[i].SCnextNodeIndex;
 				break;
 			default:
-				bwassert(0, COM2, "<findNextSensor>: Why the hell did we end up here? FIGURE THIS OUT!");
+				bwassert(0, COM2, "<findNextSensor>: Why the hell did we end up here? FIGURE THIS OUT! %d node %d", node[i].type,i);
 		}
 	}
 	return -1;
