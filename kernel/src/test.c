@@ -990,7 +990,7 @@ void graphTestTask() {
     volatile int i = 0;
     int pathLength;
     TrackGraphInit(&t);
-    if (!getShortestPath(&t, sensor2i("A03"), sensor2i("E07"), path, &pathLength)) {
+    if (!getShortestPath(&t, sensor2i("C13"), sensor2i("E07"), path, &pathLength)) {
         bwprintf(COM2, "DEAD END.\r\n");
         Exit();
     }

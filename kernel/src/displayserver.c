@@ -306,6 +306,32 @@ void displayServer() {
 					Printf(iosTID, COM2,"\033[s\033[?25l\033[%d;35H%d\033[u\033[?25h", msg[1] - 52, v) ;
 		  			Printf(iosTID,COM2,"\033[s\033[?25l\033[2;68HDelta Time: %10d Delta Dist:%10d \033[u\033[?25h", a-p ,(v*(a-p))/1000);
 					}
+					break;
+				case 'D':
+					{
+		  			Printf(iosTID,COM2,"\033[s\033[?25l\033[2;1H WOOOOO?[%c]\033[u\033[?25h",msg[1]);
+
+					}
+					break;
+				case 'E':
+					{
+
+					int v = msg[4] + (msg[3] << 8) + (msg[2] << 16) + (msg[1] <<24);
+		  			Printf(iosTID,COM2,"\033[s\033[?25l\033[2;40H DOOOOO?[%d]\033[u\033[?25h",v);
+
+					}
+					break;
+				case 'F':
+					{
+						int v = ((msg[1]*10000) + (msg[2]*100) + msg[3]);
+		  			Printf(iosTID,COM2,"\033[s\033[?25l\033[2;80H EOOOOO?[%d]\033[u\033[?25h",v);
+
+					}
+					break;
+
+
+
+
 				default:
 					break;
 			}

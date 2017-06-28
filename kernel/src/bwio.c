@@ -264,10 +264,12 @@ void bwassert( int condition, int channel, char *fmt, ... ) {
         if (!condition) {
 	        va_list va;
 
+	        bwprintf(channel, "\033[1;1H\033[2J\033[1;1H\r\n");
 	        va_start(va,fmt);
 	        bwformat( channel, fmt, va );
 	        va_end(va);
 
+	        bwprintf(channel, "\r\nRestart required.\r\n");
 	        bwprintf(channel, "\r\nRestart required.\r\n");
 	        while(1) {}
 
