@@ -984,22 +984,22 @@ void graphTestTask() {
     int sensorList[100];
     int distanceList[100];
     int timeList[100];
-    int speed = 0;
+    int speed = 14;
     int sensorLength = 0; 
     int infoLength = 0;
     volatile int i = 0;
     int pathLength;
     TrackGraphInit(&t);
-    if (!getShortestPath(&t, sensor2i("C13"), sensor2i("E07"), path, &pathLength)) {
+    if (!getShortestPath(&t, sensor2i("A05"), sensor2i("C03"), path, &pathLength)) {
         bwprintf(COM2, "DEAD END.\r\n");
         Exit();
     }
 
     
-    bwprintf(COM2, "edge nuumber A3 C13:%d \n\r ",findNextSensor(&t, sensor2i("E07")));
-    bwprintf(COM2, "edge nuumber A3 C13:%d \n\r ",getEdgeDistance((&t.vm), sensor2i("E07"), sensor2i("D07")));
-    bwprintf(COM2, "edge nuumber C13 E07:%d \n\r ",getEdgeDistance((&t.vm), sensor2i("C13"), sensor2i("E07")));
-    bwprintf(COM2, "edge nuumber A3 E07:%d \n\r ",getEdgeDistance((&t.vm), sensor2i("C13"), sensor2i("D07")));
+    // bwprintf(COM2, "edge nuumber A3 C13:%d \n\r ",findNextSensor(&t, sensor2i("E07")));
+    // bwprintf(COM2, "edge nuumber A3 C13:%d \n\r ",getEdgeDistance((&t.vm), sensor2i("E07"), sensor2i("D07")));
+    // bwprintf(COM2, "edge nuumber C13 E07:%d \n\r ",getEdgeDistance((&t.vm), sensor2i("C13"), sensor2i("E07")));
+    // bwprintf(COM2, "edge nuumber A3 E07:%d \n\r ",getEdgeDistance((&t.vm), sensor2i("C13"), sensor2i("D07")));
     bwprintf(COM2, "Ans: ");
     for (i = pathLength - 1; i >= 0; i--) {
         bwprintf(COM2, " %d ", path[i]);
@@ -1023,6 +1023,18 @@ void graphTestTask() {
     for ( i = 0; i < infoLength; i++) {
         bwprintf(COM2, " %d ", timeList[i]);
     }
+
+    int dist = 0;
+    for ( i = 0; i < infoLength; i++) {
+        dist += distanceList[i];
+    }
+
+    bwprintf(COM2, "\r\nTotal distance = %d\r\n", dist);
+    dist -= (stopDistance(getEdgeVelocity(&(t.vm), sensorList[sensorLength-2], sensorList[sensorLength-1], speed) * 10) / 1000);
+
+
+    bwprintf(COM2, "\r\nTotal running distance = %d\r\n", dist);
+
 
     Exit();
 

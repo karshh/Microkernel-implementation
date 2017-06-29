@@ -638,7 +638,7 @@ void trainServer(){
 					bwassert(Send(velTID, dspMsg, 12, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to Velocity train server.\r\n");
 				}
 
-				if (updateEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[58], curSensorTime-prevSensorTime)) {
+				if (trainSpeed[train] > 0 && updateEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[train], curSensorTime-prevSensorTime)) {
 					int kh = findSensorEdge(&(t.vm),prevSensor, curSensor);
 					dspMsg[0] = COMMAND_SENSOREDGE;
 					dspMsg[1] = v[prevSensor].rowCursor[kh];
@@ -757,7 +757,7 @@ void trainServer(){
 			case 'J': // ss command
 				train = msg[1];
 				sens = msg[2];
-				dist = msg[3];
+				dist = (msg[3] * 1000000) + (msg[4] * 10000) + (msg[5] * 100) + msg[6];
 
 				
 				if (train >= 58 && train < 80) {
@@ -778,16 +778,20 @@ void trainServer(){
     					int sensorLength = 0; 
     					int infoLength = 0;
 
-					getEdgeInfo(&t, path, pathLength, 0, sensorList, &sensorLength, distanceList, timeList, &infoLength);
+					getEdgeInfo(&t, path, pathLength, trainSpeed[train], sensorList, &sensorLength, distanceList, timeList, &infoLength);
 					dspMsg[0] = 'J';
 					dspMsg[1] = sensorLength;
 					dspMsg[2] = infoLength;
-					dspMsg[3] = dist;
+					dspMsg[3] = (dist / 1000000) % 100;
+					dspMsg[4] = (dist / 10000) % 100;
+					dspMsg[5] = (dist / 100) % 100;
+					dspMsg[6] = dist % 100;
     					for ( i = 0; i < sensorLength; i++) {
-						dspMsg[4+i] = sensorList[i];
+						dspMsg[7+i] = sensorList[i];
 					}
+					dspMsg[7+i] = 0;
 
-					bwassert(Send(velTID, dspMsg, 4+sensorLength, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending  J message to Velocity train server.\r\n"); 
+					bwassert(Send(velTID, dspMsg, 7+i, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending  J message to Velocity train server.\r\n"); 
 
     					for ( i = 0; i < infoLength; i++) {
 						dspMsg[0] = 'K';

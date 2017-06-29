@@ -25,7 +25,7 @@ void FirstUserTask() {
 
 
 	Create(3, (void *) commandServer);
-	Create(3, (void *) displayServer);
+	Create(4, (void *) displayServer);
 	Exit();
 }
 
