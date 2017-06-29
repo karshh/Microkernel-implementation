@@ -191,7 +191,7 @@ void TrackGraphInit(TrackGraph * t) {
 	node[switch2i(10)].CnextNodeIndex = sensor2i("E03");
 	node[switch2i(11)].CnextNodeIndex = sensor2i("A04");
 	node[switch2i(12)].CnextNodeIndex = switch2i(4);
-	node[switch2i(12)].CnextNodeIndex = sensor2i("E16");
+	node[switch2i(13)].CnextNodeIndex = sensor2i("E16");
 	node[switch2i(14)].CnextNodeIndex = sensor2i("C11");
 	node[switch2i(15)].CnextNodeIndex = sensor2i("C10");
 	node[switch2i(16)].CnextNodeIndex = sensor2i("B03");
@@ -211,7 +211,7 @@ void TrackGraphInit(TrackGraph * t) {
 	node[switch2i(10)].SnextNodeIndex = sensor2i("D04");
 	node[switch2i(11)].SnextNodeIndex = switch2i(12);
 	node[switch2i(12)].SnextNodeIndex = sensor2i("A02");
-	node[switch2i(12)].SnextNodeIndex = sensor2i("B05");
+	node[switch2i(13)].SnextNodeIndex = sensor2i("B05");
 	node[switch2i(14)].SnextNodeIndex = sensor2i("C13");
 	node[switch2i(15)].SnextNodeIndex = sensor2i("C05");
 	node[switch2i(16)].SnextNodeIndex = sensor2i("B01");
