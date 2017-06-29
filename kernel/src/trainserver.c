@@ -58,7 +58,7 @@ int stopDistance(int velocity){
       
         beta = 100 -alpha;
  
-        return (((alpha * s[b]) + (beta * s[a])) /100)+10000;
+        return (((alpha * s[b]) + (beta * s[a])) /100);
 }
 
 void trainVelocityServer(){
@@ -94,7 +94,7 @@ void trainVelocityServer(){
 	int nextSensorTime =0;
 	int deltaTime = 0;
 	int deltaDist = 0;
-	int alpha = 30;
+	int alpha = 50;
 
 	 char dspMsg[128];
 char rpl[3];
@@ -109,6 +109,7 @@ char rpl[3];
 	int stopWaitingJ = 0;
 
 	int distanceToStop =0;
+	int extraDist = 0;
 	int timeToStop = 0;
 
 	int csTID = WhoIs("clockServer");
@@ -141,8 +142,9 @@ int distance =0;
 					//gets stop sensors...expects a series of distance messages (see K);
 					sensorLength = msg[1];
 					infoLength = msg[2];
+					extraDist = msg[3];
 					for(i = 0; i< sensorLength; i++){		
-						sensorList[i] =	msg[3+i] ;
+						sensorList[i] =	msg[4+i] ;
 					}
 					gotSensorList = 1;
 					gotDistanceList =0;
@@ -167,6 +169,7 @@ int distance =0;
 					bwassert(Send(dspTID, dspMsg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
 	
 						hasStopValue = 1;
+						distanceToStop += extraDist;
 						timeToStop =  Time(csTID) + nextSensorTime + (((1000*distanceToStop)-stopDistance(velocity58))/velocity58);		
 						//timeToStop -=  120;
 						//timeToStop -=  ((5000 -velocity58) * 6 )/100;
@@ -256,6 +259,7 @@ int distance =0;
 							distanceToStop += distanceList[i];
 						}
 	
+						distanceToStop += extraDist;
 						//timeToStop =  Time(csTID) + nextSensorTime + (1000*distanceToStop/velocity58);		
 						timeToStop =  Time(csTID) +  (((1000*distanceToStop)-stopDistance(velocity58))/velocity58);		
 					}
@@ -778,11 +782,12 @@ void trainServer(){
 					dspMsg[0] = 'J';
 					dspMsg[1] = sensorLength;
 					dspMsg[2] = infoLength;
+					dspMsg[3] = dist;
     					for ( i = 0; i < sensorLength; i++) {
-						dspMsg[3+i] = sensorList[i];
+						dspMsg[4+i] = sensorList[i];
 					}
 
-					bwassert(Send(velTID, dspMsg, 2+sensorLength, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending  J message to Velocity train server.\r\n"); 
+					bwassert(Send(velTID, dspMsg, 4+sensorLength, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending  J message to Velocity train server.\r\n"); 
 
     					for ( i = 0; i < infoLength; i++) {
 						dspMsg[0] = 'K';
