@@ -191,7 +191,7 @@ void displayServer() {
 	                break;
 
 	        	case COMMAND_SSW:
-	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KSS Could not set up path for train %d to sensor %d.\033[34;1H>",msg[1],msg[2]);
+	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KCould not set up path for train %d to sensor %d.\033[34;1H>",msg[1],msg[2]);
 	                break;
 
 	        	case COMMAND_IS:

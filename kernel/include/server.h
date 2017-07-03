@@ -107,6 +107,8 @@ void trainServer();
 void trainVelocityServer(); //holds velocity/position information for mutiple trains
 void trainStopServer(); 
 
+int stopDistance(int velocity);
+
 /*****************************************************************************
 DISPLAYSERVER
 *****************************************************************************/

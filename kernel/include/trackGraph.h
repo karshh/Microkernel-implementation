@@ -79,6 +79,8 @@ int setEdgeDistance(velocityModel * vm, int s1, int s2, int d);
 
 int getEdgeTime(velocityModel * vm, int s1, int s2, int speed);
 
+int getEdgeVelocity(velocityModel * vm, int s1, int s2, int speed);
+
 void TrackGraphInit(TrackGraph * t);
 
 // Returns 1 if a shortest path does exist.

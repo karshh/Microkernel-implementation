@@ -37,8 +37,8 @@ void implementTrackB(velocityModel * vm, int rc) {
 
 void drawTrackB(int iosTID) {
 
-	Printf(iosTID, COM2, "\033[16;43H%s->%s:","A12","A16");
-	Printf(iosTID, COM2, "\033[17;43H%s->%s:","A15","A11");
+	// Printf(iosTID, COM2, "\033[16;43H%s->%s:","A12","A16");
+	// Printf(iosTID, COM2, "\033[17;43H%s->%s:","A15","A11");
 }
 
 
