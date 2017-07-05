@@ -7,6 +7,13 @@
 
 
 
+
+
+void TrackGraphInit(TrackGraph * t) {
+    TrackGraphInitB(t);
+}
+
+
 void implementTrackB(velocityModel * vm, int rc) {
     velocityModelNode * v = vm->v;
 

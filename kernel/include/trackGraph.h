@@ -46,10 +46,16 @@ typedef struct TrackGraphNode {
 
 	SwitchConfig switchConfig;
 	int nextNodeIndex; // for sensors only.
+	int nextNodeDistance;
+	int inverse;
 	int CnextNodeIndex; // for single switches only;
+	int CnextNodeDistance;
 	int SnextNodeIndex; // for single switches only;
+	int SnextNodeDistance;
 	int CSnextNodeIndex; // for multi switches only;
+	int CSnextNodeDistance;
 	int SCnextNodeIndex; // for multi switches only;
+	int SCnextNodeDistance;
 	unsigned int timeToNextSensor;
 } TrackGraphNode;
 
@@ -81,7 +87,12 @@ int getEdgeTime(velocityModel * vm, int s1, int s2, int speed);
 
 int getEdgeVelocity(velocityModel * vm, int s1, int s2, int speed);
 
+void TrackGraphInitA(TrackGraph * t);
+void TrackGraphInitB(TrackGraph * t);
+
 void TrackGraphInit(TrackGraph * t);
+
+
 
 // Returns 1 if a shortest path does exist.
 // If there's a dead end, 0 is returned.

@@ -5,6 +5,10 @@
 #include "trackGraph.h"
 
 
+void TrackGraphInit(TrackGraph * t) {
+	TrackGraphInitA(t);
+}
+
 void implementTrackB(velocityModel * vm, int rc) {
 }
 
