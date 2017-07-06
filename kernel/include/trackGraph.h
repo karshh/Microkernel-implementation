@@ -21,23 +21,17 @@ typedef enum SwitchConfig {
 	CC
 } SwitchConfig;
 
-typedef struct velocityModelNode {
+typedef struct sensorModelNode {
     int numChild;
     int child[5];
-    int distance[5];
-    int time[75];
-    int count[75];
-    char rowCursor[5];
-    char colCursor;
-} velocityModelNode;
+} sensorModelNode;
 
 
-#define VELOCITY_NODES 81
+#define SENSOR_NODES 81
 
-typedef struct velocityModel {
-    velocityModelNode v[VELOCITY_NODES];
-
-} velocityModel;
+typedef struct sensorModel {
+    sensorModelNode v[SENSOR_NODES];
+} sensorModel;
 
 typedef struct TrackGraphNode {
 	TrackGraphNodeType type;
@@ -61,11 +55,11 @@ typedef struct TrackGraphNode {
 
 typedef struct TrackGraph {
 	TrackGraphNode node[102];
-	velocityModel vm;
+	sensorModel vm;
 } TrackGraph;
 
 
-void velocityModelInit(velocityModel * vm);
+void sensorModelInit(sensorModel * vm);
 
 int findAltSensor(TrackGraph * t, int i);
 
@@ -75,17 +69,9 @@ int sensor2i(char * c);
 
 int switch2i(int i);
 
-int findSensorEdge(velocityModel * vm, int s1, int s2);
+int findEdge(TrackGraph * t, int s1, int s2);
 
-int updateEdgeTime(velocityModel * vm, int s1, int s2, int speed, int t);
-
-int getEdgeDistance(velocityModel * vm, int s1, int s2);
-
-int setEdgeDistance(velocityModel * vm, int s1, int s2, int d);
-
-int getEdgeTime(velocityModel * vm, int s1, int s2, int speed);
-
-int getEdgeVelocity(velocityModel * vm, int s1, int s2, int speed);
+int getEdgeDistance(TrackGraph * t, int s1, int s2);
 
 void TrackGraphInitA(TrackGraph * t);
 void TrackGraphInitB(TrackGraph * t);
@@ -101,7 +87,7 @@ void TrackGraphInit(TrackGraph * t);
 // mutated, make sure to traverse in reverse order.
 int getShortestPath(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength);
 
-void implementTrackB(velocityModel * vm, int rc);
+void implementTrackB(sensorModel * vm);
 
 /*
 * This function takes in path and pathlength (set through a getShortestPath() call) along with the current train speed, and returns a list of sensors, the distance between them
@@ -111,8 +97,8 @@ void implementTrackB(velocityModel * vm, int rc);
 */
 int getEdgeInfo(
 	/* These will need to be provided in order to parse */
-	TrackGraph * t, int * path, int pathLength, int speed,
+	TrackGraph * t, int * path, int pathLength,
 	/* These will be updated with the values you're looking for. Note that since distanceList and timeList will be the same size, infoLength will be containing their size after this function call ends. */
-    int * sensorList, int * sensorLength, int * distanceList, int * timeList, int * infoLength);
+    int * distanceList, int * infoLength);
 
 #endif
