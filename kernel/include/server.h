@@ -101,6 +101,7 @@ void UART2_ReceiveServer();
 /*****************************************************************************
 TRAINSERVER
 *****************************************************************************/
+void trainTask(); //will be called by displayServer, code in userTasks
 
 void trainServer();
 

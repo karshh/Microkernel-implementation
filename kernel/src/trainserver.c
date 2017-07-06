@@ -132,11 +132,6 @@ int distance =0;
 				case 'J':
 
 
-					dspMsg[0] = 'D';
-					dspMsg[1] = '0'; //
-					bwassert(Send(dspTID, dspMsg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-				
-
 
 					//new stop sensor info,start this bitch
 					//gets stop sensors...expects a series of distance messages (see K);
@@ -150,10 +145,7 @@ int distance =0;
 					gotDistanceList =0;
 					distanceToStop = 0;
 					Reply(_tid, "1", 2);
-					dspMsg[0] = 'D';
-					dspMsg[1] = '1'; //
-					bwassert(Send(dspTID, dspMsg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-				
+			
 
 		        		break;
 				case 'K':
@@ -164,9 +156,6 @@ int distance =0;
 					gotDistanceList++;
 					distanceToStop += distanceList[i];
 					if(gotDistanceList == infoLength){
-					dspMsg[0] = 'D';
-					dspMsg[1] = '2'; //
-					bwassert(Send(dspTID, dspMsg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
 	
 						hasStopValue = 1;
 						distanceToStop += extraDist;
@@ -176,39 +165,10 @@ int distance =0;
 						//mutiply by 1000 to change distance from mm to um
 						//timeToStop =   nextSensorTime + (distanceToStop/velocity58);		
 						if( stopWaitingJ ){
-	dspMsg[0] = 'D';
-	dspMsg[1] = '3'; //
-	bwassert(Send(dspTID, dspMsg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-	distanceToStop = timeToStop;
-	dspMsg[0] = 'E';
-	dspMsg[1] = (distanceToStop >> 24) & 0xff;
-	dspMsg[2] = (distanceToStop >> 16) & 0xff;
-	dspMsg[3] = (distanceToStop >> 8) &0xff;
-	dspMsg[4] = distanceToStop & 0xff;
-	bwassert(Send(dspTID, dspMsg, 5, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-
-
-	dspMsg[0] = 'F';
-	dspMsg[1] = (velocity58 /10000) % 100; //
-	dspMsg[2] = (velocity58 /100) %100; //
-	dspMsg[3] = velocity58 % 100; //
-	dspMsg[3] = velocity58 % 100; //
-	bwassert(Send(dspTID, dspMsg, 5, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
 						//stop server doesnt need to know the path, just the distance, velocity and time
-/*
-						dspMsg[0] = (distanceToStop >>24) & 0xFF;
-    						dspMsg[1] = (distanceToStop >> 24) & 0xFF;
-						dspMsg[2] = (distanceToStop >> 16) & 0xFF;
-						dspMsg[3] = (distanceToStop >> 8) & 0xFF;
- 
-						dspMsg[0] = (velocity58 >> 24) & 0xFF;
-    						dspMsg[1] = (velocity58 >> 24) & 0xFF;
-						dspMsg[2] = (velocity58 >> 16) & 0xFF;
-						dspMsg[3] = (velocity58 >> 8) & 0xFF;
-  						//note velocity is always >0 as velocty is based on two sensor pings, not 1 sensor ping. (i.e assume train is in motion when ss is called)
+ 						//note velocity is always >0 as velocty is based on two sensor pings, not 1 sensor ping. (i.e assume train is in motion when ss is called)
 						//also assuming next nextSensor = sensorList[0]
 						//distance to stop is distance to next sensor. however we don't really know where we are, since im only sending delta time from trainserver to velocity server. should send ticks...but later. will correct at next sensor hit
-*/
 						//next sensorTime only makes if SS occurs immideatly after a sensor ping.
 						//should correct after sensor ping
 						dspMsg[0] = 'G';
@@ -333,9 +293,6 @@ int distance =0;
 
 					break;
 				case 'S':
-	dspMsg[0] = 'D';
-	dspMsg[1] = 'X'; //
-	bwassert(Send(dspTID, dspMsg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
 
 
 					hasStopValue = 0;
@@ -387,10 +344,6 @@ void trainStopServer(){
 				bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 				msg[0] = 'S'; //sent stop command stopped
 				bwassert(Send(parentTID, msg, 1, rpl, rpllen) >= 0, COM2, "<trainstopServer>: Send G issue."); 
-	dspMsg[0] = 'D';
-	dspMsg[1] = 'S'; //
-	bwassert(Send(dspTID, dspMsg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-
 				dspMsg[0] = 'S';
 				bwassert(Send(parentTID, dspMsg, 1, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
 
@@ -399,26 +352,11 @@ void trainStopServer(){
 	
 			}else if(timeToStop - (Time(csTID)) < 20 ){
 				Delay(csTID,5);
-	dspMsg[0] = 'D';
-	dspMsg[1] = 'L'; //
-	bwassert(Send(dspTID, dspMsg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-
 			}else if(timeToStop - (Time(csTID)) > 20 ){
 
 				Delay(csTID,10);
 
-	dspMsg[0] = 'E';
-	dspMsg[1] = (timeToStop >> 24) & 0xff;
-	dspMsg[2] = (timeToStop >> 16) & 0xff;
-	dspMsg[3] = (timeToStop >> 8) &0xff;
-	dspMsg[4] = timeToStop & 0xff;
-	bwassert(Send(dspTID, dspMsg, 5, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
 	int t = Time(csTID);
-	dspMsg[0] = 'F';
-	dspMsg[1] = (t /10000) % 100; //
-	dspMsg[2] = (t /100) %100; //
-	dspMsg[3] = t % 100; //
-	bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
 
 
 			}
@@ -430,9 +368,6 @@ void trainStopServer(){
 			//done and waiting for a new stop
 			msg[0] = 'J'; //no warning
 			bwassert(Send(parentTID, msg, 1, rpl, rpllen) >= 0, COM2, "<trainstopServer>: Send J issue."); 
-		//			dspMsg[0] = 'D';
-			//		dspMsg[1] = 'M'; //
-				//	bwassert(Send(dspTID, dspMsg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
 
 			if(msg[0] == 'Q') Exit();
 			timeToStop = rpl[4] + (rpl[3] << 8) + (rpl[2] << 16) + (rpl[1] <<24);

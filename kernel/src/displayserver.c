@@ -105,13 +105,16 @@ void displayServer() {
 	int iorTID = WhoIs("UART2R");
 	bwassert(iorTID >= 0, COM2, "<displayGrid>: UART2SReceiveServer has not been set up.\r\n");
 
-	int Grid_TID = Create(4, (void *) Grid);
-	//int Prompt_TID = Create(4, (void *) UserPrompt);
-	int Prompt_TID = -1;
-	int Death_TID = -1;
-	int Sensors_TID = Create(4, (void *) displaySensors);
-	int Clock_TID = Create(5, (void *) displayClock);
-	int Train_TID = Create(4, (void *) trainServer);
+	int Grid_TID = Create(13, (void *) Grid); //run immedieatly and puts a message in display's msgbox
+	int Prompt_TID = -1; //created when train init is done
+	int Death_TID = -1; //created with quit command issued
+
+	int Sensors_TID = Create(14, (void *) displaySensors); //will be moved later to train server
+	int Clock_TID = Create(15, (void *) displayClock); //displays clock
+	Create(4, (void *) trainTask); //creates and runs this task imediatly
+	//since this task is higher than any in display server side, trainserver should be registered to nameserver when we return
+	//int Train_TID = Create(4, (void *) trainServer);
+	int Train_TID = WhoIs("trainServer");
 
 
     int _tid = -1;
@@ -233,7 +236,6 @@ void displayServer() {
 			delMsg[0] = msg[0]; 
 			delMsg[1] = 0; 
 			Send(iosTID, delMsg, 2, rep, 2);
-			//Putc(iosUS1TID, COM1, msg[0]);
 			//inform angel of death that uart1 servers are dead
 			Reply(_tid, "1", 2);
 			//Command server dies
@@ -254,12 +256,11 @@ void displayServer() {
 				sensorCursor = sensorCursor + 1 > maxCursor ? minCursor : sensorCursor + 1;
 				sensorPingLast = getTicks4(0);
 			} 
-			// for (i = 0; i < rplLen; i += 2) {
-   //  			Printf(iosTID, COM2,"\033[%d;30H%d: ", rpl[i] - 54, rpl[i+1]);
-			// }
 			Reply(_tid, "1", 2);
 
 		} else if (_tid == Train_TID){
+
+
 			if (msg[0] == 2){ //2 used for initiliziation code
 				if(msg[1] == 0)
 	                		Printf(iosTID, COM2, "\033[s\033[?25l\033[34;1H\033[K\033[35;1H\033[KInitializing Trains %d.\033[34;1H>\033[u\033[?25h",msg[2]);
@@ -267,7 +268,7 @@ void displayServer() {
 	                		Printf(iosTID, COM2, "\033[s\033[?25l\033[34;1H\033[K\033[35;1H\033[KInitializing Switches.\033[34;1H>\033[u\033[?25h");
 				else{
 	                		Printf(iosTID, COM2, "\033[s\033[?25l\033[34;1H\033[K\033[35;1H\033[K\033[34;1H>\033[u\033[?25h");
-					Prompt_TID = Create(5, (void *) UserPrompt);
+					Prompt_TID = Create(15, (void *) UserPrompt);
 				}
 					
 			} else if (msg[0] == 3) {//3 is train sensor update
@@ -288,6 +289,10 @@ void displayServer() {
        				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;11H%c\033[u\033[?25h", switchLocation, msg[1]);
 			}
 			Reply(_tid, "1", 2);
+
+
+
+
 		} else if (_tid == Clock_TID){
 			switch((int) msg[0]) {
 				case CLOCK_U:
@@ -311,30 +316,6 @@ void displayServer() {
 		  			Printf(iosTID,COM2,"\033[s\033[?25l\033[2;68HDelta Time: %10d Delta Dist:%10d \033[u\033[?25h", a-p ,(v*(a-p))/1000);
 					}
 					break;
-				case 'D':
-					{
-		  			Printf(iosTID,COM2,"\033[s\033[?25l\033[2;1H WOOOOO?[%c]\033[u\033[?25h",msg[1]);
-
-					}
-					break;
-				case 'E':
-					{
-
-					int v = msg[4] + (msg[3] << 8) + (msg[2] << 16) + (msg[1] <<24);
-		  			Printf(iosTID,COM2,"\033[s\033[?25l\033[2;40H DOOOOO?[%d]\033[u\033[?25h",v);
-
-					}
-					break;
-				case 'F':
-					{
-						int v = ((msg[1]*10000) + (msg[2]*100) + msg[3]);
-		  			Printf(iosTID,COM2,"\033[s\033[?25l\033[2;80H EOOOOO?[%d]\033[u\033[?25h",v);
-
-					}
-					break;
-
-
-
 
 				default:
 					break;

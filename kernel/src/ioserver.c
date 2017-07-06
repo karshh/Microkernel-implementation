@@ -165,7 +165,7 @@ void UART2_SendServer() {
 	circularBufferInitB(&UART2_sendQ);
 	
 	// create notifier tasks
-	volatile int UART2Send_TID = Create(1, (void *) UART2Send_Notifier);
+	volatile int UART2Send_TID = Create(11, (void *) UART2Send_Notifier);
 
 	// variables to block notifiers
 	volatile int UART2Send_blocked = 0;
@@ -248,7 +248,7 @@ void UART2_ReceiveServer() {
 	circularBufferInit(&UART2_receiveTIDQ);
 	
 	// create notifier tasks
-	volatile int UART2Receive_TID = Create(1, (void *) UART2Receive_Notifier);
+	volatile int UART2Receive_TID = Create(11, (void *) UART2Receive_Notifier);
 	
 	// message passing required variables.
 	int _tid = -1;
