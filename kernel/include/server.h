@@ -108,6 +108,8 @@ void trainServer();
 void trainVelocityServer(); //holds velocity/position information for mutiple trains
 void trainStopServer(); 
 
+void initTrains(int csTID, int commandServerTID, int dspTID);
+
 int stopDistance(int velocity);
 
 /*****************************************************************************

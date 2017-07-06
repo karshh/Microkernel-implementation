@@ -1094,7 +1094,7 @@ typedef struct tempMsgStruct {
 void testStructS() {
 	char _msg[64];
 	tempMsgStruct testS;
-	testS.msgType[0] = 'A';
+	testS.msgType[0] = 0;
 	testS.msgType[1] = 'B';
 	testS.msgType[2] = 'C';
 	testS.msgType[3] = 'D';
@@ -1103,7 +1103,8 @@ void testStructS() {
 		testS.vals[i] = 10 - i;
 	}
 	testS.temp1 = 'Q';
-	Send(1, (char *) &testS, sizeof(tempMsgStruct), _msg, 64);
+	Send(1, (char *) &testS, sizeof(tempMsgStruct), (char *) &testS, sizeof(tempMsgStruct));
+	bwprintf(COM2,"after rply temp1 %c \n\r",testS.temp1);
     //bwassert(Send(1, (char *) &testS, sizeof(tempMsgStruct), _msg, 64)>= 0, COM2, "TEST FAILED!\r\n");
     Exit();
 }
@@ -1116,14 +1117,14 @@ void testStructR() {
 	if (Receive(&_tid, _msg, 64) >= 0) {
 		//void pkmemcpy(void *dest, const void *source, unsigned int size);
 		bwprintf(COM2,"%c\n\r",_msg[0]);
-		if(_msg[0] == 'A'){
+		if(_msg[0] == 0){
 			//if message code is 'A' then its a struct
 			pkmemcpy((void *) &testR, _msg, sizeof(tempMsgStruct));
-
 			bwprintf(COM2,"temp1 %c \n\r",testR.temp1);
 			bwprintf(COM2,"msg type 3rd %c \n\r",testR.msgType[2]);
 			bwprintf(COM2,"value[3]:%d \n\r",testR.vals[3]);
-		Reply(_tid, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 64);
+			testR.temp1 = 'X';
+			Reply(_tid, (char * ) &testR, sizeof(tempMsgStruct));
 		}
 	}
 	Exit();
