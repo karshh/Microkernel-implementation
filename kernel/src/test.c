@@ -1075,6 +1075,69 @@ void drawTrackB(int iosTID) {
 }
 
 
+/*------------------------------------------------------------------------*/
+//testing struct message passing
+//instead of sending nicly formated string, send a specialized message struct
+
+
+
+
+typedef struct tempMsgStruct {
+	//order stuf so non-word-alligned stuff is on bottom of struct
+	char msgType[4]; //word alligned. Used to hold message code. can move to int in future.
+	int vals[10];
+	char temp1;
+} tempMsgStruct;
+
+
+
+void testStructS() {
+	char _msg[64];
+	tempMsgStruct testS;
+	testS.msgType[0] = 'A';
+	testS.msgType[1] = 'B';
+	testS.msgType[2] = 'C';
+	testS.msgType[3] = 'D';
+	int i= 0;
+	for(i=0;i<10;i++){
+		testS.vals[i] = 10 - i;
+	}
+	testS.temp1 = 'Q';
+	Send(1, (char *) &testS, sizeof(tempMsgStruct), _msg, 64);
+    //bwassert(Send(1, (char *) &testS, sizeof(tempMsgStruct), _msg, 64)>= 0, COM2, "TEST FAILED!\r\n");
+    Exit();
+}
+
+void testStructR() {
+	int _tid = 0;
+	char _msg[64];
+
+	tempMsgStruct testR;
+	if (Receive(&_tid, _msg, 64) >= 0) {
+		//void pkmemcpy(void *dest, const void *source, unsigned int size);
+		bwprintf(COM2,"%c\n\r",_msg[0]);
+		if(_msg[0] == 'A'){
+			//if message code is 'A' then its a struct
+			pkmemcpy((void *) &testR, _msg, sizeof(tempMsgStruct));
+
+			bwprintf(COM2,"temp1 %c \n\r",testR.temp1);
+			bwprintf(COM2,"msg type 3rd %c \n\r",testR.msgType[2]);
+			bwprintf(COM2,"value[3]:%d \n\r",testR.vals[3]);
+		Reply(_tid, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 64);
+		}
+	}
+	Exit();
+
+}
+
+void testStructPass() {
+    Create(6, (void*) testStructR);
+    Create(6, (void*) testStructS);
+    Exit( );
+}
+
+/*------------------------------------------------------------------------*/
+
 int main(void) {
     // turning on data and instruction cache.
      asm volatile (
@@ -1084,7 +1147,7 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
 
-    kernelRun(2,(int) graphTestTask2);
+    kernelRun(2,(int) testStructPass);
 	
 
 
