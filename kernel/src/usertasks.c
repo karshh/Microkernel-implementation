@@ -18,16 +18,26 @@ void FirstUserTask() {
 	Create(31, (void *) idleTask);
 
 	bwassert(CreateIOServer(2, (void *) UART1_ReceiveServer, UART1R)>=0, COM2, "Failed Create UART1TR Server.\n\r");
-	bwassert(CreateIOServer(2, (void *) UART2_ReceiveServer, UART2R)>=0, COM2, "Failed Create UART2TR Server.\n\r");
+	bwassert(CreateIOServer(12, (void *) UART2_ReceiveServer, UART2R)>=0, COM2, "Failed Create UART2TR Server.\n\r");
 	bwassert(CreateIOServer(2, (void *) UART1_SendServer, UART1S)>=0, COM2, "Failed Create UART1TS Server.\n\r");
-	bwassert(CreateIOServer(2, (void *) UART2_SendServer, UART2S)>=0, COM2, "Failed Create UART2TS Server.\n\r");
+	bwassert(CreateIOServer(12, (void *) UART2_SendServer, UART2S)>=0, COM2, "Failed Create UART2TS Server.\n\r");
 
 
 
 	Create(3, (void *) commandServer);
-	Create(4, (void *) displayServer);
+	Create(14, (void *) displayServer);
 	Exit();
 }
+
+void trainTask() {
+	//patriarch of train servers
+	//children:
+		//trackServer
+		//trainServer
+		bwassert(Create(4, (void *) trainServer)>=0, COM2, "Failed Create UART2TS Server.\n\r");
+	Exit();
+}
+
 
 
 
