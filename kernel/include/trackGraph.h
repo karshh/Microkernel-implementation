@@ -15,23 +15,21 @@ typedef enum SwitchConfig {
 	NA,
 	S,
 	C,
-	SS,
 	SC,
 	CS,
-	CC
 } SwitchConfig;
 
-typedef struct sensorModelNode {
-    int numChild;
-    int child[5];
-} sensorModelNode;
+// typedef struct sensorModelNode {
+//     int numChild;
+//     int child[5];
+// } sensorModelNode;
 
 
-#define SENSOR_NODES 81
+// #define SENSOR_NODES 81
 
-typedef struct sensorModel {
-    sensorModelNode v[SENSOR_NODES];
-} sensorModel;
+// typedef struct sensorModel {
+//     sensorModelNode v[SENSOR_NODES];
+// } sensorModel;
 
 typedef struct TrackGraphNode {
 	TrackGraphNodeType type;
@@ -55,15 +53,15 @@ typedef struct TrackGraphNode {
 
 typedef struct TrackGraph {
 	TrackGraphNode node[102];
-	sensorModel vm;
+	// sensorModel vm;
 } TrackGraph;
 
 
-void sensorModelInit(sensorModel * vm);
+// void sensorModelInit(sensorModel * vm);
 
-int findAltSensor(TrackGraph * t, int i);
+int findAltSensor(TrackGraph * t, int i, int * dist);
 
-int findNextSensor(TrackGraph * t, int i);
+int findNextSensor(TrackGraph * t, int i, int * dist);
 
 int sensor2i(char * c);
 
@@ -87,7 +85,7 @@ void TrackGraphInit(TrackGraph * t);
 // mutated, make sure to traverse in reverse order.
 int getShortestPath(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength);
 
-void implementTrackB(sensorModel * vm);
+// void implementTrackB(sensorModel * vm);
 
 /*
 * This function takes in path and pathlength (set through a getShortestPath() call) along with the current train speed, and returns a list of sensors, the distance between them

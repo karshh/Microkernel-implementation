@@ -9,7 +9,8 @@ void TrackGraphInit(TrackGraph * t) {
 	TrackGraphInitA(t);
 }
 
-void implementTrackB(velocityModel * vm, int rc) {
+void implementTrackB(sensorModel * vm) {
+	// Nothin!
 }
 
 
