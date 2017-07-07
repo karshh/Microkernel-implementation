@@ -126,7 +126,7 @@ void UART1_SendServer() {
 			c = 0;
 		} else {
 			 switch((int) msg[0]) {
-			    case 'Q': // Angel of Death
+			    case COMMAND_DEATH: // Angel of Death
 				death_tid = _tid;
 				alive = 0;
 				if(UART1Send_blocked){
@@ -203,7 +203,7 @@ void UART2_SendServer() {
 			c = 0;
 		} else {
 			switch((int) msg[0]) {
-				case 'Q': // Angel of Death
+				case COMMAND_DEATH: // Angel of Death
 				death_tid = _tid;
 				alive = 0;
 				if(UART2Send_blocked){
@@ -276,7 +276,7 @@ void UART2_ReceiveServer() {
 			    case 20: // UART2 Getc
 				bwassert(addToBuffer(_tid, &UART2_receiveTIDQ), COM2, "<UART2ReceiveServer>: UART2_receiveTIDQ Buffer full. Cannot add <%d>.\r\n", _tid);
 				break;
-				case 'Q':// Death Command.
+				case COMMAND_DEATH:// Death Command.
 					//just quit
 		
 					Reply(_tid,"1",2);
@@ -331,7 +331,7 @@ void UART1_ReceiveServer() {
 				case 10: // UART1 Getc
 				bwassert(addToBuffer(_tid, &UART1_receiveTIDQ), COM2, "<UART1ReceiveServer>: UART1_receiveTIDQ Buffer full. Cannot add <%d>.\r\n", _tid);
 				break;
-				case 'Q':// Death Command.
+				case COMMAND_DEATH:// Death Command.
 					//just quit
 		
 					Reply(_tid,"1",2);

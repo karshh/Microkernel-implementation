@@ -14,32 +14,26 @@ void TrackGraphInit(TrackGraph * t) {
 }
 
 
-void implementTrackB(velocityModel * vm, int rc) {
-    velocityModelNode * v = vm->v;
+// void implementTrackB(sensorModel * vm) {
+//     sensorModelNode * v = vm->v;
 
-    // A12
-    v[12].numChild= 1;
-    v[12].child[0] = sensor2i("A16");
-    v[12].distance[0] =774;
-    v[12].rowCursor[0] = rc;
-    rc++;
-    v[12].child[1] = 0;
-    v[12].child[2] = 0;
-    v[12].child[3] = 0;
-    v[12].child[4] = 0;
+//     // A12
+//     v[12].numChild= 1;
+//     v[12].child[0] = sensor2i("A16");
+//     v[12].child[1] = 0;
+//     v[12].child[2] = 0;
+//     v[12].child[3] = 0;
+//     v[12].child[4] = 0;
 
-    // A15
-    v[15].numChild= 1;
-    v[15].child[0] = sensor2i("A11");
-    v[15].distance[0] =774;
-    v[15].rowCursor[0] = rc;
-    rc++;
-    v[15].child[1] = 0;
-    v[15].child[2] = 0;
-    v[15].child[3] = 0;
-    v[15].child[4] = 0;
+//     // A15
+//     v[15].numChild= 1;
+//     v[15].child[0] = sensor2i("A11");
+//     v[15].child[1] = 0;
+//     v[15].child[2] = 0;
+//     v[15].child[3] = 0;
+//     v[15].child[4] = 0;
 
-}
+// }
 
 
 void drawTrackB(int iosTID) {

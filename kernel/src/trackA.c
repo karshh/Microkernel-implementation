@@ -9,9 +9,6 @@ void TrackGraphInit(TrackGraph * t) {
 	TrackGraphInitA(t);
 }
 
-void implementTrackB(velocityModel * vm, int rc) {
-}
-
 
 void drawTrackB(int iosTID) {
 

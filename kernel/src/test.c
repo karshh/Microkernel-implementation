@@ -981,16 +981,12 @@ void graphTestTask() {
     TrackGraph t;
     TrackGraphNode * node = t.node;
     int path[100];
-    int sensorList[100];
     int distanceList[100];
-    int timeList[100];
-    int speed = 14;
-    int sensorLength = 0; 
     int infoLength = 0;
     volatile int i = 0;
     int pathLength;
     TrackGraphInit(&t);
-    if (!getShortestPath(&t, sensor2i("A05"), sensor2i("C03"), path, &pathLength)) {
+    if (!getShortestPath(&t, sensor2i("A01"), sensor2i("C03"), path, &pathLength)) {
         bwprintf(COM2, "DEAD END.\r\n");
         Exit();
     }
@@ -1006,22 +1002,12 @@ void graphTestTask() {
     }
 
 
-    getEdgeInfo(&t, path, pathLength, speed, sensorList, &sensorLength, distanceList, timeList, &infoLength);
+    getEdgeInfo(&t, path, pathLength, distanceList, &infoLength);
 
-
-    bwprintf(COM2, "\r\nSensors[length=%d]: ", sensorLength);
-    for ( i = 0; i < sensorLength; i++) {
-        bwprintf(COM2, " %d ", sensorList[i]);
-    }
 
     bwprintf(COM2, "\r\nDistance[length=%d]: ", infoLength);
     for ( i = 0; i < infoLength; i++) {
         bwprintf(COM2, " %d ", distanceList[i]);
-    }
-
-    bwprintf(COM2, "\r\nTime[length=%d]: ", infoLength);
-    for ( i = 0; i < infoLength; i++) {
-        bwprintf(COM2, " %d ", timeList[i]);
     }
 
     int dist = 0;
@@ -1030,12 +1016,19 @@ void graphTestTask() {
     }
 
     bwprintf(COM2, "\r\nTotal distance = %d\r\n", dist);
-    dist -= (stopDistance(getEdgeVelocity(&(t.vm), sensorList[sensorLength-2], sensorList[sensorLength-1], speed) * 10) / 1000);
 
+    bwprintf(COM2, "\r\nBeginning next sensor test.\r\n");
 
-    bwprintf(COM2, "\r\nTotal running distance = %d\r\n", dist);
+    int nextSensor = 0;
+    int nextSensorDist = 0;
 
+    nextSensor = findNextSensor(&t, sensor2i("E06"), &nextSensorDist);
+    bwprintf(COM2, "Next sensor from E06 is %c%d%d[distance=%d]\r\n", ((nextSensor-1)/16)+'A',((nextSensor-1)%16+1)/10, ((nextSensor-1)%16+1)%10, nextSensorDist);
 
+    nextSensor = findNextSensor(&t, switch2i(10), &nextSensorDist);
+    bwprintf(COM2, "Next sensor from sw10 is %c%d%d[distance=%d]\r\n", ((nextSensor-1)/16)+'A',((nextSensor-1)%16+1)/10, ((nextSensor-1)%16+1)%10, nextSensorDist);
+    nextSensor = findAltSensor(&t, switch2i(10), &nextSensorDist);
+    bwprintf(COM2, "Alt sensor from sw10 is %c%d%d[distance=%d]\r\n", ((nextSensor-1)/16)+'A',((nextSensor-1)%16+1)/10, ((nextSensor-1)%16+1)%10, nextSensorDist);
     Exit();
 
 }
@@ -1063,10 +1056,6 @@ void graphTestTask2() {
 
 void TrackGraphInit(TrackGraph * t) {
     TrackGraphInitB(t);
-}
-
-void implementTrackB(velocityModel * vm, int rc) {
-    // NOTHING
 }
 
 

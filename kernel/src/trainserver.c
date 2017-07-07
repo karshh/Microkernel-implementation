@@ -100,8 +100,8 @@ void trainVelocityServer(){
 	char rpl[3];
     	int rpllen = 3;
 
-	int sensorLength;
-	int infoLength;
+	int sensorLength=0;
+	int infoLength=0;
     	int sensorList[100];
 	int gotSensorList =0;
     	int distanceList[100];
@@ -123,7 +123,7 @@ void trainVelocityServer(){
 		bwassert(msgLen >= 0, COM2, "<trainVelocityServer>: Receive error.\r\n");
 		if (_tid == parentTID) {
 			switch(msg[0]){
-				case 'Q':
+				case COMMAND_DEATH:
 					//time to quit
 					isDying = 1;
 					Reply(_tid, "1", 2);
@@ -223,7 +223,7 @@ void trainVelocityServer(){
 						//last sensor was missed, so calculation is wrong
 					}
 
-					dspMsg[0] = 'V';
+					dspMsg[0] = VELOCITY_DEBUG;
 					dspMsg[1] = 58; //
 					dspMsg[2] = (velocity58 / 10000) % 100;
 					dspMsg[3] = (velocity58 / 100) % 100;
@@ -363,7 +363,7 @@ void trainStopServer(){
 			msg[0] = 'J'; //no warning
 			bwassert(Send(parentTID, msg, 1, rpl, rpllen) >= 0, COM2, "<trainstopServer>: Send J issue."); 
 
-			if(msg[0] == 'Q') Exit();
+			if(msg[0] == COMMAND_DEATH) Exit();
 			timeToStop = rpl[4] + (rpl[3] << 8) + (rpl[2] << 16) + (rpl[1] <<24);
 			hasStop = 1;
 		
@@ -371,7 +371,7 @@ void trainStopServer(){
 		else{
 			msg[0] = 'G'; //no warning
 			bwassert(Send(parentTID, msg, 1, rpl, rpllen) >= 0, COM2, "<trainstopServer>: Send G issue."); 
-			if(msg[0] == 'Q') Exit();
+			if(msg[0] == COMMAND_DEATH) Exit();
 			timeToStop = rpl[4] + (rpl[3] << 8) + (rpl[2] << 16) + (rpl[1] <<24);
 		}
 
@@ -387,7 +387,7 @@ void initTrains(int csTID, int commandServerTID, int dspTID){
     	int rpllen = 3;
 
 	int i =0;
-	for (i=0; i < 80; i++){
+	for (i=58; i < 80; i++){
 			msg[0] = 'T';
 			msg[1] =  0;
 			msg[2] = i;
@@ -400,6 +400,7 @@ void initTrains(int csTID, int commandServerTID, int dspTID){
 			msg[2] = i;//position (0..17)
 			msg[3] = 0;
 			bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+			Delay(csTID,5);
 	}
 	Delay(csTID,436);
 	//send message to display thaat switches are initilizaing
@@ -438,7 +439,6 @@ void trainServer(){
 
 	//int velTID = Create(2,(void *)trainVelocityServer); //currently vel58 server //make one for each train
 	int dspTID = WhoIs("displayServer");
-/*
     	int _tid = -1;
     	char msg[64];
     	int msgCap = 64;
@@ -454,6 +454,7 @@ void trainServer(){
 	volatile int j=0;
 	int msgLen = 0;
 	
+/*
 
 	int train;
 	int speed;
@@ -472,6 +473,10 @@ void trainServer(){
 	//run initialization
 */
 	initTrains(csTID,commandServerTID, dspTID);
+	while(1){
+	msgLen = Receive(&_tid, msg, msgCap);
+		
+	}
 }
 
 /*
@@ -498,7 +503,6 @@ void trainServer(){
 	TrackGraph t;
 	TrackGraphInit(&t);
 	TrackGraphNode * node = t.node;
-	velocityModelNode * v = t.vm.v;
 
     int _tid = -1;
     char msg[64];
@@ -528,7 +532,7 @@ void trainServer(){
 			commandMsg[3] = 0;
 			bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 			//send message to display thaat trains are initilizaing
-			msg[0] = 2; //no warning
+			msg[0] = COMMAND_TRAIN_INIT; //no warning
 			msg[1] = 0;
 			msg[2] = i;//position (0..17)
 			msg[3] = 0;
@@ -540,7 +544,7 @@ void trainServer(){
 	// why do we have this massive delay here?
 	Delay(csTID,436);
 	//send message to display thaat switches are initilizaing
-	msg[0] = 2; //no warning
+	msg[0] = COMMAND_TRAIN_INIT; //no warning
 	msg[1] = 1;
 	msg[2] = 0;//position (0..17)
 	msg[3] = 0;
@@ -590,7 +594,7 @@ void trainServer(){
 		
 
 	//send message to display that init is done. allow command line input
-	msg[0] = 2; //no warning
+	msg[0] = COMMAND_TRAIN_INIT; //no warning
 	msg[1] = 2;
 	msg[2] = 0;//position (0..17)
 	msg[3] = 0;
@@ -611,6 +615,7 @@ void trainServer(){
 	int curSensorTime = 0;
 	volatile int curSensorTimeT = 0;
 	volatile int prevSensorTimeT = 0;
+	int distSensor = 0;
 
 	while(1){
 
@@ -621,7 +626,7 @@ void trainServer(){
 			// search for each train if it's expected sensor was hit. If yes, then find next sensor
 			// and add that as it's expected sensor.
 			volatile int j = 0;
-			for (j = 0; j < msgLen; j++) {
+			for (j = 1; j < msgLen; j++) {
 				curSensorTime = getTicks4(0); //in ms
 				curSensorTimeT = Time(csTID);
 				curSensor = msg[j];
@@ -632,18 +637,17 @@ void trainServer(){
 					int pathLength = 0;
 					getShortestPath(&t,  prevSensor, curSensor,path, &pathLength);
 
-					nextSensor = findNextSensor(&t,curSensor);
-					int sensorList[100];
+					nextSensor = findNextSensor(&t,curSensor, &distSensor);
 					int distanceList[100];
-					int timeList[100];
-					int sensorLength = 0; 
 					int infoLength = 0;
 
-					getEdgeInfo(&t, path, pathLength, 0, sensorList, &sensorLength, distanceList, timeList, &infoLength);
+					getEdgeInfo(&t, path, pathLength, distanceList, &infoLength);
 					int dist = 0;
 					for ( i = 0; i < infoLength; i++) {
 						dist += distanceList[i];
 					}
+					// Fix this!!
+
 					dspMsg[0] = 'S';
 					dspMsg[1] = curSensor;
 					dspMsg[2] = ((curSensorTimeT  -prevSensorTimeT) / 10000) % 100;
@@ -653,28 +657,12 @@ void trainServer(){
 					dspMsg[6] = (dist  / 100) % 100;
 					dspMsg[7] = dist % 100;
 					dspMsg[8] = nextSensor;
-					dspMsg[9] = (getEdgeDistance(&(t.vm), curSensor, nextSensor) / 10000) % 100;
-					dspMsg[10] = (getEdgeDistance(&(t.vm), curSensor, nextSensor)  / 100) % 100;
-					dspMsg[11] = getEdgeDistance(&(t.vm), curSensor, nextSensor)  % 100;
+					dspMsg[9] = (distSensor / 10000) % 100;
+					dspMsg[10] = (distSensor  / 100) % 100;
+					dspMsg[11] = distSensor  % 100;
 
 					dspMsg[12] = 0;
 					bwassert(Send(velTID, dspMsg, 12, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to Velocity train server.\r\n");
-				}
-
-				if (trainSpeed[train] > 0 && updateEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[train], curSensorTime-prevSensorTime)) {
-					int kh = findSensorEdge(&(t.vm),prevSensor, curSensor);
-					dspMsg[0] = COMMAND_SENSOREDGE;
-					dspMsg[1] = v[prevSensor].rowCursor[kh];
-					dspMsg[2] = v[prevSensor].colCursor;
-					dspMsg[3] = (getEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[58]) / 10000) % 100;
-					dspMsg[4] = (getEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[58]) / 100) % 100;
-					dspMsg[5] = getEdgeTime(&(t.vm), prevSensor, curSensor, trainSpeed[58]) % 100;
-					dspMsg[6] = (getEdgeDistance(&(t.vm), prevSensor, curSensor) / 10000) % 100;
-					dspMsg[7] = (getEdgeDistance(&(t.vm), prevSensor, curSensor)  / 100) % 100;
-					dspMsg[8] = getEdgeDistance(&(t.vm), prevSensor, curSensor)  % 100;
-					dspMsg[9] = 0;
-					bwassert(Send(dspTID, dspMsg, 9, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-
 				}
 
 				prevSensorTime = curSensorTime;
@@ -688,16 +676,16 @@ void trainServer(){
 					}
 					if (trainExpectedSensor[i] == msg[j] ) {
 						trainCurrentSensor[i] = msg[j];
-						trainExpectedSensor[i] = findNextSensor(&t, msg[j]);
-						dspMsg[0] = 3; //hardcoded to indicate expected sensor
+						trainExpectedSensor[i] = findNextSensor(&t, msg[j], &distSensor);
+						dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
 						dspMsg[1] = i;
 						dspMsg[2] = trainExpectedSensor[i];
 						dspMsg[3] = 0;
 						bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-					}else if(msg[j] == findNextSensor(&t,trainExpectedSensor[i])){
+					}else if(msg[j] == findNextSensor(&t,trainExpectedSensor[i], &distSensor)){
 						trainCurrentSensor[i] = msg[j];
-						trainExpectedSensor[i] = findNextSensor(&t, msg[j]);
-						dspMsg[0] = 3; //hardcoded to indicate expected sensor
+						trainExpectedSensor[i] = findNextSensor(&t, msg[j], &distSensor);
+						dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
 						dspMsg[1] = i;
 						dspMsg[2] = trainExpectedSensor[i];
 						dspMsg[3] = 0;
@@ -736,21 +724,6 @@ void trainServer(){
 				commandMsg[3] = 0;
 				bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 
-				for (i=1; i < VELOCITY_NODES; i++) {
-					for (j=0; j < v[i].numChild; j++) {
-						dspMsg[0] = COMMAND_SENSOREDGE;
-						dspMsg[1] = v[i].rowCursor[j];
-						dspMsg[2] = v[i].colCursor;
-						dspMsg[3] = (getEdgeTime(&(t.vm), i, v[i].child[j], msg[1]) / 10000) % 100;
-						dspMsg[4] = (getEdgeTime(&(t.vm), i, v[i].child[j], msg[1]) / 100) % 100;
-						dspMsg[5] = getEdgeTime(&(t.vm), i, v[i].child[j], msg[1]) % 100;
-						dspMsg[6] = (v[i].distance[j] / 10000) % 100;
-						dspMsg[7] = (v[i].distance[j] / 100) % 100;
-						dspMsg[8] = (v[i].distance[j]) % 100;
-						dspMsg[9] = 0;
-						bwassert(Send(dspTID, dspMsg, 10, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-					}
-				}
 		        Reply(_tid, "1", 2);
 		        break;
 
@@ -791,11 +764,12 @@ void trainServer(){
 					}
     					int sensorList[100];
     					int distanceList[100];
-    					int timeList[100];
     					int sensorLength = 0; 
     					int infoLength = 0;
 
-					getEdgeInfo(&t, path, pathLength, trainSpeed[train], sensorList, &sensorLength, distanceList, timeList, &infoLength);
+    					// Fix this!
+
+					getEdgeInfo(&t, path, pathLength, distanceList, &infoLength);
 					dspMsg[0] = 'J';
 					dspMsg[1] = sensorLength;
 					dspMsg[2] = infoLength;
@@ -914,7 +888,7 @@ void trainServer(){
 				if (train >= 58 && train < 80) {
 					trainCurrentSensor[train] = -1;
 					trainExpectedSensor[train] = sens;	
-					dspMsg[0] = 3; //hardcoded to indicate expected sensor
+					dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
 					dspMsg[1] = train;
 					dspMsg[2] = trainExpectedSensor[train];
 					dspMsg[3] = 0;
