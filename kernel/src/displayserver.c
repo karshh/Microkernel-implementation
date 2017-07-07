@@ -99,7 +99,7 @@ void displayServer() {
 	int Prompt_TID = -1; //created when train init is done
 	int Death_TID = -1; //created with quit command issued
 
-	Create(14, (void *) displaySensors); //will be moved later to train server
+	//Create(14, (void *) displaySensors); //will be moved later to train server
 	Create(15, (void *) displayClock); //displays clock
 	Create(4, (void *) trainTask); //creates and runs this task imediatly
 	//since this task is higher than any in display server side, trainserver should be registered to nameserver when we return

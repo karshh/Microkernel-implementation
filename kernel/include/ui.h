@@ -6,7 +6,7 @@ void drawTrackB(int iosTID);
 
 void displayGrid();
 
-void displaySensors();
+//void displaySensors();
 
 void displayClock();
 

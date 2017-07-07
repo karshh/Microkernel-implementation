@@ -411,7 +411,7 @@ void kernelTest() {
 
     Create(3, (void *) trainServer);
     Create(3, (void *) displayClock);
-    Create(4, (void *) displaySensors); //this will fail if the computer has no train track
+    //Create(4, (void *) displaySensors); //this will fail if the computer has no train track
     Exit();
 }
 
