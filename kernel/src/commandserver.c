@@ -48,7 +48,7 @@ void commandServer() {
 
 		bwassert(msgLen >= 0, COM2, "<commandServer>: Receive error.\r\n");
 		switch(msg[0]) {
-			case 'Q': // Call of Death
+			case COMMAND_DEATH: // Call of Death
 				{
 					//Angel of Death has appeated
 

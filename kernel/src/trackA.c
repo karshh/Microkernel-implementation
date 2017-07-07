@@ -9,10 +9,6 @@ void TrackGraphInit(TrackGraph * t) {
 	TrackGraphInitA(t);
 }
 
-void implementTrackB(sensorModel * vm) {
-	// Nothin!
-}
-
 
 void drawTrackB(int iosTID) {
 

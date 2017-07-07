@@ -123,7 +123,7 @@ int distance =0;
 		bwassert(msgLen >= 0, COM2, "<trainVelocityServer>: Receive error.\r\n");
 		if (_tid == parentTID) {
 			switch(msg[0]){
-				case 'Q':
+				case COMMAND_DEATH:
 					//time to quit
 					isDying = 1;
 					Reply(_tid, "1", 2);
@@ -229,7 +229,7 @@ int distance =0;
 						//last sensor was missed, so calculation is wrong
 					}
 
-					dspMsg[0] = 'V';
+					dspMsg[0] = VELOCITY_DEBUG;
 					dspMsg[1] = 58; //
 					dspMsg[2] = (velocity58 / 10000) % 100;
 					dspMsg[3] = (velocity58 / 100) % 100;
@@ -369,7 +369,7 @@ void trainStopServer(){
 			msg[0] = 'J'; //no warning
 			bwassert(Send(parentTID, msg, 1, rpl, rpllen) >= 0, COM2, "<trainstopServer>: Send J issue."); 
 
-			if(msg[0] == 'Q') Exit();
+			if(msg[0] == COMMAND_DEATH) Exit();
 			timeToStop = rpl[4] + (rpl[3] << 8) + (rpl[2] << 16) + (rpl[1] <<24);
 			hasStop = 1;
 		
@@ -377,7 +377,7 @@ void trainStopServer(){
 		else{
 			msg[0] = 'G'; //no warning
 			bwassert(Send(parentTID, msg, 1, rpl, rpllen) >= 0, COM2, "<trainstopServer>: Send G issue."); 
-			if(msg[0] == 'Q') Exit();
+			if(msg[0] == COMMAND_DEATH) Exit();
 			timeToStop = rpl[4] + (rpl[3] << 8) + (rpl[2] << 16) + (rpl[1] <<24);
 		}
 
@@ -439,7 +439,7 @@ void trainServer(){
 			commandMsg[3] = 0;
 			bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 			//send message to display thaat trains are initilizaing
-			msg[0] = 2; //no warning
+			msg[0] = COMMAND_TRAIN_INIT; //no warning
 			msg[1] = 0;
 			msg[2] = i;//position (0..17)
 			msg[3] = 0;
@@ -451,7 +451,7 @@ void trainServer(){
 	// why do we have this massive delay here?
 	Delay(csTID,436);
 	//send message to display thaat switches are initilizaing
-	msg[0] = 2; //no warning
+	msg[0] = COMMAND_TRAIN_INIT; //no warning
 	msg[1] = 1;
 	msg[2] = 0;//position (0..17)
 	msg[3] = 0;
@@ -501,7 +501,7 @@ void trainServer(){
 		
 
 	//send message to display that init is done. allow command line input
-	msg[0] = 2; //no warning
+	msg[0] = COMMAND_TRAIN_INIT; //no warning
 	msg[1] = 2;
 	msg[2] = 0;//position (0..17)
 	msg[3] = 0;
@@ -533,7 +533,7 @@ void trainServer(){
 			// search for each train if it's expected sensor was hit. If yes, then find next sensor
 			// and add that as it's expected sensor.
 			volatile int j = 0;
-			for (j = 0; j < msgLen; j++) {
+			for (j = 1; j < msgLen; j++) {
 				curSensorTime = getTicks4(0); //in ms
 				curSensorTimeT = Time(csTID);
 				curSensor = msg[j];
@@ -590,7 +590,7 @@ void trainServer(){
 					if (trainExpectedSensor[i] == msg[j] ) {
 						trainCurrentSensor[i] = msg[j];
 						trainExpectedSensor[i] = findNextSensor(&t, msg[j], &distSensor);
-						dspMsg[0] = 3; //hardcoded to indicate expected sensor
+						dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
 						dspMsg[1] = i;
 						dspMsg[2] = trainExpectedSensor[i];
 						dspMsg[3] = 0;
@@ -598,7 +598,7 @@ void trainServer(){
 					}else if(msg[j] == findNextSensor(&t,trainExpectedSensor[i], &distSensor)){
 						trainCurrentSensor[i] = msg[j];
 						trainExpectedSensor[i] = findNextSensor(&t, msg[j], &distSensor);
-						dspMsg[0] = 3; //hardcoded to indicate expected sensor
+						dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
 						dspMsg[1] = i;
 						dspMsg[2] = trainExpectedSensor[i];
 						dspMsg[3] = 0;
@@ -801,7 +801,7 @@ void trainServer(){
 				if (train >= 58 && train < 80) {
 					trainCurrentSensor[train] = -1;
 					trainExpectedSensor[train] = sens;	
-					dspMsg[0] = 3; //hardcoded to indicate expected sensor
+					dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
 					dspMsg[1] = train;
 					dspMsg[2] = trainExpectedSensor[train];
 					dspMsg[3] = 0;

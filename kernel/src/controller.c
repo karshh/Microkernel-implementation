@@ -16,7 +16,7 @@ void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor){
     volatile int i = 0;
 
 	if(sw <= 18 ){
-			msg[0] = '0'; //no warning
+			msg[0] = COMMAND_TRAIN_SWNOR; //no warning
 			msg[1] = node[80+sw].switchConfig == C ? 'C' : 'S' ;
 			msg[2] = sw-1;//position (0..17)
 			msg[3] = 0;
@@ -28,7 +28,7 @@ void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor){
             if (findAltSensor(t, sw+80, &distSensor) == trainExpectedSensor[i]) {
                 trainExpectedSensor[i] = findNextSensor(t, sw+80, &distSensor);
                 if (trainExpectedSensor[i] <= 0) break;
-                dspMsg[0] = 3; //hardcoded to indicate expected sensor
+                dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
                 dspMsg[1] = i;
                 dspMsg[2] = trainExpectedSensor[i];
                 dspMsg[3] = 0;
@@ -38,12 +38,12 @@ void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor){
 
 	}
 	else if(sw <= 154){
-		msg[0] = '0'; //no warning
+		msg[0] = COMMAND_TRAIN_SWNOR; //no warning
 		msg[1] = node[99].switchConfig == CS ? 'C' : 'S';
 		msg[2] = 18;
 		msg[3] = 0;
 		bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
-		msg[0] = '0'; //no warning
+		msg[0] = COMMAND_TRAIN_SWNOR; //no warning
         		msg[1] = node[99].switchConfig == SC  ? 'C' : 'S';
 		msg[2] = 19;
 		msg[3] = 0;
@@ -53,7 +53,7 @@ void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor){
             		if (findAltSensor(t, 99, &distSensor) == trainExpectedSensor[i]) {
                 			trainExpectedSensor[i] = findNextSensor(t, 99, &distSensor);
                 			if (trainExpectedSensor[i] <= 0) break;
-                			dspMsg[0] = 3; //hardcoded to indicate expected sensor
+                			dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
                 			dspMsg[1] = i;
                 			dspMsg[2] = trainExpectedSensor[i];
                 			dspMsg[3] = 0;
@@ -64,12 +64,12 @@ void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor){
 	}
 
 	else if(sw <= 156){
-		msg[0] = '0'; //no warning
+		msg[0] = COMMAND_TRAIN_SWNOR; //no warning
 		msg[1] = node[100].switchConfig == CS ? 'C' : 'S';
 		msg[2] = 20;
 		msg[3] = 0;
 		bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
-		msg[0] = '0'; //no warning
+		msg[0] = COMMAND_TRAIN_SWNOR; //no warning
         		msg[1] = node[100].switchConfig == SC  ? 'C' : 'S';
 		msg[2] = 21;
 		msg[3] = 0;
@@ -79,7 +79,7 @@ void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor){
             		if (findAltSensor(t, 100, &distSensor) == trainExpectedSensor[i]) {
                 			trainExpectedSensor[i] = findNextSensor(t, 100, &distSensor);
 		    		if (trainExpectedSensor[i] <= 0) break;
-		    		dspMsg[0] = 3; //hardcoded to indicate expected sensor
+		    		dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
 		    		dspMsg[1] = i;
 		    		dspMsg[2] = trainExpectedSensor[i];
 		    		dspMsg[3] = 0;

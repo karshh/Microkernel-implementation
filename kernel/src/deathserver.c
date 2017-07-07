@@ -23,13 +23,13 @@ void DeathServer(){
     	char rpl[3];
     	int rpllen = 3;
 
-	commandMsg[0] = 'Q';
-	commandMsg[1] = 'Q';
+	commandMsg[0] = COMMAND_DEATH;
+	commandMsg[1] = 0;
 	bwassert(Send(cmTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<DeathServer>: Error sending message to CommandServer.\r\n");
 	//return when UART1 Servers and Command Server is dead
-	commandMsg[0] = 'Q';
-	commandMsg[1] = 'Q';
-	bwassert(Send(disTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<DeathServer>: Error sending message to CommandServer.\r\n");
+	commandMsg[0] = COMMAND_DEATH;
+	commandMsg[1] = 0;
+	bwassert(Send(disTID, commandMsg, 2, rpl, rpllen) >= 0, COM2, "<DeathServer>: Error sending message to CommandServer.\r\n");
 
 
 	//now safe to quit

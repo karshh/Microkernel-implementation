@@ -233,6 +233,8 @@ int getSensorData(char * s){
 	//volatile char b[10];
 	
 	int counter=0;
+	s[counter] = ALERT_SENSORPING;
+	counter++;
 	for(i = 0; i<10;i++)
 		b[i] = Getc(iosTID,COM1); //get char for this module
 
@@ -306,7 +308,7 @@ int getSensorData(char * s){
 	 	}
 
 	}
-	return counter;
+	return counter > 1 ? counter : 0;
 }
 
 void displaySensors() {
