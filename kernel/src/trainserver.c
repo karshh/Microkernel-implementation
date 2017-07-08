@@ -429,13 +429,14 @@ void trainServer(){
 
 
 
-	int sensorTID = WhoIs("displaySensors");
+	//int sensorTID = WhoIs("displaySensors");
+/*
 	while (sensorTID < 0) {
 		Pass();
 		sensorTID = WhoIs("displaySensors");
 	}
 
-
+*/
 
 	//int velTID = Create(2,(void *)trainVelocityServer); //currently vel58 server //make one for each train
 	int dspTID = WhoIs("displayServer");

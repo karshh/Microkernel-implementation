@@ -6,9 +6,11 @@
 #include "controller.h"
 
 //#define ALERT_SENSORPING		29
+//note only used in this particular group of tasks
 #define SENSOR_RAW_BATCH 1
 #define SENSOR_RAW_SINGLE 2
 #define SENSOR_COURIER_TO_SENSOR_SERVER 3
+#define SENSOR_COURIER_TO_DISPLAY_SERVER 4
 
 #define SENSOR_BIT_MASK_1 0x80
 #define SENSOR_BIT_MASK_2 0x40
@@ -19,143 +21,6 @@
 #define SENSOR_BIT_MASK_7 0x02
 #define SENSOR_BIT_MASK_8 0x01
 
-
-/*
-
-int getSensorData(char * s){
-	//first send two bytes
-	int iosTID = WhoIs("UART1R");
-	bwassert(iosTID >= 0, COM2, "<getSensorData>: UART1ReceiveServer has not been set up.\r\n");
-	int commandTID = WhoIs("commandServer");
-	bwassert(commandTID >= 0, COM2, "<getSensorData>: commandServer has not been set up.\r\n");
-	char msg[3];
-	msg[0] = 'P';
-	msg[1] = 0x85;
-	msg[2] = 0;
-	char rpl[3];
-	int rpllen = 3;
-
-	bwassert(Send(commandTID, msg, 3, rpl, rpllen) >= 0, COM2, "<getSensorData>: Polling sensors failed."); //poll sensors
-	
-	int i = 0;
-	char b[10];
-	//volatile char b[10];
-	
-	int counter=0;
-	s[counter] = ALERT_SENSORPING;
-	counter++;
-	for(i = 0; i<10;i++)
-		b[i] = Getc(iosTID,COM1); //get char for this module
-
-	for(i = 0; i< 5; i++){
-		//volatile char b1 = Getc(iosTID,COM1); //get char for this module
-
-		//volatile char b2 = Getc(iosTID,COM1); //get char for this module
-		if (b[i*2] & SENSOR_BIT_MASK_1){ 
-			s[counter] = (i * 16) +1;
-			counter ++;
-	 	}
-		if (b[i*2] & SENSOR_BIT_MASK_2){ 
-			s[counter] = (i * 16) +2;
-			counter ++;
-	 	}
-		if (b[i*2] & SENSOR_BIT_MASK_3){ 
-			s[counter] = (i * 16) +3;
-			counter ++;
-	 	}
-		if (b[i*2] & SENSOR_BIT_MASK_4){ 
-			s[counter] = (i * 16) +4;
-			counter ++;
-	 	}
-		if (b[i*2] & SENSOR_BIT_MASK_5){ 
-			s[counter] = (i * 16) +5;
-			counter ++;
-	 	}
-		if (b[i*2] & SENSOR_BIT_MASK_6){ 
-			s[counter] = (i * 16) +6;
-			counter ++;
-	 	}
-		if (b[i*2] & SENSOR_BIT_MASK_7){ 
-			s[counter] = (i * 16) +7;
-			counter ++;
-	 	}
-		if (b[i*2] & SENSOR_BIT_MASK_8){ 
-			s[counter] = (i * 16) +8;
-			counter ++;
-	 	}
-		if (b[i*2+1] & SENSOR_BIT_MASK_1){ 
-			s[counter] = (i * 16) +9;
-			counter ++;
-	 	}
-		if (b[i*2+1] & SENSOR_BIT_MASK_2){ 
-			s[counter] = (i * 16) +10;
-			counter ++;
-	 	}
-		if (b[i*2+1] & SENSOR_BIT_MASK_3){ 
-			s[counter] = (i * 16) +11;
-			counter ++;
-	 	}
-		if (b[i*2+1] & SENSOR_BIT_MASK_4){ 
-			s[counter] = (i * 16) +12;
-			counter ++;
-	 	}
-		if (b[i*2+1] & SENSOR_BIT_MASK_5){ 
-			s[counter] = (i * 16) +13;
-			counter ++;
-	 	}
-		if (b[i*2+1] & SENSOR_BIT_MASK_6){ 
-			s[counter] = (i * 16) +14;
-			counter ++;
-	 	}
-		if (b[i*2+1] & SENSOR_BIT_MASK_7){ 
-			s[counter] = (i * 16) +15;
-			counter ++;
-	 	}
-		if (b[i*2+1] & SENSOR_BIT_MASK_8){ 
-			s[counter] = (i * 16) +16;
-			counter ++;
-	 	}
-
-	}
-	return counter > 1 ? counter : 0;
-}
-
-void displaySensors() {
-	
-	bwassert(!RegisterAs("displaySensors"), COM2, "Failed to register displaySensors.\r\n");
-	int parentTID = MyParentTid();
-	// a brittle hack to forcefully get the trainServer TID.
-	int trainTID = WhoIs("trainServer");
-	while (trainTID < 0) {
-		Pass();
-		trainTID = WhoIs("trainServer");
-	}
-	char recentSensors[64];
-	volatile int i = 0;
-	for (; i < 64; i++) recentSensors[i] = 0;
-	int recentSensorsLen = 0;
-
-
-	char rpl[3];
-	int rpllen = 3;
-
-	
-	//volatile int num = 0;
-	while(1)  {
-		recentSensorsLen = getSensorData(recentSensors);
-		if (recentSensorsLen) {
-			bwassert(Send(trainTID, recentSensors, recentSensorsLen, rpl, rpllen) >= 0, COM2, "<getSensorData>: Displaying sensors failed.");
-			bwassert(Send(parentTID, recentSensors, recentSensorsLen, rpl, rpllen) >= 0, COM2, "<getSensorData>: Displaying sensors failed."); 
-		}
-	}
-
-	Exit();
-
-}
-
-
-
-*/
 typedef struct sensorWarehouseStruct {
 //even passing this along a message should take less than 10 microseconds (with go fast button on)
 	int  lastSensorTime[80]; //80*4 =320
@@ -179,6 +44,9 @@ void sensorServer(){
 
  	sensorWarehouseStruct sw;
  	sensorCourierStruct sc;
+	int dcTID = Create(3,(void *)sensorDisplayCourier); 
+	bwassert(dcTID >= 0, COM2, "<sensorServer>: sensor to display courier has not been set up.\r\n");
+	int dcWaiting =0;
 	char msg[512];
     	int msgCap = 512;
 	int msgLen;
@@ -203,12 +71,22 @@ void sensorServer(){
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
 		switch(msg[0]){
+			case SENSOR_COURIER_TO_DISPLAY_SERVER:
+				dcWaiting = 1;
+				break;
+
 			case SENSOR_COURIER_TO_SENSOR_SERVER:
 		        	Reply(_tid, "1", 2); //recieved go bother the other server
 				pkmemcpy((void *) &sc,(void *) msg, sizeof(sensorCourierStruct));//convert message to sensor courier struct
 				pkmemcpy((void *) &sw,(void *) &(sc.sw), sizeof(sensorWarehouseStruct));
 				//updates libray
 				//should reply to courier to display server
+				if(dcWaiting && sw.counter > 1){
+		        		Reply(dcTID, sw.recentSensors, sw.counter); //finished synching libary. send recent sensor report to display server.
+					dcWaiting = 0;
+					
+				}
+
 				break;
 			default:
 		        	Reply(_tid, "0", 2); //seriosly, why are you even here?
@@ -238,6 +116,30 @@ void sensorCourier(){
 	}
 	Exit();
 }
+
+
+void sensorDisplayCourier(){
+//passes data from sensorProcessor and sensor Server;
+	int ssTID = MyParentTid(); //sensor processor
+	int dspTID = WhoIs("displayServer");
+	char recentSensors[81];//81
+	char rpl[3];
+	int rpllen = 3;
+	char msg[2];
+	int recentSensorsLen = 0;
+	msg[0] = SENSOR_COURIER_TO_DISPLAY_SERVER;
+	msg[1] = 0;
+
+	while(1){
+		//wait on sensor processor, and get sensor library
+		bwassert(Send(ssTID, msg, 2,recentSensors, 81) >= 0, COM2, "<sensorDisplayCourier>: Getting recenent sensor list from sensor processor failed."); //poll sensors
+		recentSensorsLen = recentSensors[0];
+		recentSensors[0] = ALERT_SENSORPING;
+		bwassert(Send(dspTID,recentSensors, recentSensorsLen,rpl,rpllen) >= 0, COM2, "<sensorDisplayCourier>: Sending sensor recent sensor list to display sensor server failed."); //poll sensors
+	}
+	Exit();
+}
+
 
 void sensorNotifier(){
  //polls COM1 for sensor info. Sends data to sensorProcessor();
@@ -299,7 +201,7 @@ void sensorProcessor(){
 	//init recent sensors
 	
 	for (i=0; i < 81; i++) sw.recentSensors[i] = 0;
-	sw.recentSensors[0] = ALERT_SENSORPING;
+	sw.recentSensors[0] = 0;
 	sw.counter =1;
 	sc.message[0] = SENSOR_COURIER_TO_SENSOR_SERVER;
 
@@ -318,22 +220,24 @@ void sensorProcessor(){
 		        	Reply(_tid, "1", 2);
 				// 0 = type, 1 = sensored pinged
 				curTime = Time(csTID);	
-
+				if(!sw.sensorHeld[msg[1]-1]) {
+					sw.lastSensorTime[msg[1]-1] = curTime;
+					sw.recentSensors[sw.counter] = msg[1];
+					sw.counter ++;
+				}
 				for (i=0; i < 80; i++) sw.sensorHeld[i] = 0;
 				sw.sensorHeld[msg[1]-1] = 1;
-				sw.lastSensorTime[msg[1]-1] = curTime;
-				sw.recentSensors[sw.counter] = msg[2];
-				sw.counter ++;
 
 				//used on non-track boxes to test status
-				if(scWaiting){	
+				if(scWaiting && sw.counter > 1){	
 				//should always be true (due to timing)
 					//copy 
+					sw.recentSensors[0] = sw.counter;
 					pkmemcpy((void *) &(sc.sw),(void *) &sw,sizeof(sensorWarehouseStruct));				
 		        		Reply(scTID,(char *) &sc, sizeof(sensorCourierStruct)); //finished updating warehouse struct. send new library to sensor Server (400 bytes...< 10 microseconds).
 					scWaiting = 0;
 					for (i=0; i < 81; i++) sw.recentSensors[i] = 0;
-					sw.recentSensors[0] = ALERT_SENSORPING;
+					sw.recentSensors[0] = 0;
 					sw.counter = 1;
 				}
 				break;
@@ -468,11 +372,12 @@ void sensorProcessor(){
 				
 				}
 				if(scWaiting){
+					sw.recentSensors[0] = sw.counter;
 					pkmemcpy((void *) &(sc.sw), (void *) &sw,sizeof(sensorWarehouseStruct));			
 		        		Reply(scTID, (char *) &sc, sizeof(sensorCourierStruct)); //finished updating warehouse struct. send new library to sensor Server (400 bytes...< 10 microseconds).
 					scWaiting = 0;
 					for (i=0; i < 81; i++) sw.recentSensors[i] = 0;
-					sw.recentSensors[0] = ALERT_SENSORPING;
+					sw.recentSensors[0] = 0;
 					sw.counter = 1;
 				}
 				break;

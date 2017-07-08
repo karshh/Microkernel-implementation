@@ -33,6 +33,8 @@ void trainTask() {
 	//patriarch of train servers
 	//children:
 		//sensorServer
+		bwassert(Create(4, (void *) sensorServer)>=0, COM2, "Failed Create UART2TS Server.\n\r");
+		
 		//trackServer
 		//trainServer
 		bwassert(Create(4, (void *) trainServer)>=0, COM2, "Failed Create UART2TS Server.\n\r");

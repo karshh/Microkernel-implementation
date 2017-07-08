@@ -19,7 +19,7 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 ARFLAGS = rcs
 LDFLAGS = -init main -Map m.map -N -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
 
-SRC = bwio.o time.o icu.o pkstring.o dictionary.o buffer.o trackGraph.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o nameserver.o clockserver.o ioserver.o commandserver.o trainserver.o displayserver.o deathserver.o  usertasks.o controller.o ui.o 
+SRC = bwio.o time.o icu.o pkstring.o dictionary.o buffer.o trackGraph.o td.o kernelHandler.o userRequestCall.o kernelRequestCall.o interruptHandler.o nameserver.o clockserver.o ioserver.o commandserver.o trainserver.o displayserver.o deathserver.o sensorserver.o usertasks.o controller.o ui.o 
 
 
 all: clean $(SRC) install
