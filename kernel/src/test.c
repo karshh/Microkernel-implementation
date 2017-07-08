@@ -984,9 +984,10 @@ void graphTestTask() {
     int distanceList[100];
     int infoLength = 0;
     volatile int i = 0;
+    volatile int j = 0;
     int pathLength;
     TrackGraphInit(&t);
-    if (!getShortestPath(&t, sensor2i("A01"), sensor2i("C03"), path, &pathLength)) {
+    if (!getShortestPath(&t, sensor2i("E13"), sensor2i("C11"), path, &pathLength)) {
         bwprintf(COM2, "DEAD END.\r\n");
         Exit();
     }
@@ -1029,6 +1030,48 @@ void graphTestTask() {
     bwprintf(COM2, "Next sensor from sw10 is %c%d%d[distance=%d]\r\n", ((nextSensor-1)/16)+'A',((nextSensor-1)%16+1)/10, ((nextSensor-1)%16+1)%10, nextSensorDist);
     nextSensor = findAltSensor(&t, switch2i(10), &nextSensorDist);
     bwprintf(COM2, "Alt sensor from sw10 is %c%d%d[distance=%d]\r\n", ((nextSensor-1)/16)+'A',((nextSensor-1)%16+1)/10, ((nextSensor-1)%16+1)%10, nextSensorDist);
+    
+    bwprintf(COM2, "Commencing Djikstra's algorithm.\r\n");
+
+    for (i = 1; i <= 100; i++) {
+        for (j = 1; j <= 100; j++) {
+            bwprintf(COM2, "Finding path between %d and %d: ", i, j); //((i-1)/16)+'A',((i-1)%16+1)/10, ((i-1)%16+1)%10, ((j-1)/16)+'A',((j-1)%16+1)/10, ((j-1)%16+1)%10);
+            if (!getShortestPathDjikstra(&t, i, j, path, &pathLength)) {
+                bwprintf(COM2, "NOT FOUND.\r\n");
+            } else {
+                bwprintf(COM2, "FOUND.\r\n");
+
+            }
+        }
+        if (!(i%16)) bwgetc(COM2);
+
+    }
+
+    Exit();
+
+    if (!getShortestPathDjikstra(&t, sensor2i("A05"), sensor2i("A01"), path, &pathLength)) {
+        bwprintf(COM2, "DEAD END.\r\n");
+        Exit();
+    }
+    bwprintf(COM2, "Ans: ");
+    for (i = pathLength - 1; i >= 0; i--) {
+        bwprintf(COM2, " %d ", path[i]);
+    }
+
+    getEdgeInfo(&t, path, pathLength, distanceList, &infoLength);
+
+    bwprintf(COM2, "\r\nDistance[length=%d]: ", infoLength);
+    for ( i = 0; i < infoLength; i++) {
+        bwprintf(COM2, " %d ", distanceList[i]);
+    }
+
+    dist = 0;
+    for ( i = 0; i < infoLength; i++) {
+        dist += distanceList[i];
+    }
+
+    bwprintf(COM2, "\r\nTotal distance = %d\r\n", dist);
+
     Exit();
 
 }
@@ -1055,7 +1098,7 @@ void graphTestTask2() {
 
 
 void TrackGraphInit(TrackGraph * t) {
-    TrackGraphInitB(t);
+    TrackGraphInitA(t);
 }
 
 

@@ -84,6 +84,7 @@ void TrackGraphInit(TrackGraph * t);
 // The shortest path will be placed in path array in reverse order. Luckily the pathLength is also
 // mutated, make sure to traverse in reverse order.
 int getShortestPath(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength);
+int getShortestPathDjikstra(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength);
 
 // void implementTrackB(sensorModel * vm);
 
