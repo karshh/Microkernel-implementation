@@ -1484,3 +1484,211 @@ int getShortestPath(TrackGraph * t, int sensorStart, int sensorEnd, int * path, 
 
 }
 
+
+
+// Here's another attempt.
+
+int getShortestPathDjikstra(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength) {
+
+    if (sensorStart <= 0 || sensorEnd <= 0) return 0;
+    if (sensorStart == sensorEnd) {
+        path[0] = sensorStart;
+        *pathLength = 1;
+        return 1;
+    }
+    volatile int print = 0; // use this to toggle print
+
+    // Djikstra data structures.
+    int dist[101];
+    int prev[101];
+    int prevSwitch[100];
+    int prevSwitchCount = 0;
+    int weight[101];
+
+    volatile int i = 0;
+    // variables for while loop.
+    int val = 0;
+
+    int alt = 0;
+
+    for (; i < 101; i++) {
+        dist[i] = 0x7fffffff; //assigned maximum distance value.
+        prev[i] = -1;
+        prevSwitch[i] = 0;
+        weight[i] = 1;
+    }
+
+    dist[sensorStart] = 0; //the starting sensor will have distance 0.
+
+
+    TrackGraphNode * node = t->node;
+    // add sensor start as the root node in the queue
+
+
+    val = sensorStart;
+    if (print) bwprintf(COM2, "Beginning Djikstra find SensorStart %c%d%d.\r\n", ((val-1)/16)+'A',((val-1)%16+1)/10, ((val-1)%16+1)%10);
+
+
+    while(1) {
+
+        // mark this node as visited.
+        if (val <= 0) return 0; // dead end
+
+        if (print) {
+            if (val <= 80) bwprintf(COM2, "Selected node %c%d%d[weight:%d].\r\n", ((val-1)/16)+'A',((val-1)%16+1)/10, ((val-1)%16+1)%10, weight[val]);
+            else if (val <= 98) bwprintf(COM2, "Selected node %d[weight:%d].\r\n", val-80, weight[val]);
+            else if (val <= 100 ) bwprintf(COM2, "Selected node [multiswitch] %d[weight:%d].\r\n", val-80, weight[val]);
+            else bwprintf(COM2, "Invalid index %d.\r\n", val);
+        }
+
+        weight[val] = 0;
+        if (val == sensorEnd) { 
+           if (print) bwprintf(COM2, "Arrived at %c%d%d. Breaking...\r\n", ((val-1)/16)+'A',((val-1)%16+1)/10, ((val-1)%16+1)%10);
+           break;
+        }
+
+
+        // for each neighbor, update alternative distance.
+        switch (node[val].type) {
+            case Sensor:
+                if (node[val].nextNodeIndex == -1) break;
+                alt = dist[val] + node[val].nextNodeDistance;
+                if (alt < dist[node[val].nextNodeIndex]) {
+                    dist[node[val].nextNodeIndex] = alt;
+                    prev[node[val].nextNodeIndex] = val;
+                }
+                break;
+            case Switch:
+                alt = dist[val] + node[val].CnextNodeDistance;
+                if (alt < dist[node[val].CnextNodeIndex]) {
+                    dist[node[val].CnextNodeIndex] = alt;
+                    prev[node[val].CnextNodeIndex] = val;
+                }
+                alt = dist[val] + node[val].SnextNodeDistance;
+                if (alt < dist[node[val].SnextNodeIndex]) {
+                    dist[node[val].SnextNodeIndex] = alt;
+                    prev[node[val].SnextNodeIndex] = val;
+                }
+                break;
+            case MultiSwitch:
+                alt = dist[val] + node[val].CSnextNodeDistance;
+                if (alt < dist[node[val].CSnextNodeIndex]) {
+                    dist[node[val].CSnextNodeIndex] = alt;
+                    prev[node[val].CSnextNodeIndex] = val;
+                }
+                alt = dist[val] + node[val].SCnextNodeDistance;
+                if (alt < dist[node[val].SCnextNodeIndex]) {
+                    dist[node[val].SCnextNodeIndex] = alt;
+                    prev[node[val].SCnextNodeIndex] = val;
+                }
+                break;
+            default:
+                bwassert(0, COM2, "<getShortestPathDjikstra> Invalid node type[2].");
+
+        }
+
+
+        // finally  we get the next node with shortest distance.
+        switch(node[val].type) {
+            case Sensor:
+                if (node[val].nextNodeIndex == -1) {
+                    // backtrack to the last switch.
+                    if (prevSwitchCount <= 0) return 0;
+                    prevSwitchCount--;
+                    val = prevSwitch[prevSwitchCount];
+                } else {
+                    val = node[val].nextNodeIndex;
+                }
+
+                break;
+            case Switch:
+                if (weight[node[val].CnextNodeIndex] && weight[node[val].SnextNodeIndex]) {
+                    bwassert(prevSwitchCount < 100, COM2, "prevSwitch stack full.\r\n");
+                    prevSwitch[prevSwitchCount] = val;
+                    prevSwitchCount++;
+                    if (node[val].CnextNodeDistance < node[val].SnextNodeDistance) {
+                        val = node[val].CnextNodeIndex;
+                    } else {
+                        val = node[val].SnextNodeIndex;
+
+                    }
+                } else if (weight[node[val].CnextNodeIndex]) {
+                    val = node[val].CnextNodeIndex;
+                } else if (weight[node[val].SnextNodeIndex]) {
+                    val = node[val].SnextNodeIndex;
+                } else {
+                    if (prevSwitchCount <= 0) return 0;
+                    prevSwitchCount--;
+                    val = prevSwitch[prevSwitchCount];
+                }
+                break;
+            case MultiSwitch:
+                if (weight[node[val].CSnextNodeIndex] && weight[node[val].SCnextNodeIndex]) {
+                    bwassert(prevSwitchCount < 100, COM2, "prevSwitch stack full.\r\n");
+                    prevSwitch[prevSwitchCount] = val;
+                    prevSwitchCount++;
+                    if (node[val].CSnextNodeDistance < node[val].SCnextNodeDistance) {
+                        val = node[val].CSnextNodeIndex;
+                    } else {
+                        val = node[val].SCnextNodeIndex;
+                    }
+
+                } else if (weight[node[val].CSnextNodeIndex]) {
+                    val = node[val].CSnextNodeIndex;
+                } else if (weight[node[val].CSnextNodeIndex]) {
+                    val = node[val].SCnextNodeIndex;
+                } else {
+                    if (prevSwitchCount <= 0) return 0;
+                    prevSwitchCount--;
+                    val = prevSwitch[prevSwitchCount];
+                }
+                break;
+            default:
+                bwassert(0, COM2, "<getShortestPathDjikstra> Invalid node type[1].");
+        }
+
+
+    }
+
+    if (print) {
+        for (i = 0; i < 101; i++) {
+            if (!(i % 16)) bwprintf(COM2, "\r\n");
+            bwprintf(COM2, "%d ", dist[i]);
+        }
+    }
+    if (print) {
+        for (i = 0; i < 101; i++) {
+            if (!(i % 16)) bwprintf(COM2, "\r\n");
+            bwprintf(COM2, "%d ", prev[i]);
+        }
+    }
+    *pathLength = 0;
+    i = sensorEnd;
+    for (;i != sensorStart; i = prev[i]) {
+        if (i < 0) while(1) {}
+        if (print) bwprintf(COM2, "i=%d\r\n", i);
+        path[*pathLength] = i;
+        *pathLength += 1;
+    }
+    path[*pathLength] = sensorStart;
+    *pathLength += 1;
+
+    // toggle print variable to print this, for purposes of debugging (and potentially your sanity if you hate graphs).
+    if (print) {
+        bwprintf(COM2, "Shortest path, reversed from end to start:\r\n");
+        i = sensorEnd;
+        for (;i != sensorStart; i = prev[i]) {
+            if (i < 81) bwprintf(COM2, "%c%d%d <- ", ((i-1)/16)+'A',((i-1)%16+1)/10, ((i-1)%16+1)%10);
+            else if (i < 98) bwprintf(COM2, "sw %d <- ", i-80);
+            else bwprintf(COM2, "multsw %d %d <- ", i == 99 ? 153 : 155, i == 99 ? 154 : 156);
+
+        }
+        bwprintf(COM2, "%c%d%d\r\n\r\n", ((sensorStart-1)/16)+'A',((sensorStart-1)%16+1)/10, ((sensorStart-1)%16+1)%10);
+    }
+
+    return 1;
+
+}
+
+
+
