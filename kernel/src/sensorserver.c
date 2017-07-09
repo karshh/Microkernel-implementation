@@ -18,6 +18,7 @@ void sensorServer(){
 	char msg[512];
     	int msgCap = 512;
 	int msgLen;
+	int unsentSensors =0;
 
     	int _tid = -1;
 	int i =0;
@@ -40,7 +41,13 @@ void sensorServer(){
 		msgLen = Receive(&_tid, msg, msgCap);
 		switch(msg[0]){
 			case SENSOR_COURIER_TO_DISPLAY_SERVER:
-				dcWaiting = 1;
+				if(unsentSensors){
+					unsentSensors = 0;
+		        		Reply(dcTID, sw.recentSensors, sw.counter); //finished synching libary. send recent sensor report to display server.
+				}
+				else{
+					dcWaiting = 1;
+				}
 				break;
 
 			case SENSOR_COURIER_TO_SENSOR_SERVER:
@@ -49,11 +56,15 @@ void sensorServer(){
 				pkmemcpy((void *) &sw,(void *) &(sc.sw), sizeof(sensorWarehouseStruct));
 				//updates libray
 				//should reply to courier to display server
+				if(!dcWaiting && sw.counter > 1){
+					unsentSensors = 1;
+				}
 				if(dcWaiting && sw.counter > 1){
 		        		Reply(dcTID, sw.recentSensors, sw.counter); //finished synching libary. send recent sensor report to display server.
 					dcWaiting = 0;
 					
 				}
+				
 
 				break;
 			default:
