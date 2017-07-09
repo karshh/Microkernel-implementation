@@ -32,11 +32,12 @@ void FirstUserTask() {
 void trainTask() {
 	//patriarch of train servers
 	//children:
+		bwassert(Create(23, (void *) trackServer)>=0, COM2, "Failed Create trackServer.\n\r");
 		//sensorServer
-		bwassert(Create(24, (void *) sensorServer)>=0, COM2, "Failed Create UART2TS Server.\n\r");
+		bwassert(Create(24, (void *) sensorServer)>=0, COM2, "Failed Create sensorServer.\n\r");
 		
 		//trainServer
-		bwassert(Create(24, (void *) trainServer)>=0, COM2, "Failed Create UART2TS Server.\n\r");
+		bwassert(Create(24, (void *) trainServer)>=0, COM2, "Failed Create trainServer.\n\r");
 		//trackServer
 	Exit();
 }

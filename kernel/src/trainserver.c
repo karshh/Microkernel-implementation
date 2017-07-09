@@ -75,6 +75,7 @@ void trainServer(){
 	int commandServerTID = WhoIs("commandServer");
 	int csTID = WhoIs("clockServer");
 	int dspTID = WhoIs("displayServer");
+	int trackTID = WhoIs("trackServer");
     	int _tid = -1;
 
     	char msg[64];
@@ -87,11 +88,21 @@ void trainServer(){
 	int sw;
 	int swd;
    //////////////////////////////////////
-	int trackTID = Create(23,(void *)trackServer);
  	initTrains(csTID,commandServerTID, dspTID, trackTID);
 
-	int tr58TID = Create(3,(void *)trainProfile);
-	int tr76TID = Create(3,(void *)trainProfile);
+	int tr58TID = Create(23,(void *)trainProfile);
+	int tr76TID = Create(23,(void *)trainProfile);
+
+	char * debug1 = "D5SUCH TRAINS";
+	char * debug2 = "D6MUCH PAILY";
+	char * debug3 = "D20CHOOCHOO MOTHERFUCKERS!";
+	char * debug4 = "D25 25[USE SPACE TO DISPLAY NUMBERS UNCONJOINED WITH CURSORINDEX.]";
+
+	bwassert(Send(dspTID, debug1, pkstrlen((void*)debug1), rpl, rpllen) >= 0, COM2, "<trainServer>: Debug Statement failed"); 
+	bwassert(Send(dspTID, debug2, pkstrlen((void*)debug2), rpl, rpllen) >= 0, COM2, "<trainServer>: Debug Statement failed"); 
+	bwassert(Send(dspTID, debug3, pkstrlen((void*)debug3), rpl, rpllen) >= 0, COM2, "<trainServer>: Debug Statement failed"); 
+	bwassert(Send(dspTID, debug4, pkstrlen((void*)debug4), rpl, rpllen) >= 0, COM2, "<trainServer>: Debug Statement failed"); 
+
 
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
@@ -102,69 +113,7 @@ void trainServer(){
 				rpl[1] = 0;
 		        	Reply(_tid,rpl, 2); 
 				break;
-			case COMMAND_SW:
-				//must be moved to track server
-				sw = msg[1];
-				swd = msg[2];
-/*
-				if(sw <= 18) {
-					node[80+sw].switchConfig = swd == 'C' ? C : S;
 
-				} else if (sw == 19) {
-				//for mutliswitch nodes 19-20 (19 = 153/154 and 20 = 155/156, D = CS and T = SC
-				// CC and SS are invalid states (perhaps SS might be needed for reversing?)
-						node[99].switchConfig = swd == 'D' ? CS : SC;
-				} else if (sw == 20) {
-						node[100].switchConfig = swd == 'D' ? CS : SC;
-
-				}
-
-*/
-				if(sw < 19){
-					msg[0] = COMMAND_SW;
-					msg[1] = swd == 'S' ? 33 : 34;
-					msg[2] = sw;
-					msg[3] = 0;
-					bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-					//update_switch(sw, &t, &trainExpectedSensor[0]); //updates the display
-				}else if(sw == 19){
-
-					msg[0] = COMMAND_SW; 
-					msg[1] = swd == 'D' ? 34 : 33;
-					msg[2] = 153;
-					msg[3] = 0;
-					bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-
-					msg[0] = COMMAND_SW;
-					msg[1] = swd == 'D' ? 33 : 34; 
-					msg[2] = 154;
-					msg[3] = 0;
-					bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-					//update_switch(154 , &t, &trainExpectedSensor[0]); //updates the display
-
-
-				}else if(sw == 20){
-					//s == 33 , C = 34
-					//D = CS = 34:33	 T = SC = 33:34
-
-
-					msg[0] = COMMAND_SW; 
-					msg[1] = swd == 'D' ? 34 : 33;
-					msg[2] = 155;
-					msg[3] = 0;
-					bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-
-					msg[0] = COMMAND_SW;
-					msg[1] = swd == 'D' ? 33 : 34; 
-					msg[2] = 156;
-					msg[3] = 0;
-					bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-					//update_switch(156, &t, &trainExpectedSensor[0]); //updates the display
-				}
-		        	Reply(_tid, "1", 2);
-
-
-				break;
 			case COMMAND_RV:
 			case COMMAND_LI:
 				switch(msg[1]){
@@ -199,7 +148,9 @@ void trainServer(){
 				}		
 				break;
 			default:
-		        	Reply(_tid, 0, 1); //seriosly, why are you even here?
+					// changed this to a bwassert since bugs were silently passing through here causing me a debugging headache.
+					bwassert(0,COM2, "<trainServer> seriosly, why are you even here?");
+		        	
 				break;
 		}
 		

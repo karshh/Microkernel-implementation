@@ -6,7 +6,7 @@
 void pkmemcpy2(void *dest, const void *source, unsigned int size);
 void pkmemcpy(void *dest, const void *source, unsigned int size);
 
-void pkstrlen(void * buffer, int * size);
+int pkstrlen(void * buffer);
 
 void pkstrcpy(void *dest, const void *source);
 void pkstrcpy_volatile(volatile void *dest, volatile void *source);

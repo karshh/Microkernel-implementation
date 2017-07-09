@@ -17,7 +17,7 @@ void trackServer() {
 	bwassert(commandServerTID >= 0, COM2, "Failed to get CommandServerTID.\r\n");
 
 	int dspTID = WhoIs("displayServer");
-	int trainTID = WhoIs("trainServer");
+	// int trainTID = WhoIs("trainServer");
 	int csTID = WhoIs("clockServer");
 
 	TrackGraph t;
@@ -108,6 +108,7 @@ void trackServer() {
 				break;
 
 			case TRACK_VELOCITY:
+				// will get to this once I begin on spawns.
 				break;
 
 			case TRACK_SENSORUPDATE:

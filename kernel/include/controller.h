@@ -34,6 +34,7 @@
 #define COMMAND_TRAIN_SWWAR		32
 #define COMMAND_TRAIN_SWNOR		33
 #define VELOCITY_DEBUG			34
+#define COMMAND_DEBUG			68
 
 #define TRACK_INITSW 			1
 #define TRACK_VELOCITY			2

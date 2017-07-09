@@ -64,14 +64,18 @@ void pkmemcpy(void *dest, const void *source, unsigned int size) {
 }
 
 
-void pkstrlen(void * buffer, int * size) {
+int pkstrlen(void * buffer) {
 	char *cbuffer = (char *) buffer;
-	*size = 0;
+	int size = 0;
+
 	volatile int i = 0;
 	for (i = 0; cbuffer[i] != 0; i++) {
-		(*size) += 1;
+		size += 1;
 	}
+
+	return size;
 }
+
 
 
 void pkstrcpy(void *dest, const void *source) {

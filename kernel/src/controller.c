@@ -49,17 +49,17 @@ void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor){
 		msg[3] = 0;
 		bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed.");
 
-        		for (i = 58; i < 80; i++) {
-            		if (findAltSensor(t, 99, &distSensor) == trainExpectedSensor[i]) {
-                			trainExpectedSensor[i] = findNextSensor(t, 99, &distSensor);
-                			if (trainExpectedSensor[i] <= 0) break;
-                			dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
-                			dspMsg[1] = i;
-                			dspMsg[2] = trainExpectedSensor[i];
-                			dspMsg[3] = 0;
-                			bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-            		}
-        		}
+		for (i = 58; i < 80; i++) {
+    		if (findAltSensor(t, 99, &distSensor) == trainExpectedSensor[i]) {
+        			trainExpectedSensor[i] = findNextSensor(t, 99, &distSensor);
+        			if (trainExpectedSensor[i] <= 0) break;
+        			dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
+        			dspMsg[1] = i;
+        			dspMsg[2] = trainExpectedSensor[i];
+        			dspMsg[3] = 0;
+        			bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+    		}
+		}
 		
 	}
 
@@ -75,17 +75,17 @@ void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor){
 		msg[3] = 0;
 		bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed.");
         
-        		for (i = 58; i < 80; i++) {
-            		if (findAltSensor(t, 100, &distSensor) == trainExpectedSensor[i]) {
-                			trainExpectedSensor[i] = findNextSensor(t, 100, &distSensor);
-		    		if (trainExpectedSensor[i] <= 0) break;
-		    		dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
-		    		dspMsg[1] = i;
-		    		dspMsg[2] = trainExpectedSensor[i];
-		    		dspMsg[3] = 0;
-		    		bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-            		}
-        		}
+		for (i = 58; i < 80; i++) {
+    		if (findAltSensor(t, 100, &distSensor) == trainExpectedSensor[i]) {
+        			trainExpectedSensor[i] = findNextSensor(t, 100, &distSensor);
+    		if (trainExpectedSensor[i] <= 0) break;
+    		dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
+    		dspMsg[1] = i;
+    		dspMsg[2] = trainExpectedSensor[i];
+    		dspMsg[3] = 0;
+    		bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+    		}
+		}
 
 	}
 
@@ -95,6 +95,7 @@ void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor){
 
 int parseCommand(char * input, int * arg1, int * arg2, int * arg3){
 	int trainTID = WhoIs("trainServer");
+    int trackTID = WhoIs("trackServer");
 	int spTID = WhoIs("sensorProcessor");
     bwassert(trainTID >= 0, COM2, "<parseCommand>: trainServer has not been set up.\r\n");
 	int state = DFA_INIT;
@@ -191,13 +192,13 @@ int parseCommand(char * input, int * arg1, int * arg2, int * arg3){
 						*arg1 = sw;
 						*arg2 = swd;
 
-            					msg[0] = COMMAND_SW;
+            					msg[0] = TRACK_SW;
 						msg[1] = sw;
 						msg[2] = swd;
 						msg[3] = '\0';
 						if( sw > 20)return COMMAND_INVALID;
 					
-						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Switch command.\r\n");
+                        bwassert(Send(trackTID, msg, 4, reply, 2) >= 0, COM2, "<trainServer>: Error sending switch update to TrackServer.\r\n");
 
 						return COMMAND_SW;
 						break;

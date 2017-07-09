@@ -124,6 +124,7 @@ void displayServer() {
 
     char c = 0;
     volatile int i = 0;
+    volatile int j = 0;
 
     int switchLocation = 0;
 	displayGrid();
@@ -202,6 +203,17 @@ void displayServer() {
 			case COMMAND_LOCKEDTRAINR:
 	                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KTrain Reverse Locked.Cannot Reverse Train %d.\033[34;1H>",  msg[1]);
 			break;
+
+			case COMMAND_DEBUG:
+
+				j = 0;
+				for (i=1; msg[i] >= '0' && msg[i] <= '9'; i++) j = (j*10) + (msg[i]-'0');
+
+				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;45H\033[K", j);
+
+                for (;i < msgLen; i++) Putc(iosTID, COM2, msg[i]);
+                Printf(iosTID, COM2, "\033[u\033[?25h");
+				break;
 
 			case COMMAND_DEATH:
 				{

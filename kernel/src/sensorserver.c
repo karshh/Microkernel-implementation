@@ -5,38 +5,6 @@
 #include "userRequestCall.h"
 #include "controller.h"
 
-//#define ALERT_SENSORPING		29
-//note only used in this particular group of tasks
-#define SENSOR_RAW_BATCH 1
-#define SENSOR_RAW_SINGLE 2
-#define SENSOR_COURIER_TO_SENSOR_SERVER 3
-#define SENSOR_COURIER_TO_DISPLAY_SERVER 4
-
-#define SENSOR_BIT_MASK_1 0x80
-#define SENSOR_BIT_MASK_2 0x40
-#define SENSOR_BIT_MASK_3 0x20
-#define SENSOR_BIT_MASK_4 0x10
-#define SENSOR_BIT_MASK_5 0x08
-#define SENSOR_BIT_MASK_6 0x04
-#define SENSOR_BIT_MASK_7 0x02
-#define SENSOR_BIT_MASK_8 0x01
-
-typedef struct sensorWarehouseStruct {
-//even passing this along a message should take less than 10 microseconds (with go fast button on)
-	int  lastSensorTime[80]; //80*4 =320
-	char sensorHeld[80]; //80
-	int counter; //4
-	char recentSensors[81];//81
-	//485 bytes
-} sensorWarehouseStruct;
-
-typedef struct sensorCourierStruct {
-//even passing this along a message should take less than 10 microseconds (with go fast button on)
-	char message[4]; //4
-	sensorWarehouseStruct sw; //485
-	//489 bytes
-} sensorCourierStruct;
-
 
 void sensorServer(){
  //holds sensor database and communicates to outside
@@ -122,7 +90,6 @@ void sensorDisplayCourier(){
 //passes data from sensorProcessor and sensor Server;
 	int ssTID = MyParentTid(); //sensor processor
 	int dspTID = WhoIs("displayServer");
-	int trackServerTID = WhoIs("trackServer");
 	char recentSensors[81];//81
 	char rpl[3];
 	int rpllen = 3;
@@ -136,7 +103,7 @@ void sensorDisplayCourier(){
 		bwassert(Send(ssTID, msg, 2,recentSensors, 81) >= 0, COM2, "<sensorDisplayCourier>: Getting recenent sensor list from sensor processor failed."); //poll sensors
 		recentSensorsLen = recentSensors[0];
 		recentSensors[0] = TRACK_SENSORUPDATE;
-		bwassert(Send(trackServerTID,recentSensors, recentSensorsLen,rpl,rpllen) >= 0, COM2, "<sensorDisplayCourier>: Sending sensor recent sensor list to track sensor server failed."); //poll sensors
+		bwassert(Send(dspTID,recentSensors, recentSensorsLen,rpl,rpllen) >= 0, COM2, "<sensorDisplayCourier>: Sending sensor recent sensor list to display sensor server failed."); //poll sensors
 	}
 	Exit();
 }

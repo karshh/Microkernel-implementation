@@ -3,6 +3,42 @@
 #ifndef _SERVER_H_
 #define _SERVER_H_
 
+
+
+//#define ALERT_SENSORPING		29
+//note only used in this particular group of tasks
+#define SENSOR_RAW_BATCH 1
+#define SENSOR_RAW_SINGLE 2
+#define SENSOR_COURIER_TO_SENSOR_SERVER 3
+#define SENSOR_COURIER_TO_DISPLAY_SERVER 4
+
+#define SENSOR_BIT_MASK_1 0x80
+#define SENSOR_BIT_MASK_2 0x40
+#define SENSOR_BIT_MASK_3 0x20
+#define SENSOR_BIT_MASK_4 0x10
+#define SENSOR_BIT_MASK_5 0x08
+#define SENSOR_BIT_MASK_6 0x04
+#define SENSOR_BIT_MASK_7 0x02
+#define SENSOR_BIT_MASK_8 0x01
+
+typedef struct sensorWarehouseStruct {
+//even passing this along a message should take less than 10 microseconds (with go fast button on)
+	int  lastSensorTime[80]; //80*4 =320
+	char sensorHeld[80]; //80
+	int counter; //4
+	char recentSensors[81];//81
+	//485 bytes
+} sensorWarehouseStruct;
+
+typedef struct sensorCourierStruct {
+//even passing this along a message should take less than 10 microseconds (with go fast button on)
+	char message[4]; //4
+	sensorWarehouseStruct sw; //485
+	//489 bytes
+} sensorCourierStruct;
+
+
+
 /*************************************************
  NAMESERVER
 **************************************************/
