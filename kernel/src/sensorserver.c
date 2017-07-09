@@ -28,7 +28,7 @@ void sensorServer(){
 	}
 	//init recent sensors
 	for (i=0; i < 81; i++) sw.recentSensors[i] = 0;
-	sw.recentSensors[0] = ALERT_SENSORPING;
+	sw.recentSensors[0] =0;
 	sw.counter =1;
 	int spTID = Create(3,(void *)sensorProcessor);
 	bwassert(spTID >= 0, COM2, "<sensorServer>: sensor processor has not been set up.\r\n");
@@ -99,7 +99,7 @@ void sensorDisplayCourier(){
 	msg[1] = 0;
 
 	while(1){
-		//wait on sensor processor, and get sensor library
+		//wait on sor processor, and get sensor library
 		bwassert(Send(ssTID, msg, 2,recentSensors, 81) >= 0, COM2, "<sensorDisplayCourier>: Getting recenent sensor list from sensor processor failed."); //poll sensors
 		recentSensorsLen = recentSensors[0];
 		recentSensors[0] = TRACK_SENSORUPDATE;
@@ -119,7 +119,6 @@ void sensorNotifier(){
 
 	char msg[2]; 
 	msg[0] = COMMAND_PN;
-	msg[1] = 0x85;
 	char rpl[3];
 	int i = 0;
 	char b[11];
@@ -127,7 +126,7 @@ void sensorNotifier(){
 	int rpllen = 3;
 
 	while(1){
-		bwassert(Send(commandTID, msg, 2, rpl, rpllen) >= 0, COM2, "<sensorNotifier>: Polling sensors failed."); //poll sensors
+		bwassert(Send(commandTID, msg, 1, rpl, rpllen) >= 0, COM2, "<sensorNotifier>: Polling sensors failed."); //poll sensors
 		b[0] = SENSOR_RAW_BATCH;
 		for(i = 0; i<10;i++)
 		b[i+1] = Getc(iosTID,COM1); //get char for this module
@@ -222,119 +221,119 @@ void sensorProcessor(){
 					//so last time is not updated if sensor is held down , and will only records the first
 					//time its hit before untriggers
 
-					if ((msg[i*2+1] & SENSOR_BIT_MASK_1)&&~sw.sensorHeld[i*16+0]){ 
+					if ((msg[i*2+1] & SENSOR_BIT_MASK_1)&&!sw.sensorHeld[i*16+0]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +1;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+0] = curTime;
 					}
-					sw.sensorHeld[i*16+0] = msg[i*2+1] & SENSOR_BIT_MASK_1;
+					sw.sensorHeld[i*16+0] = (msg[i*2+1] & SENSOR_BIT_MASK_1) > 0 ? 1:0;
 
-					if ((msg[i*2+1] & SENSOR_BIT_MASK_2)&&~sw.sensorHeld[i*16+1]){ 
+					if ((msg[i*2+1] & SENSOR_BIT_MASK_2)&&!sw.sensorHeld[i*16+1]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +2;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+1]= curTime;
 					}
-					sw.sensorHeld[i*16+1] = msg[i*2+1] & SENSOR_BIT_MASK_2;
+					sw.sensorHeld[i*16+1] = (msg[i*2+1] & SENSOR_BIT_MASK_2) > 0 ? 1:0;
 
-					if ((msg[i*2+1] & SENSOR_BIT_MASK_3)&&~sw.sensorHeld[i*16+2]){ 
+					if ((msg[i*2+1] & SENSOR_BIT_MASK_3)&&!sw.sensorHeld[i*16+2]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +3;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+2]= curTime;
 					}
-					sw.sensorHeld[i*16+2] = msg[i*2+1] & SENSOR_BIT_MASK_3;
+					sw.sensorHeld[i*16+2] = (msg[i*2+1] & SENSOR_BIT_MASK_3) > 0 ? 1:0;
 
-					if ((msg[i*2+1] & SENSOR_BIT_MASK_4)&&~sw.sensorHeld[i*16+3]){ 
+					if ((msg[i*2+1] & SENSOR_BIT_MASK_4)&&!sw.sensorHeld[i*16+3]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +4;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+3]= curTime;
 					}
-					sw.sensorHeld[i*16+3] = msg[i*2+1] & SENSOR_BIT_MASK_4;
+					sw.sensorHeld[i*16+3] = (msg[i*2+1] & SENSOR_BIT_MASK_4) > 0 ? 1:0;
 
-					if ((msg[i*2+1] & SENSOR_BIT_MASK_5)&&~sw.sensorHeld[i*16+4]){ 
+					if ((msg[i*2+1] & SENSOR_BIT_MASK_5)&&!sw.sensorHeld[i*16+4]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +5;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+4]= curTime;
 					}
-					sw.sensorHeld[i*16+4] = msg[i*2+1] & SENSOR_BIT_MASK_5;
+					sw.sensorHeld[i*16+4] = (msg[i*2+1] & SENSOR_BIT_MASK_5) > 0 ? 1:0;
 
-					if ((msg[i*2+1] & SENSOR_BIT_MASK_6)&&~sw.sensorHeld[i*16+5]){ 
+					if ((msg[i*2+1] & SENSOR_BIT_MASK_6)&&!sw.sensorHeld[i*16+5]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +6;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+5]= curTime;
 					}
-					sw.sensorHeld[i*16+5] = msg[i*2+1] & SENSOR_BIT_MASK_6;
+					sw.sensorHeld[i*16+5] = (msg[i*2+1] & SENSOR_BIT_MASK_6) > 0 ? 1:0;
 
-					if ((msg[i*2+1] & SENSOR_BIT_MASK_7)&&~sw.sensorHeld[i*16+6]){ 
+					if ((msg[i*2+1] & SENSOR_BIT_MASK_7)&&!sw.sensorHeld[i*16+6]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +7;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+6]= curTime;
 					}
-					sw.sensorHeld[i*16+6] = msg[i*2+1] & SENSOR_BIT_MASK_7;
+					sw.sensorHeld[i*16+6] = (msg[i*2+1] & SENSOR_BIT_MASK_7) > 0 ? 1:0;
 
-					if ((msg[i*2+1] & SENSOR_BIT_MASK_8)&&~sw.sensorHeld[i*16+7]){ 
+					if ((msg[i*2+1] & SENSOR_BIT_MASK_8)&&!sw.sensorHeld[i*16+7]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +8;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+7]= curTime;
 					}
-					sw.sensorHeld[i*16+7] = msg[i*2+1] & SENSOR_BIT_MASK_8;
+					sw.sensorHeld[i*16+7] = (msg[i*2+1] & SENSOR_BIT_MASK_8) > 0 ? 1:0;
 
 
 
-					if ((msg[i*2+2] & SENSOR_BIT_MASK_1)&&~sw.sensorHeld[i*16+8]){ 
+					if ((msg[i*2+2] & SENSOR_BIT_MASK_1)&&!sw.sensorHeld[i*16+8]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +9;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+8]= curTime;
 					}
-					sw.sensorHeld[i*16+8] = msg[i*2+2] & SENSOR_BIT_MASK_1;
+					sw.sensorHeld[i*16+8] = (msg[i*2+2] & SENSOR_BIT_MASK_1) > 0 ? 1:0;
 
-					if ((msg[i*2+2] & SENSOR_BIT_MASK_2)&&~sw.sensorHeld[i*16+9]){ 
+					if ((msg[i*2+2] & SENSOR_BIT_MASK_2)&&!sw.sensorHeld[i*16+9]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +10;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+9]= curTime;
 					}
-					sw.sensorHeld[i*16+9] = msg[i*2+2] & SENSOR_BIT_MASK_2;
+					sw.sensorHeld[i*16+9] = (msg[i*2+2] & SENSOR_BIT_MASK_2) > 0 ? 1:0;
 
-					if ((msg[i*2+2] & SENSOR_BIT_MASK_3)&&~sw.sensorHeld[i*16+10]){ 
+					if ((msg[i*2+2] & SENSOR_BIT_MASK_3)&&!sw.sensorHeld[i*16+10]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +11;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+10]= curTime;
 					}
-					sw.sensorHeld[i*16+10] = msg[i*2+2] & SENSOR_BIT_MASK_3;
+					sw.sensorHeld[i*16+10] = (msg[i*2+2] & SENSOR_BIT_MASK_3) > 0 ? 1:0;
 
-					if ((msg[i*2+2] & SENSOR_BIT_MASK_4)&&~sw.sensorHeld[i*16+11]){ 
+					if ((msg[i*2+2] & SENSOR_BIT_MASK_4)&&!sw.sensorHeld[i*16+11]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +12;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+11]= curTime;
 					}
-					sw.sensorHeld[i*16+11] = msg[i*2+2] & SENSOR_BIT_MASK_4;
+					sw.sensorHeld[i*16+11] = (msg[i*2+2] & SENSOR_BIT_MASK_4) > 0 ? 1:0;
 
-					if ((msg[i*2+2] & SENSOR_BIT_MASK_5)&&~sw.sensorHeld[i*16+12]){ 
+					if ((msg[i*2+2] & SENSOR_BIT_MASK_5)&&!sw.sensorHeld[i*16+12]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +13;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+12]= curTime;
 					}
-					sw.sensorHeld[i*16+12] = msg[i*2+2] & SENSOR_BIT_MASK_5;
+					sw.sensorHeld[i*16+12] = (msg[i*2+2] & SENSOR_BIT_MASK_5) > 0 ? 1:0;
 
-					if ((msg[i*2+2] & SENSOR_BIT_MASK_6)&&~sw.sensorHeld[i*16+13]){ 
+					if ((msg[i*2+2] & SENSOR_BIT_MASK_6)&&!sw.sensorHeld[i*16+13]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +14;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+13]= curTime;
 					}
-					sw.sensorHeld[i*16+13] = msg[i*2+2] & SENSOR_BIT_MASK_6;
+					sw.sensorHeld[i*16+13] = (msg[i*2+2] & SENSOR_BIT_MASK_6) > 0 ? 1:0;
 
-					if ((msg[i*2+2] & SENSOR_BIT_MASK_7)&&~sw.sensorHeld[i*16+14]){ 
+					if ((msg[i*2+2] & SENSOR_BIT_MASK_7)&&!sw.sensorHeld[i*16+14]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +15;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+14]= curTime;
 					}
-					sw.sensorHeld[i*16+14] = msg[i*2+2] & SENSOR_BIT_MASK_7;
+					sw.sensorHeld[i*16+14] = (msg[i*2+2] & SENSOR_BIT_MASK_7) > 0 ? 1:0;
 
-					if ((msg[i*2+2] & SENSOR_BIT_MASK_8)&&~sw.sensorHeld[i*16+15]){ 
+					if ((msg[i*2+2] & SENSOR_BIT_MASK_8)&&!sw.sensorHeld[i*16+15]){ 
 						sw.recentSensors[sw.counter] = (i * 16) +16;
 						sw.counter ++;
 						sw.lastSensorTime[i*16+15]= curTime;
 					}
-					sw.sensorHeld[i*16+15] = msg[i*2+2] & SENSOR_BIT_MASK_8;
+					sw.sensorHeld[i*16+15] = (msg[i*2+2] & SENSOR_BIT_MASK_8) > 0 ? 1:0;
 
 				
 				}

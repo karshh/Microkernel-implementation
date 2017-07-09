@@ -325,7 +325,7 @@ void displayServer() {
 					break;
 				}
 
-			case ALERT_SENSORPING:
+			case TRACK_SENSORUPDATE:
 				for (i = 1; i < msgLen; i++) {
 					if (prevSensor != msg[i]) {
 						sensorPingCurrent = getTicks4(0);

@@ -22,23 +22,6 @@
 #define SENSOR_BIT_MASK_7 0x02
 #define SENSOR_BIT_MASK_8 0x01
 
-typedef struct sensorWarehouseStruct {
-//even passing this along a message should take less than 10 microseconds (with go fast button on)
-	int  lastSensorTime[80]; //80*4 =320
-	char sensorHeld[80]; //80
-	int counter; //4
-	char recentSensors[81];//81
-	//485 bytes
-} sensorWarehouseStruct;
-
-typedef struct sensorCourierStruct {
-//even passing this along a message should take less than 10 microseconds (with go fast button on)
-	char message[4]; //4
-	sensorWarehouseStruct sw; //485
-	//489 bytes
-} sensorCourierStruct;
-
-
 
 /*************************************************
  NAMESERVER
@@ -158,6 +141,23 @@ void initTrains(int csTID, int commandServerTID, int dspTID, int trackServerTID)
 /*****************************************************************************
 SENSORSERVER
 *****************************************************************************/
+typedef struct sensorWarehouseStruct {
+//even passing this along a message should take less than 10 microseconds (with go fast button on)
+	int  lastSensorTime[80]; //80*4 =320
+	char sensorHeld[80]; //80
+	int counter; //4
+	char recentSensors[81];//81
+	//485 bytes
+} sensorWarehouseStruct;
+
+typedef struct sensorCourierStruct {
+//even passing this along a message should take less than 10 microseconds (with go fast button on)
+	char message[4]; //4
+	sensorWarehouseStruct sw; //485
+	//489 bytes
+} sensorCourierStruct;
+
+
 
 void sensorServer(); //holds sensor database and communicates to outside (usually train specific servers)
 void sensorNotifier(); //polls COM1 for sensor info. Sends data to sensorProcessor();

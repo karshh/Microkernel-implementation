@@ -151,7 +151,8 @@ void commandServer() {
 					}
 
 			case COMMAND_PN: // polling sensors
-				for(i = 1; i < msgLen - 1; i++) Putc(iosUS1TID, COM1, msg[i]);
+				Putc(iosUS1TID,COM1,0x85);
+				//for(i = 1; i < msgLen - 1; i++) Putc(iosUS1TID, COM1, msg[i]);
 				Reply(_tid, "1", 2);
 				break;
 			default:
