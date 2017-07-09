@@ -1023,7 +1023,7 @@ void graphTestTask() {
     int nextSensor = 0;
     int nextSensorDist = 0;
 
-    nextSensor = findNextSensor(&t, sensor2i("E06"), &nextSensorDist);
+    nextSensor = findNextSensor(&t, sensor2i("A02"), &nextSensorDist);
     bwprintf(COM2, "Next sensor from E06 is %c%d%d[distance=%d]\r\n", ((nextSensor-1)/16)+'A',((nextSensor-1)%16+1)/10, ((nextSensor-1)%16+1)%10, nextSensorDist);
 
     nextSensor = findNextSensor(&t, switch2i(10), &nextSensorDist);
@@ -1031,6 +1031,7 @@ void graphTestTask() {
     nextSensor = findAltSensor(&t, switch2i(10), &nextSensorDist);
     bwprintf(COM2, "Alt sensor from sw10 is %c%d%d[distance=%d]\r\n", ((nextSensor-1)/16)+'A',((nextSensor-1)%16+1)/10, ((nextSensor-1)%16+1)%10, nextSensorDist);
     
+    Exit(); 
     bwprintf(COM2, "Commencing Djikstra's algorithm.\r\n");
 
     for (i = 1; i <= 100; i++) {

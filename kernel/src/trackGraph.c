@@ -55,6 +55,9 @@ int findNextSensor(TrackGraph * t, int i, int * dist) {
     *dist = 0;
 	if (node[i].type == Sensor) {
         *dist += node[i].nextNodeDistance;
+        if (node[i].nextNodeIndex == -1) {
+            return -1;
+        }
         i = node[i].nextNodeIndex;
 
     } 
@@ -78,6 +81,7 @@ int findNextSensor(TrackGraph * t, int i, int * dist) {
 	}
 	return -1;
 }
+
 
 
 void TrackGraphInitA(TrackGraph * t) {

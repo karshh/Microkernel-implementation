@@ -35,6 +35,13 @@
 #define COMMAND_TRAIN_SWNOR		33
 #define VELOCITY_DEBUG			34
 
+#define TRACK_INITSW 			1
+#define TRACK_VELOCITY			2
+#define TRACK_SENSORUPDATE		3
+#define TRACK_SS				4
+#define TRACK_IS				5
+#define TRACK_SW				6
+
 #define DFA_INIT 0
 #define DFA_ERROR -1
 #define DFA_QUIT_TERMINATOR 1
