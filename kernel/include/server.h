@@ -104,13 +104,15 @@ TRAINSERVER
 void trainTask(); //will be called by displayServer, code in userTasks
 
 void trainServer();
+void trainProfile(); //will replace trainVelocityServer
 
-void trainVelocityServer(); //holds velocity/position information for mutiple trains
+
+void trainVelocityServer(); //holds velocity/position information for mutiple trains //will be replaced by trainProfile
 void trainStopServer(); 
 
-void initTrains(int csTID, int commandServerTID, int dspTID);
 
 int stopDistance(int velocity);
+void initTrains(int csTID, int commandServerTID, int dspTID);
 
 /*****************************************************************************
 SENSORSERVER

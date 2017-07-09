@@ -965,7 +965,7 @@ void sensTest(){
 		Getc(ior,COM1);
 		bwprintf(COM2, "2 gets!!!!! \n\r");
 */
-		getSensorData(recentSensors);
+		//getSensorData(recentSensors);
 		total += getTicks4us(startTime);
 		//getSensorData(recentSensors);
 		bwprintf(COM2, "poll: %d\n\r",j);

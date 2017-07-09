@@ -149,10 +149,9 @@ void sensorNotifier(){
 	int commandTID = WhoIs("commandServer");
 	bwassert(commandTID >= 0, COM2, "<sensorNotifier>: commandServer has not been set up.\r\n");
 
-	char msg[3]; 
-	msg[0] = 'P';
+	char msg[2]; 
+	msg[0] = COMMAND_PN;
 	msg[1] = 0x85;
-	msg[2] = 0;
 	char rpl[3];
 	int i = 0;
 	char b[11];
@@ -160,7 +159,7 @@ void sensorNotifier(){
 	int rpllen = 3;
 
 	while(1){
-		bwassert(Send(commandTID, msg, 3, rpl, rpllen) >= 0, COM2, "<sensorNotifier>: Polling sensors failed."); //poll sensors
+		bwassert(Send(commandTID, msg, 2, rpl, rpllen) >= 0, COM2, "<sensorNotifier>: Polling sensors failed."); //poll sensors
 		b[0] = SENSOR_RAW_BATCH;
 		for(i = 0; i<10;i++)
 		b[i+1] = Getc(iosTID,COM1); //get char for this module

@@ -11,7 +11,14 @@
 #include "controller.h"
 #include "time.h"
 
-
+//train profile codes
+#define COMMAND_RV_DELAY 10
+//#define COMMAND_RV 12 //reverse train (controller)
+//#define COMMAND_TR 13 //set train speed   (controller)
+//#define COMMAND_LI  14 //turn on lights    (controller)
+//#define COMMAND_SW			11 //change switch (controller)
+//#define COMMAND_DEATH			28 (controller)
+//#define COMMAND_PN 			15 //sensor ping       (controller)
 void commandServer() {
 	bwassert(!RegisterAs("commandServer"), COM2, "Could not register as command server.\r\n");
 	int cDelTid =  Create(5, (void *) commandReverseDelayServer);
@@ -35,9 +42,6 @@ void commandServer() {
     char msg[64];
     int msgCap = 64;
     int msgLen = -1;
-	char r[2];
-	r[0] = 0;
-	r[1] = 0;
 	char delMsg[10];
 	char rep[2];
 	int delayReverse ;
@@ -72,7 +76,7 @@ void commandServer() {
 				}
 				
 			
-			case 'S': // switches
+			case COMMAND_SW: // switches
 				Putc(iosUS1TID, COM1, msg[1]);
 				Putc(iosUS1TID, COM1, msg[2]);
 				Delay(csTID, 15);//wait 150 ms //critical delay //cannot delay like reverse code.
@@ -80,7 +84,13 @@ void commandServer() {
 				Reply(_tid, "1", 2);
 				break;
 
-			case 'R': // reverse part 1
+			case COMMAND_RV: // reverse part 1
+				if(trainMutex[(int)msg[1]] ==1){
+					Reply(_tid, "0", 2);
+				}
+				else{
+					Reply(_tid, "1", 2);
+	
 				Putc(iosUS1TID, COM1, 0);
 				Putc(iosUS1TID, COM1, msg[1]);
 				//since the delay is not critical (the reverse command can occur much longer than the delay time without consequence)
@@ -96,13 +106,7 @@ void commandServer() {
 					//calculate the time (in ticks, based on a 24 hr time period, when the delay should end
 					delMsg[0] = msg[1]; //set train
 					delMsg[1] = msg[2]; //set trainspeed
-					if(trainMutex[(int)msg[1]] ==0){
-						Reply(_tid, "1", 2);
-					}
-					else{
-						Reply(_tid, "0", 2);
-					}
-			
+		
 					if(trainMutex[(int)msg[1]]==0){
 						trainMutex[(int)msg[1]] = 1;
 						delMsg[2] = (delayReverse/10000000)%10; //set delay
@@ -119,9 +123,11 @@ void commandServer() {
 					//	Reply(_tid, "1", 2);
 					}else
 					;//	Reply(_tid, "0", 2);
+
+				}
 			
 				break;
-			case 'r': // reverse part 2
+			case COMMAND_RV_DELAY: // reverse part 2
 				trainMutex[(int)msg[1]] = 0;
 				Putc(iosUS1TID, COM1, 15);
 				Putc(iosUS1TID, COM1, msg[1]);
@@ -129,25 +135,27 @@ void commandServer() {
 				Putc(iosUS1TID, COM1, msg[1]);
 				Reply(_tid, "1", 2);
 				break;
-			case 'T': // train speed
-			case 'L': 
+			case COMMAND_TR: // train speed
+			case COMMAND_LI:
+ 
 				//bwassert(0, COM2, "                              \033[100;0H <Command Server>: could not send second part of reverse to reverse delay server.[%d] \r\n",!trainMutex[msg[2]-1]);
 					//trainMutex[train] = 0;
 					if(trainMutex[(int)msg[2]] == 0){
 						for(i = 1; i < msgLen - 1; i++) Putc(iosUS1TID, COM1, msg[i]);
 						Reply(_tid, "1", 2);
-				break;
+						break;
 					}
 					else{
-						r[0]=1;
 						Reply(_tid, "0", 2);
 				break;
 					}
 
-			case 'P': // polling sensors
-			default:
+			case COMMAND_PN: // polling sensors
 				for(i = 1; i < msgLen - 1; i++) Putc(iosUS1TID, COM1, msg[i]);
 				Reply(_tid, "1", 2);
+				break;
+			default:
+				Reply(_tid, "0", 2);//why are we here?
 				break;
 		}
 		// Send commands to io in batches.
@@ -196,7 +204,7 @@ void commandReverseDelayServer() {
 	        Reply(_tid, "1", 2);
 		DelayUntil(csTID,delayReverse);
 
-		commandMsg[0] = 'r';
+		commandMsg[0] = COMMAND_RV_DELAY;
 		commandMsg[1] = train;
 		commandMsg[2] = trainspeed;
 		commandMsg[3] = 0;

@@ -137,65 +137,65 @@ int parseCommand(char * input, int * arg1, int * arg2, int * arg3){
 						*arg1 = train;
 						//assume train is at speed 0;
 						
-						msg[0] = 'L';
+						msg[0] = COMMAND_LI;
 						msg[1] = train;
-						msg[2] = '\0';
-						msg[3] = '\0';
-						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Lights command.\r\n");
+						bwassert(Send(trainTID, &msg[0], 2, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Lights command.\r\n");
 						if(reply[0] == '1')
 							 return COMMAND_LI;
 						else
 							 return COMMAND_LOCKEDTRAINL;
 						break;
-					case(DFA_RV_1):
-					case(DFA_RV_2):
-					case(DFA_RV_3):
-						//Reverses train
-						msg[0] = 'R';
-						msg[1] = train;
-						msg[2] = '\0';
-						msg[3] = '\0';
-						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Reverse command.\r\n");
-
-					//go to speed 0
-
-						*arg1 = train;
-						*arg2 = reply[0];
-						if(reply[1] == '1')
-							return COMMAND_RV;
-						else
-							 return COMMAND_LOCKEDTRAINR;
-
-						break;
-
 					case(DFA_TR_1):
 					case(DFA_TR_2):
 					case(DFA_TR_3):
 						//sets speed of train
 						*arg1 = train;
-						msg[0] = 'T';
+						*arg2 = speed;
+
+						msg[0] = COMMAND_TR;
 						msg[1] = speed;
 						msg[2] = train;
-						msg[3] = '\0';
-						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Trains command.\r\n");
+						bwassert(Send(trainTID, &msg[0], 3, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Trains command.\r\n");
 
-						*arg2 = speed;
 						if(reply[0] == '1')
 							 return COMMAND_TR;
 						else
 							 return COMMAND_LOCKEDTRAINT;
 						break;
+
+					case(DFA_RV_1):
+					case(DFA_RV_2):
+					case(DFA_RV_3):
+						//Reverses train
+						msg[0] = COMMAND_RV;
+						msg[1] = train;
+						bwassert(Send(trainTID, &msg[0], 2, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Reverse command.\r\n");
+
+					//go to speed 0
+
+						*arg1 = train;
+						*arg2 = reply[0];	
+
+						if(reply[1]-'0'){
+							return COMMAND_RV;
+						}
+						else{
+							 return COMMAND_LOCKEDTRAINR;
+						}
+
+						break;
+
 					case(DFA_SW_1):
 					case(DFA_SW_2):
 
 						*arg1 = sw;
 						*arg2 = swd;
 
-            					msg[0] = 'S';
+            					msg[0] = COMMAND_SW;
 						msg[1] = sw;
 						msg[2] = swd;
 						msg[3] = '\0';
-						if( sw > 20  && sw < 153)return COMMAND_INVALID;
+						if( sw > 20)return COMMAND_INVALID;
 					
 						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Switch command.\r\n");
 
