@@ -89,6 +89,96 @@ void UserPrompt() {
 	}
 }
 
+
+void ioformat(int dspTID, char *fmt, va_list va) {
+	char bf[12];
+	char ch, lz;
+	int w;
+
+	char bigBuffer[4096]; //max string for printf is 4k
+	bigBuffer[0] =0; //pointer to current character in buffer
+	char *b = &bigBuffer[0];
+	while ( ( ch = *(fmt++) ) ) {
+		if ( ch != '%' ){
+			//Putc(tid, channel, ch );
+			*b = ch;
+			b++;
+		}
+		else {
+			lz = 0; w = 0;
+			ch = *(fmt++);
+			switch ( ch ) {
+			case '0':
+				lz = 1; ch = *(fmt++);
+				break;
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+				ch = bwa2i( ch, &fmt, 10, &w );
+				//Ai have absolutly no idea what this is supposed to do...but ok.
+				//used to pad output. example %5d with integer value 100 should output 00010.
+				//bwio code was off because lz wasnt set properly
+				break;
+			}
+			switch( ch ) {
+			case 0: return;
+			case 'c':
+				*b = va_arg(va,char);
+				b++;
+				//Putc(tid, channel, va_arg( va, char ) ); //print char
+				break;
+			case 's':
+				lz = ' ';
+				b += sPutw( w, lz, va_arg( va, char* ) ,b); //prints string
+				break;
+			case 'u':
+				lz = '0';
+				bwui2a( va_arg( va, unsigned int ), 10, bf ); //print unsigned int
+				b += sPutw( w, lz, bf,b); //prints string
+				//Putw(tid, channel, w, lz, bf );
+				break;
+			case 'd':
+				lz = '0';
+				bwi2a( va_arg( va, int ), bf ); 
+				//Putw(tid, channel, w, lz, bf ); //prints signed int
+				b += sPutw( w, lz, bf,b); //prints string
+				break;
+			case 'x':
+				lz = '0';
+				bwui2a( va_arg( va, unsigned int ), 16, bf );
+				//Putw(tid, channel, w, lz, bf ); //prints hex
+				b += sPutw( w, lz, bf,b); //prints string
+				break;
+			case '%':
+				*b = ch;
+				b++;
+				//Putc(tid, channel, ch ); //prints % character
+				break;
+			}
+		}
+	}
+	*b = 0; //puts null terminator at the end
+	b ++;
+
+	char rpl[5];
+	bwassert(Send(dspTID, bigBuffer, (int)(b-bigBuffer), rpl, 5) >= 0, COM2, "<trainServer>: Debug Statement failed"); 
+}
+
+void iodebug(int dspTID, char *fmt, ... ) {
+        va_list va;
+
+        va_start(va,fmt);
+        ioformat(dspTID, fmt, va );
+        va_end(va);
+}
+
+
 void displayServer() {
 	bwassert(!RegisterAs("displayServer"), COM2, "Failed to register displayServer.\r\n");
 	int iosTID = WhoIs("UART2S");

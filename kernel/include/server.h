@@ -5,6 +5,7 @@
 
 
 
+#include "bwio.h"
 //#define ALERT_SENSORPING		29
 //note only used in this particular group of tasks
 #define SENSOR_RAW_BATCH 1
@@ -173,6 +174,12 @@ void Grid();
 void UserPrompt();
 
 void Sensors();
+
+
+void ioformat(int dspTID, char *fmt, va_list va);
+
+void iodebug(int dspTID, char *fmt, ... );
+
 
 void displayServer();
 

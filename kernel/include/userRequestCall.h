@@ -55,7 +55,7 @@ int Putr( int tid, int channel, unsigned int reg );
 int Putstr( int tid, int channel, char *str );
 
 void Putw( int tid, int channel, int n, char fc, char *bf );
-int sPutw( int tid, int channel, int n, char fc, char *bf, char *buff);
+int sPutw(int n, char fc, char *bf, char *buff);
 
 void IOFormat ( int tid, int channel, char *fmt, va_list va );
 

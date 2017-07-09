@@ -69,6 +69,7 @@ void initTrains(int csTID, int commandServerTID, int dspTID, int trackServerTID)
 
 }
 
+
 void trainServer(){
 	//handles communication between userprompt/Deathserver and train server specific stuff
 	bwassert(!RegisterAs("trainServer"), COM2, "Failed to register trainServer.\r\n");
@@ -93,15 +94,14 @@ void trainServer(){
 	int tr58TID = Create(23,(void *)trainProfile);
 	int tr76TID = Create(23,(void *)trainProfile);
 
-	char * debug1 = "D5SUCH TRAINS";
-	char * debug2 = "D6MUCH PAILY";
-	char * debug3 = "D20CHOOCHOO MOTHERFUCKERS!";
-	char * debug4 = "D25 25[USE SPACE TO DISPLAY NUMBERS UNCONJOINED WITH CURSORINDEX.]";
 
-	bwassert(Send(dspTID, debug1, pkstrlen((void*)debug1), rpl, rpllen) >= 0, COM2, "<trainServer>: Debug Statement failed"); 
-	bwassert(Send(dspTID, debug2, pkstrlen((void*)debug2), rpl, rpllen) >= 0, COM2, "<trainServer>: Debug Statement failed"); 
-	bwassert(Send(dspTID, debug3, pkstrlen((void*)debug3), rpl, rpllen) >= 0, COM2, "<trainServer>: Debug Statement failed"); 
-	bwassert(Send(dspTID, debug4, pkstrlen((void*)debug4), rpl, rpllen) >= 0, COM2, "<trainServer>: Debug Statement failed"); 
+	iodebug(dspTID, "D5SUCH TRAINS");
+	iodebug(dspTID, "D10CHOOCHOO MOTHERFUCKERS!");
+	iodebug(dspTID, "D%dThis is an IOStream test: %d %c %d %c", 15, COMMAND_DEBUG, COMMAND_DEBUG, COMMAND_DEBUG, COMMAND_DEBUG);
+	iodebug(dspTID, "D21Time(csTID)=%d", Time(csTID));
+	iodebug(dspTID, "D22Look up section of the code that prints this in trainserver.c:99 and remove it.");
+	iodebug(dspTID, "D23I left it intentionally here to serve as an example.");
+
 
 
 	while(1){

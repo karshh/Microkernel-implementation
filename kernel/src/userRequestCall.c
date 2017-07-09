@@ -542,7 +542,7 @@ void Putw( int tid,  int channel, int n, char fc, char *bf ) {
 	Putstr(tid, channel, &buffer[0] );
 }
 
-int sPutw( int tid,  int channel, int n, char fc, char *bf ,char * buff) {
+int sPutw(int n, char fc, char *bf ,char * buff) {
 	//bf is the string to append after padding
 	//buff is the string you want to write this to.
 	char ch;
@@ -612,25 +612,25 @@ void IOFormat ( int tid,  int channel, char *fmt, va_list va ) {
 				break;
 			case 's':
 				lz = ' ';
-				b += sPutw(tid, channel, w, lz, va_arg( va, char* ) ,b); //prints string
+				b += sPutw( w, lz, va_arg( va, char* ) ,b); //prints string
 				break;
 			case 'u':
 				lz = '0';
 				bwui2a( va_arg( va, unsigned int ), 10, bf ); //print unsigned int
-				b += sPutw(tid, channel, w, lz, bf,b); //prints string
+				b += sPutw( w, lz, bf,b); //prints string
 				//Putw(tid, channel, w, lz, bf );
 				break;
 			case 'd':
 				lz = '0';
 				bwi2a( va_arg( va, int ), bf ); 
 				//Putw(tid, channel, w, lz, bf ); //prints signed int
-				b += sPutw(tid, channel, w, lz, bf,b); //prints string
+				b += sPutw(w, lz, bf,b); //prints string
 				break;
 			case 'x':
 				lz = '0';
 				bwui2a( va_arg( va, unsigned int ), 16, bf );
 				//Putw(tid, channel, w, lz, bf ); //prints hex
-				b += sPutw(tid, channel, w, lz, bf,b); //prints string
+				b += sPutw( w, lz, bf,b); //prints string
 				break;
 			case '%':
 				*b = ch;
