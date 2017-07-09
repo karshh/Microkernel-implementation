@@ -285,7 +285,7 @@ void trainProfile(){ //will replace trainVelocityServer
 				break;
 
 			case COMMAND_RV:
-
+				lightFlag =0; //turn it off since it will need to be passed on and i dont have that kindof time
 				msg[0] = COMMAND_RV;
 				msg[1] = trNumber;
 				msg[2] = trSpeed;
