@@ -411,7 +411,7 @@ void kernelTest() {
 
     Create(3, (void *) trainServer);
     Create(3, (void *) displayClock);
-    Create(4, (void *) displaySensors); //this will fail if the computer has no train track
+    //Create(4, (void *) displaySensors); //this will fail if the computer has no train track
     Exit();
 }
 
@@ -965,7 +965,7 @@ void sensTest(){
 		Getc(ior,COM1);
 		bwprintf(COM2, "2 gets!!!!! \n\r");
 */
-		getSensorData(recentSensors);
+		//getSensorData(recentSensors);
 		total += getTicks4us(startTime);
 		//getSensorData(recentSensors);
 		bwprintf(COM2, "poll: %d\n\r",j);
@@ -1108,6 +1108,70 @@ void drawTrackB(int iosTID) {
 }
 
 
+/*------------------------------------------------------------------------*/
+//testing struct message passing
+//instead of sending nicly formated string, send a specialized message struct
+
+
+
+
+typedef struct tempMsgStruct {
+	//order stuf so non-word-alligned stuff is on bottom of struct
+	char msgType[4]; //word alligned. Used to hold message code. can move to int in future.
+	int vals[10];
+	char temp1;
+} tempMsgStruct;
+
+
+
+void testStructS() {
+	char _msg[64];
+	tempMsgStruct testS;
+	testS.msgType[0] = 0;
+	testS.msgType[1] = 'B';
+	testS.msgType[2] = 'C';
+	testS.msgType[3] = 'D';
+	int i= 0;
+	for(i=0;i<10;i++){
+		testS.vals[i] = 10 - i;
+	}
+	testS.temp1 = 'Q';
+	Send(1, (char *) &testS, sizeof(tempMsgStruct), (char *) &testS, sizeof(tempMsgStruct));
+	bwprintf(COM2,"after rply temp1 %c \n\r",testS.temp1);
+    //bwassert(Send(1, (char *) &testS, sizeof(tempMsgStruct), _msg, 64)>= 0, COM2, "TEST FAILED!\r\n");
+    Exit();
+}
+
+void testStructR() {
+	int _tid = 0;
+	char _msg[64];
+
+	tempMsgStruct testR;
+	if (Receive(&_tid, _msg, 64) >= 0) {
+		//void pkmemcpy(void *dest, const void *source, unsigned int size);
+		bwprintf(COM2,"%c\n\r",_msg[0]);
+		if(_msg[0] == 0){
+			//if message code is 'A' then its a struct
+			pkmemcpy((void *) &testR, _msg, sizeof(tempMsgStruct));
+			bwprintf(COM2,"temp1 %c \n\r",testR.temp1);
+			bwprintf(COM2,"msg type 3rd %c \n\r",testR.msgType[2]);
+			bwprintf(COM2,"value[3]:%d \n\r",testR.vals[3]);
+			testR.temp1 = 'X';
+			Reply(_tid, (char * ) &testR, sizeof(tempMsgStruct));
+		}
+	}
+	Exit();
+
+}
+
+void testStructPass() {
+    Create(6, (void*) testStructR);
+    Create(6, (void*) testStructS);
+    Exit( );
+}
+
+/*------------------------------------------------------------------------*/
+
 int main(void) {
     // turning on data and instruction cache.
      asm volatile (
@@ -1117,7 +1181,7 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
 
-    kernelRun(2,(int) graphTestTask);
+    kernelRun(2,(int) testStructPass);
 	
 
 

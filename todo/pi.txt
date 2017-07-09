@@ -1,0 +1,35 @@
+To do list
+------------------------
+
+Have commandserver communicate parse results to display server
+shunt train server code to velocity servers
+create registration command to register up to 6 servers.
+
+sensor server: - add function to manually ping a sensor
+	-add display server courier get that shit working and tested
+		
+
+
+Notes:
+------------------------------------------
+New command:
+RT: Register Train. 
+RT <TR> <0-5>
+There are 6 train velocity servers thus allowing only max 6 trains running at a time. trains
+must be registered before hand.
+
+
+new VelociyTrainServer(1);
+
+1) TrainServer
+-trainID
+-direction
+-Speed
+-Velocity
+-acceleration(rate of acceleration)
+-location
+-time to next sensor
+-distance to next sensor
+-path
+-distancae/time to path
+-alpha to set velocity

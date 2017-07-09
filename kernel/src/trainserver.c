@@ -11,6 +11,302 @@
 #include "controller.h"
 #include "time.h"
 
+//train server codes
+#define TRAINS_GETPROFILEID 1
+//#define COMMAND_TR 13 //set train speed   (controller)
+//#define COMMAND_LI  14 //turn on lights    (controller)
+//#define COMMAND_RV 12 //reverse train (controller)
+
+//train profile codes
+//#define COMMAND_TR 13 //set train speed   (controller)
+//#define COMMAND_LI  14 //turn on lights    (controller)
+//#define COMMAND_RV 12 //reverse train (controller)
+
+void initTrains(int csTID, int commandServerTID, int dspTID){
+    	char msg[64];
+    	char rpl[3];
+    	int rpllen = 3;
+
+	int i =0;
+	for (i=58; i < 80; i++){
+			msg[0] = COMMAND_TR;
+			msg[1] =  0;
+			msg[2] = i;
+			msg[3] = 0;
+			bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+
+			//send message to display thaat trains are initilizaing
+			msg[0] = COMMAND_TRAIN_INIT; //no warning
+			msg[1] = 0;
+			msg[2] = i;//position (0..17)
+			msg[3] = 0;
+			bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+			Delay(csTID,5);
+	}
+	Delay(csTID,436);
+	//send message to display thaat switches are initilizaing
+	msg[0] = COMMAND_TRAIN_INIT; //no warning
+	msg[1] = 1;
+	msg[2] = 0;//position (0..17)
+	msg[3] = 0;
+	bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+////////////////////////////// move below to trackserver
+	//init switches
+	for (i=1; i <= 18; i++){
+	//	node[i+80].switchConfig = C;
+		msg[0] = COMMAND_SW;
+		msg[1] = 34;
+		msg[2] = i;
+		msg[3] = 0;
+		bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+	//	update_switch(i, &t, &trainExpectedSensor[0]); //updates the display
+	}
+
+	//node[99].switchConfig = CS;
+	msg[0] = COMMAND_SW;
+	msg[1] = 34;
+	msg[2] = 153;
+	msg[3] = 0;
+	bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+	//update_switch(153, &t); //updates the display
+	
+	msg[0] = COMMAND_SW;
+	msg[1] = 33;
+	msg[2] = 154;
+	msg[3] = 0;
+	bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+	//update_switch(154, &t, &trainExpectedSensor[0]); //updates the display
+
+	//node[100].switchConfig = CS;
+	msg[0] = COMMAND_SW;
+	msg[1] = 34;
+	msg[2] = 155;
+	msg[3] = 0;
+	bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+	//update_switch(155, &t); //updates the display
+	
+	msg[0] = COMMAND_SW;
+	msg[1] = 33;
+	msg[2] = 156;
+	msg[3] = 0;
+	bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+	//update_switch(156, &t, &trainExpectedSensor[0]); //updates the display
+	
+
+//////////////////////////// move above to trackserver
+	//send message to display that init is done. allow command line input
+	msg[0] = COMMAND_TRAIN_INIT; //no warning
+	msg[1] = 2;
+	msg[2] = 0;//position (0..17)
+	msg[3] = 0;
+	bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+
+}
+
+void trainServer(){
+	//handles communication between userprompt/Deathserver and train server specific stuff
+	bwassert(!RegisterAs("trainServer"), COM2, "Failed to register trainServer.\r\n");
+	int commandServerTID = WhoIs("commandServer");
+	int csTID = WhoIs("clockServer");
+	int dspTID = WhoIs("displayServer");
+    	int _tid = -1;
+
+    	char msg[64];
+    	int msgCap = 64;
+	char rpl[3];
+    	int rpllen = 3;
+	int msgLen = 0;
+
+	//move to trackserver
+	int sw;
+	int swd;
+   //////////////////////////////////////
+ 	initTrains(csTID,commandServerTID, dspTID);
+
+	int tr58TID = Create(3,(void *)trainProfile);
+	int tr76TID = Create(3,(void *)trainProfile);
+
+	while(1){
+		msgLen = Receive(&_tid, msg, msgCap);
+		switch(msg[0]){
+			case TRAINS_GETPROFILEID:
+				if(_tid == tr58TID) msg[0] = 58;
+				if(_tid == tr76TID) msg[0] = 76;
+		        	Reply(_tid,msg, 1); 
+				break;
+			case COMMAND_SW:
+				//must be moved to track server
+				sw = msg[1];
+				swd = msg[2];
+/*
+				if(sw <= 18) {
+					node[80+sw].switchConfig = swd == 'C' ? C : S;
+
+				} else if (sw == 19) {
+				//for mutliswitch nodes 19-20 (19 = 153/154 and 20 = 155/156, D = CS and T = SC
+				// CC and SS are invalid states (perhaps SS might be needed for reversing?)
+						node[99].switchConfig = swd == 'D' ? CS : SC;
+				} else if (sw == 20) {
+						node[100].switchConfig = swd == 'D' ? CS : SC;
+
+				}
+
+*/
+				if(sw < 19){
+					msg[0] = COMMAND_SW;
+					msg[1] = swd == 'S' ? 33 : 34;
+					msg[2] = sw;
+					msg[3] = 0;
+					bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+					//update_switch(sw, &t, &trainExpectedSensor[0]); //updates the display
+				}else if(sw == 19){
+
+					msg[0] = COMMAND_SW; 
+					msg[1] = swd == 'D' ? 34 : 33;
+					msg[2] = 153;
+					msg[3] = 0;
+					bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+
+					msg[0] = COMMAND_SW;
+					msg[1] = swd == 'D' ? 33 : 34; 
+					msg[2] = 154;
+					msg[3] = 0;
+					bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+					//update_switch(154 , &t, &trainExpectedSensor[0]); //updates the display
+
+
+				}else if(sw == 20){
+					//s == 33 , C = 34
+					//D = CS = 34:33	 T = SC = 33:34
+
+
+					msg[0] = COMMAND_SW; 
+					msg[1] = swd == 'D' ? 34 : 33;
+					msg[2] = 155;
+					msg[3] = 0;
+					bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+
+					msg[0] = COMMAND_SW;
+					msg[1] = swd == 'D' ? 33 : 34; 
+					msg[2] = 156;
+					msg[3] = 0;
+					bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+					//update_switch(156, &t, &trainExpectedSensor[0]); //updates the display
+				}
+		        	Reply(_tid, "1", 2);
+
+
+				break;
+			case COMMAND_RV:
+			case COMMAND_LI:
+				switch(msg[1]){
+					case 58:
+						bwassert(Send(tr58TID, msg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        			Reply(_tid, rpl, 2);
+						break;
+					case 76:
+						bwassert(Send(tr76TID, msg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        			Reply(_tid, rpl, 2);
+
+						break;
+					default:
+		        			Reply(_tid, "0", 2); //seriosly, why are you even here?
+						break;
+				}		
+				break;
+			case COMMAND_TR:
+				switch(msg[2]){
+					case 58:
+						bwassert(Send(tr58TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        			Reply(_tid, rpl, 2);
+						break;
+					case 76:
+						bwassert(Send(tr76TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        			Reply(_tid, rpl, 2);
+
+						break;
+					default:
+		        			Reply(_tid, "0", 2); //seriosly, why are you even here?
+						break;
+				}		
+				break;
+			default:
+		        	Reply(_tid, 0, 1); //seriosly, why are you even here?
+				break;
+		}
+		
+	}
+}
+
+void trainProfile(){ //will replace trainVelocityServer
+	int trainServer = MyParentTid();
+	int commandServerTID = WhoIs("commandServer");
+	int trNumber = 0;
+	int trSpeed = 0;
+	int lightFlag = 0;
+    	int _tid = -1;
+
+    	char msg[64];
+    	int msgCap = 64;
+	char rpl[3];
+	char rpllen = 3;
+	int msgLen = 0;
+
+	msg[0] = TRAINS_GETPROFILEID;
+	Send(trainServer, msg, 1, rpl, rpllen);
+	trNumber = rpl[0];
+	if(!trNumber) Exit();
+
+	while(1){
+		msgLen = Receive(&_tid, msg, msgCap);
+		switch(msg[0]){
+			case COMMAND_LI:
+				if(lightFlag) 
+					lightFlag = 0;
+				else
+					lightFlag = 16;
+
+				msg[0] = COMMAND_LI;
+				msg[1] = lightFlag + trSpeed;
+				msg[2] = trNumber;
+				msg[3] = 0;
+				bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        	Reply(_tid, rpl, 2);
+				break;
+
+			case COMMAND_TR:
+				trSpeed = msg[1];
+				msg[0] = COMMAND_TR;
+				msg[1] = lightFlag + trSpeed;
+				msg[2] = trNumber;
+				msg[3] = 0;
+				bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        	Reply(_tid, rpl, 2);
+				break;
+
+			case COMMAND_RV:
+				lightFlag =0; //turn it off since it will need to be passed on and i dont have that kindof time
+				msg[0] = COMMAND_RV;
+				msg[1] = trNumber;
+				msg[2] = trSpeed;
+				msg[3] = 0;
+				bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+
+				msg[0] = trSpeed;
+				msg[1] = rpl[0];
+		        	Reply(_tid, msg, 2);
+
+			default:
+		        	Reply(_tid, 0, 1); //seriosly, why are you even here?
+				break;
+		}
+		
+	}
+	Exit();
+	
+
+}
+
 int stopDistance(int velocity){
         int v[7];
         v[0] = 0;
@@ -96,8 +392,8 @@ void trainVelocityServer(){
 	int deltaDist = 0;
 	int alpha = 50;
 
-	 char dspMsg[128];
-char rpl[3];
+	char dspMsg[128];
+	char rpl[3];
     	int rpllen = 3;
 
 	int sensorLength=0;
@@ -115,7 +411,7 @@ char rpl[3];
 	int csTID = WhoIs("clockServer");
 	int i =0;
 
-int distance =0;
+	int distance =0;
 
 
 	while(1){
@@ -197,12 +493,6 @@ int distance =0;
 						velocity58 = (((sdist * alpha )/stime) + (velocity58 * (100-alpha)))/100;
 					}
 					//sdist = 100;
-
-/*		
-					dspMsg[2] = (sdist / 10000) % 100;
-					dspMsg[3] = (sdist / 100) % 100;
-					dspMsg[4] = (sdist) % 100;
-*/
 					if(hasStopValue){
 						int startDist = sensorLength-1;
 						distanceToStop =0;
@@ -387,6 +677,7 @@ void trainStopServer(){
 	Exit();
 
 }
+/*
 void trainServer(){
 //keep track of train speeds, and sends instructions to ioserver
 	bwassert(!RegisterAs("trainServer"), COM2, "Failed to register trainServer.\r\n");
@@ -465,8 +756,77 @@ void trainServer(){
 		msgLen = Receive(&_tid, msg, msgCap);
 		bwassert(msgLen >= 0, COM2, "<trainServer>: Receive error.\r\n");
 		if (_tid == sensorTID) {
-			msg[0] = TRACK_SENSORUPDATE;
-			bwassert(Send(trackTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<update switchs>: Updating switches failed."); 
+			// we received a sensor update from dspTID
+			// search for each train if it's expected sensor was hit. If yes, then find next sensor
+			// and add that as it's expected sensor.
+			volatile int j = 0;
+			for (j = 1; j < msgLen; j++) {
+				curSensorTime = getTicks4(0); //in ms
+				curSensorTimeT = Time(csTID);
+				curSensor = msg[j];
+				//for train velocity model
+				//get distance between the current and last sensor in most direct route.
+				if(prevSensor && prevSensor != curSensor){
+					int path[102];
+					int pathLength = 0;
+					getShortestPath(&t,  prevSensor, curSensor,path, &pathLength);
+
+					nextSensor = findNextSensor(&t,curSensor, &distSensor);
+					int distanceList[100];
+					int infoLength = 0;
+
+					getEdgeInfo(&t, path, pathLength, distanceList, &infoLength);
+					int dist = 0;
+					for ( i = 0; i < infoLength; i++) {
+						dist += distanceList[i];
+					}
+					// Fix this!!
+
+					dspMsg[0] = 'S';
+					dspMsg[1] = curSensor;
+					dspMsg[2] = ((curSensorTimeT  -prevSensorTimeT) / 10000) % 100;
+					dspMsg[3] = ((curSensorTimeT - prevSensorTimeT) / 100) % 100;
+					dspMsg[4] = (curSensorTimeT - prevSensorTimeT) % 100;
+					dspMsg[5] = (dist / 10000) % 100;
+					dspMsg[6] = (dist  / 100) % 100;
+					dspMsg[7] = dist % 100;
+					dspMsg[8] = nextSensor;
+					dspMsg[9] = (distSensor / 10000) % 100;
+					dspMsg[10] = (distSensor  / 100) % 100;
+					dspMsg[11] = distSensor  % 100;
+
+					dspMsg[12] = 0;
+					bwassert(Send(velTID, dspMsg, 12, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to Velocity train server.\r\n");
+				}
+
+				prevSensorTime = curSensorTime;
+				prevSensorTimeT = curSensorTimeT;
+				prevSensor = curSensor;
+				
+				for (i = 58; i < 80; i++) {
+					if (trainDestinationSensor[i] == msg[j]) {
+						trainSpeed[i] = 0;
+						trainDestinationSensor[i] = 0;
+					}
+					if (trainExpectedSensor[i] == msg[j] ) {
+						trainCurrentSensor[i] = msg[j];
+						trainExpectedSensor[i] = findNextSensor(&t, msg[j], &distSensor);
+						dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
+						dspMsg[1] = i;
+						dspMsg[2] = trainExpectedSensor[i];
+						dspMsg[3] = 0;
+						bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+					}else if(msg[j] == findNextSensor(&t,trainExpectedSensor[i], &distSensor)){
+						trainCurrentSensor[i] = msg[j];
+						trainExpectedSensor[i] = findNextSensor(&t, msg[j], &distSensor);
+						dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
+						dspMsg[1] = i;
+						dspMsg[2] = trainExpectedSensor[i];
+						dspMsg[3] = 0;
+						bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
+					}
+				}
+			}
 			Reply(_tid, "1", 2);
 
 		}else if( _tid == velTID){
@@ -550,4 +910,6 @@ void trainServer(){
 	}
 
 }
+
+*/
 

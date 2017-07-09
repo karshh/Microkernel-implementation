@@ -108,11 +108,25 @@ TRAINSERVER
 void trainTask(); //will be called by displayServer, code in userTasks
 
 void trainServer();
+void trainProfile(); //will replace trainVelocityServer
 
-void trainVelocityServer(); //holds velocity/position information for mutiple trains
+
+void trainVelocityServer(); //holds velocity/position information for mutiple trains //will be replaced by trainProfile
 void trainStopServer(); 
 
+
 int stopDistance(int velocity);
+void initTrains(int csTID, int commandServerTID, int dspTID);
+
+/*****************************************************************************
+SENSORSERVER
+*****************************************************************************/
+
+void sensorServer(); //holds sensor database and communicates to outside (usually train specific servers)
+void sensorNotifier(); //polls COM1 for sensor info. Sends data to sensorProcessor();
+void sensorProcessor(); //gets raw info from Terminal/Notifier, processes it and sends it to Sensor Server
+void sensorCourier(); //passes data from sensorProcessor and sensor Server;
+void sensorDisplayCourier(); //passes sensor data from sensorProcessor to display server. possibly from sensorServer to display 
 
 /*****************************************************************************
 DISPLAYSERVER

@@ -95,6 +95,7 @@ void update_switch(int sw, TrackGraph * t, int * trainExpectedSensor){
 
 int parseCommand(char * input, int * arg1, int * arg2, int * arg3){
 	int trainTID = WhoIs("trainServer");
+	int spTID = WhoIs("sensorProcessor");
     bwassert(trainTID >= 0, COM2, "<parseCommand>: trainServer has not been set up.\r\n");
 	int state = DFA_INIT;
 	int terminator = 0;
@@ -136,74 +137,74 @@ int parseCommand(char * input, int * arg1, int * arg2, int * arg3){
 						*arg1 = train;
 						//assume train is at speed 0;
 						
-						msg[0] = 'L';
+						msg[0] = COMMAND_LI;
 						msg[1] = train;
-						msg[2] = '\0';
-						msg[3] = '\0';
-						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Lights command.\r\n");
+						bwassert(Send(trainTID, &msg[0], 2, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Lights command.\r\n");
 						if(reply[0] == '1')
 							 return COMMAND_LI;
 						else
 							 return COMMAND_LOCKEDTRAINL;
 						break;
-					case(DFA_RV_1):
-					case(DFA_RV_2):
-					case(DFA_RV_3):
-						//Reverses train
-						msg[0] = 'R';
-						msg[1] = train;
-						msg[2] = '\0';
-						msg[3] = '\0';
-						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Reverse command.\r\n");
-
-					//go to speed 0
-
-						*arg1 = train;
-						*arg2 = reply[0];
-						if(reply[1] == '1')
-							return COMMAND_RV;
-						else
-							 return COMMAND_LOCKEDTRAINR;
-
-						break;
-
 					case(DFA_TR_1):
 					case(DFA_TR_2):
 					case(DFA_TR_3):
 						//sets speed of train
 						*arg1 = train;
-						msg[0] = 'T';
+						*arg2 = speed;
+
+						msg[0] = COMMAND_TR;
 						msg[1] = speed;
 						msg[2] = train;
-						msg[3] = '\0';
-						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Trains command.\r\n");
+						bwassert(Send(trainTID, &msg[0], 3, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Trains command.\r\n");
 
-						*arg2 = speed;
 						if(reply[0] == '1')
 							 return COMMAND_TR;
 						else
 							 return COMMAND_LOCKEDTRAINT;
 						break;
+
+					case(DFA_RV_1):
+					case(DFA_RV_2):
+					case(DFA_RV_3):
+						//Reverses train
+						msg[0] = COMMAND_RV;
+						msg[1] = train;
+						bwassert(Send(trainTID, &msg[0], 2, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Reverse command.\r\n");
+
+					//go to speed 0
+
+						*arg1 = train;
+						*arg2 = reply[0];	
+
+						if(reply[1]-'0'){
+							return COMMAND_RV;
+						}
+						else{
+							 return COMMAND_LOCKEDTRAINR;
+						}
+
+						break;
+
 					case(DFA_SW_1):
 					case(DFA_SW_2):
 
 						*arg1 = sw;
 						*arg2 = swd;
 
-            					msg[0] = 'S';
+            					msg[0] = COMMAND_SW;
 						msg[1] = sw;
 						msg[2] = swd;
 						msg[3] = '\0';
-						if( sw > 20  && sw < 153)return COMMAND_INVALID;
+						if( sw > 20)return COMMAND_INVALID;
 					
 						bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Switch command.\r\n");
 
 						return COMMAND_SW;
 						break;
-					case(DFA_SENSOR_PING):
+					//case(DFA_SENSOR_PING):
 						//poll_sensor(glbv);
-						return COMMAND_PN;
-						break;
+						//return COMMAND_PN;
+						//break;
 					case(DFA_SS_1):
 					case(DFA_SS_2):
 					case(DFA_SS_3):
@@ -230,14 +231,24 @@ int parseCommand(char * input, int * arg1, int * arg2, int * arg3){
 
 
 
-                        msg[0] = 'I';
-                        msg[1] = train;
-                        msg[2] = sens;
-                        msg[3] = '\0';
+                        			msg[0] = 'I';
+                        			msg[1] = train;
+                        			msg[2] = sens;
+                        			msg[3] = '\0';
 
-                        bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Init sensor command.\r\n");
+                        			bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Init sensor command.\r\n");
 
 						return COMMAND_IS;
+						break;
+					case(DFA_MP_1):
+						//#define SENSOR_RAW_SINGLE 2
+						*arg1 = sens;
+                        			msg[0] = 2;
+                        			msg[1] = sens;
+
+                        			bwassert(Send(spTID, &msg[0], 2, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send manual ping sensor command.\r\n");
+						return COMMAND_PN;
+						break;
 					default:
 						break;
 			}
@@ -279,6 +290,10 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
                 case 'i':
                     return 45; //i
                     break;
+    		case 'm':
+                    return 63; //m
+                    break;
+
                 default :
                     return DFA_ERROR;
                     break;  
@@ -1322,8 +1337,96 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
                     break;  
             }
             break;
-
-
+        case 63: //just a m
+            switch(c){
+                case 'p':
+                    return 64; //mp
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 64: //just a mp
+            switch(c){
+                case ' ':
+                    return 65; //'mp '
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 65: //just a 'mp '
+            switch(c){
+                case 'A':
+                case 'B':
+                case 'C':
+                case 'D':
+                case 'E':
+                    { *sens = (c - 'A')*16;
+                    }
+                    return 66;//mp [ABCDE];
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 66: //just a 'mp [A-E]'
+            switch(c){
+                case '0':
+                    return 67;//mp #0;
+                    break;
+ 
+                case '1':
+                    return 68;//mp #1;
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 67: //just a 'mp #0'
+            switch(c){
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    { *sens += (c - '0');
+                    }
+                    *terminator = 1;
+                    return 69;//mp #0[19];
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
+        case 68: //just a 'mp #1'
+            switch(c){
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                    { *sens += (c - '0')+10;
+                    }
+                    *terminator = 1;
+                    return 69;//mp #1[06];
+                    break;
+                default :
+                    return DFA_ERROR;
+                    break;  
+            }
+            break;
 
 
         default:

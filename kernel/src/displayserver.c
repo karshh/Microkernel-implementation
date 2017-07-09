@@ -99,7 +99,7 @@ void displayServer() {
 	int Prompt_TID = -1; //created when train init is done
 	int Death_TID = -1; //created with quit command issued
 
-	Create(14, (void *) displaySensors); //will be moved later to train server
+	//Create(14, (void *) displaySensors); //will be moved later to train server
 	Create(15, (void *) displayClock); //displays clock
 	Create(4, (void *) trainTask); //creates and runs this task imediatly
 	//since this task is higher than any in display server side, trainserver should be registered to nameserver when we return
@@ -107,8 +107,8 @@ void displayServer() {
 
 
     int _tid = -1;
-    char msg[64];
-    int msgCap = 64;
+    char msg[100];
+    int msgCap = 100;
     int msgLen = -1;
     int cursorCol = 0;
     // sensor variables'
@@ -167,7 +167,7 @@ void displayServer() {
                 break;
 
         	case COMMAND_PN:
-                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KPinging Sensors manually.\033[34;1H>");
+                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KPinging Sensor %c%2d manually.\033[34;1H>",((msg[1]-1)/16)+'A', ((msg[1]-1)%16)+1);
                 break;
 
         	case COMMAND_LOADING:
