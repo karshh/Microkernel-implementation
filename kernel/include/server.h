@@ -116,7 +116,7 @@ void trainStopServer();
 
 
 int stopDistance(int velocity);
-void initTrains(int csTID, int commandServerTID, int dspTID);
+void initTrains(int csTID, int commandServerTID, int dspTID, int trackServerTID);
 
 /*****************************************************************************
 SENSORSERVER

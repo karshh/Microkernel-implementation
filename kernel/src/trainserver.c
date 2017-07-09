@@ -22,7 +22,7 @@
 //#define COMMAND_LI  14 //turn on lights    (controller)
 //#define COMMAND_RV 12 //reverse train (controller)
 
-void initTrains(int csTID, int commandServerTID, int dspTID){
+void initTrains(int csTID, int commandServerTID, int dspTID, int trackServerTID){
     	char msg[64];
     	char rpl[3];
     	int rpllen = 3;
@@ -33,14 +33,14 @@ void initTrains(int csTID, int commandServerTID, int dspTID){
 			msg[1] =  0;
 			msg[2] = i;
 			msg[3] = 0;
-			bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+			bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<initTrains>: Error sending message to CommandServer.\r\n");
 
 			//send message to display thaat trains are initilizaing
 			msg[0] = COMMAND_TRAIN_INIT; //no warning
 			msg[1] = 0;
 			msg[2] = i;//position (0..17)
 			msg[3] = 0;
-			bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+			bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<initTrains>: Displaying switches failed."); 
 			Delay(csTID,5);
 	}
 	Delay(csTID,436);
@@ -49,49 +49,15 @@ void initTrains(int csTID, int commandServerTID, int dspTID){
 	msg[1] = 1;
 	msg[2] = 0;//position (0..17)
 	msg[3] = 0;
-	bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+	bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<initTrains>: Displaying switches failed."); 
+
+
 ////////////////////////////// move below to trackserver
 	//init switches
-	for (i=1; i <= 18; i++){
-	//	node[i+80].switchConfig = C;
-		msg[0] = COMMAND_SW;
-		msg[1] = 34;
-		msg[2] = i;
-		msg[3] = 0;
-		bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-	//	update_switch(i, &t, &trainExpectedSensor[0]); //updates the display
-	}
 
-	//node[99].switchConfig = CS;
-	msg[0] = COMMAND_SW;
-	msg[1] = 34;
-	msg[2] = 153;
-	msg[3] = 0;
-	bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-	//update_switch(153, &t); //updates the display
-	
-	msg[0] = COMMAND_SW;
-	msg[1] = 33;
-	msg[2] = 154;
-	msg[3] = 0;
-	bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-	//update_switch(154, &t, &trainExpectedSensor[0]); //updates the display
-
-	//node[100].switchConfig = CS;
-	msg[0] = COMMAND_SW;
-	msg[1] = 34;
-	msg[2] = 155;
-	msg[3] = 0;
-	bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-	//update_switch(155, &t); //updates the display
-	
-	msg[0] = COMMAND_SW;
-	msg[1] = 33;
-	msg[2] = 156;
-	msg[3] = 0;
-	bwassert(Send(commandServerTID, msg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-	//update_switch(156, &t, &trainExpectedSensor[0]); //updates the display
-	
+	msg[0] = TRACK_INITSW;
+	msg[1] = 0;
+	bwassert(Send(trackServerTID, msg, 2, rpl, rpllen) >= 0, COM2, "<initTrains>: Displaying switches failed."); 
 
 //////////////////////////// move above to trackserver
 	//send message to display that init is done. allow command line input
@@ -99,7 +65,7 @@ void initTrains(int csTID, int commandServerTID, int dspTID){
 	msg[1] = 2;
 	msg[2] = 0;//position (0..17)
 	msg[3] = 0;
-	bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
+	bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<initTrains>: Displaying switches failed."); 
 
 }
 
@@ -121,7 +87,8 @@ void trainServer(){
 	int sw;
 	int swd;
    //////////////////////////////////////
- 	initTrains(csTID,commandServerTID, dspTID);
+	int trackTID = Create(23,(void *)trackServer);
+ 	initTrains(csTID,commandServerTID, dspTID, trackTID);
 
 	int tr58TID = Create(3,(void *)trainProfile);
 	int tr76TID = Create(3,(void *)trainProfile);
@@ -130,9 +97,10 @@ void trainServer(){
 		msgLen = Receive(&_tid, msg, msgCap);
 		switch(msg[0]){
 			case TRAINS_GETPROFILEID:
-				if(_tid == tr58TID) msg[0] = 58;
-				if(_tid == tr76TID) msg[0] = 76;
-		        	Reply(_tid,msg, 1); 
+				if(_tid == tr58TID) rpl[0] = 58;
+				if(_tid == tr76TID) rpl[0] = 76;
+				rpl[1] = 0;
+		        	Reply(_tid,rpl, 2); 
 				break;
 			case COMMAND_SW:
 				//must be moved to track server

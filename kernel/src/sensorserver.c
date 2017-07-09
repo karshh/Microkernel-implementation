@@ -122,6 +122,7 @@ void sensorDisplayCourier(){
 //passes data from sensorProcessor and sensor Server;
 	int ssTID = MyParentTid(); //sensor processor
 	int dspTID = WhoIs("displayServer");
+	int trackServerTID = WhoIs("trackServer");
 	char recentSensors[81];//81
 	char rpl[3];
 	int rpllen = 3;
@@ -134,8 +135,8 @@ void sensorDisplayCourier(){
 		//wait on sensor processor, and get sensor library
 		bwassert(Send(ssTID, msg, 2,recentSensors, 81) >= 0, COM2, "<sensorDisplayCourier>: Getting recenent sensor list from sensor processor failed."); //poll sensors
 		recentSensorsLen = recentSensors[0];
-		recentSensors[0] = ALERT_SENSORPING;
-		bwassert(Send(dspTID,recentSensors, recentSensorsLen,rpl,rpllen) >= 0, COM2, "<sensorDisplayCourier>: Sending sensor recent sensor list to display sensor server failed."); //poll sensors
+		recentSensors[0] = TRACK_SENSORUPDATE;
+		bwassert(Send(trackServerTID,recentSensors, recentSensorsLen,rpl,rpllen) >= 0, COM2, "<sensorDisplayCourier>: Sending sensor recent sensor list to track sensor server failed."); //poll sensors
 	}
 	Exit();
 }

@@ -14,6 +14,8 @@ void trackServer() {
 
 	bwassert(!RegisterAs("trackServer"), COM2, "Failed to register trackServer.\r\n");
 	int commandServerTID = WhoIs("commandServer");
+	bwassert(commandServerTID >= 0, COM2, "Failed to get CommandServerTID.\r\n");
+
 	int dspTID = WhoIs("displayServer");
 	int trainTID = WhoIs("trainServer");
 	int csTID = WhoIs("clockServer");
@@ -34,7 +36,7 @@ void trackServer() {
 
     char commandMsg[8];
     char rpl[32];
-    int rpllen = 0;
+    int rpllen = 32;
     char dspMsg[128];
 
     volatile int i = 0;
@@ -76,10 +78,11 @@ void trackServer() {
 				//init switches
 				for (i=1; i <= 18; i++){
 					node[i+80].switchConfig = C;
-					commandMsg[0] = 'S';
+					commandMsg[0] = COMMAND_SW;
 					commandMsg[1] = node[i+80].switchConfig == S ? 33 : 34;
 					commandMsg[2] = i;
 					commandMsg[3] = 0;
+
 					bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
 					update_switch(i, &t, &trainExpectedSensor[0]); //updates the display
 				}
@@ -87,13 +90,13 @@ void trackServer() {
 				for (i = 99; i <= 100; i++) {
 
 					node[i].switchConfig = CS;
-					commandMsg[0] = 'S';
+					commandMsg[0] = COMMAND_SW;
 					commandMsg[1] = 34;
 					commandMsg[2] = i == 99 ? 153 : 155;
 					commandMsg[3] = 0;
 					bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
 					
-					commandMsg[0] = 'S';
+					commandMsg[0] = COMMAND_SW;
 					commandMsg[1] = 33;
 					commandMsg[2] = i == 99 ? 154 : 156;
 					commandMsg[3] = 0;
@@ -129,11 +132,11 @@ void trackServer() {
 						for (i = 58; i < 80; i++) {
 							if (trainDestinationSensor[i] == msg[j]) {
 	
-								// commandMsg[0] = 'T';
-								// commandMsg[1] = 0;
-								// commandMsg[2] = i;
-								// commandMsg[3] = 0;
-								// bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
+								commandMsg[0] = COMMAND_TR;
+								commandMsg[1] = 0;
+								commandMsg[2] = i;
+								commandMsg[3] = 0;
+								bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
 													}
 							if (trainExpectedSensor[i] == msg[j] || msg[j] == findNextSensor(&t,trainExpectedSensor[i], &distSensor)) {
 								trainCurrentSensor[i] = msg[j];
@@ -196,7 +199,7 @@ void trackServer() {
 								case C:
 									if (node[path[i]].CnextNodeIndex == path[i-1]) break;
 									node[path[i]].switchConfig = S;
-									commandMsg[0] = 'S';
+									commandMsg[0] = COMMAND_SW;
 									commandMsg[1] = 33;
 									commandMsg[2] = path[i] - 80;
 									commandMsg[3] = 0;
@@ -206,7 +209,7 @@ void trackServer() {
 								case S:
 									if (node[path[i]].SnextNodeIndex == path[i-1]) break;
 									node[path[i]].switchConfig = C;
-									commandMsg[0] = 'S';
+									commandMsg[0] = COMMAND_SW;
 									commandMsg[1] = 34;
 									commandMsg[2] = path[i] - 80;
 									commandMsg[3] = 0;
@@ -224,13 +227,13 @@ void trackServer() {
 								case CS:
 									if (node[path[i]].CSnextNodeIndex == path[i-1]) break;
 									node[path[i]].switchConfig = SC;
-									commandMsg[0] = 'S';
+									commandMsg[0] = COMMAND_SW;
 									commandMsg[1] = 33;
 									commandMsg[2] = path[i] == 99 ? 153 : 155;
 									commandMsg[3] = 0;
 									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
 									update_switch(path[i] == 99 ? 153 : 155, &t, &trainExpectedSensor[0]); //updates the display
-									commandMsg[0] = 'S';
+									commandMsg[0] = COMMAND_SW;
 									commandMsg[1] = 34;
 									commandMsg[2] = path[i] == 99 ? 154 : 156;
 									commandMsg[3] = 0;
@@ -241,13 +244,13 @@ void trackServer() {
 								case SC:
 									if (node[path[i]].SCnextNodeIndex == path[i-1]) break;
 									node[path[i]].switchConfig = CS;
-									commandMsg[0] = 'S';
+									commandMsg[0] = COMMAND_SW;
 									commandMsg[1] = 34;
 									commandMsg[2] = path[i] == 99 ? 153 : 155;
 									commandMsg[3] = 0;
 									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
 									update_switch(path[i] == 99 ? 153 : 155, &t, &trainExpectedSensor[0]); //updates the display
-									commandMsg[0] = 'S';
+									commandMsg[0] = COMMAND_SW;
 									commandMsg[1] = 33;
 									commandMsg[2] = path[i] == 99 ? 154 : 156;
 									commandMsg[3] = 0;
@@ -285,7 +288,7 @@ void trackServer() {
 
 				}
 				if(sw < 19){
-					commandMsg[0] = 'S';
+					commandMsg[0] = COMMAND_SW;
 					commandMsg[1] = swd == 'S' ? 33 : 34;
 					commandMsg[2] = sw;
 					commandMsg[3] = 0;
@@ -296,13 +299,13 @@ void trackServer() {
 					//D = CS = 34:33	 T = SC = 33:34
 
 
-					commandMsg[0] = 'S'; 
+					commandMsg[0] = COMMAND_SW; 
 					commandMsg[1] = swd == 'D' ? 34 : 33;
 					commandMsg[2] = 153;
 					commandMsg[3] = 0;
 					bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 
-					commandMsg[0] = 'S';
+					commandMsg[0] = COMMAND_SW;
 					commandMsg[1] = swd == 'D' ? 33 : 34; 
 					commandMsg[2] = 154;
 					commandMsg[3] = 0;
@@ -316,13 +319,13 @@ void trackServer() {
 					//D = CS = 34:33	 T = SC = 33:34
 
 
-					commandMsg[0] = 'S'; 
+					commandMsg[0] = COMMAND_SW; 
 					commandMsg[1] = swd == 'D' ? 34 : 33;
 					commandMsg[2] = 155;
 					commandMsg[3] = 0;
 					bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 
-					commandMsg[0] = 'S';
+					commandMsg[0] = COMMAND_SW;
 					commandMsg[1] = swd == 'D' ? 33 : 34; 
 					commandMsg[2] = 156;
 					commandMsg[3] = 0;

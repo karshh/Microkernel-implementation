@@ -147,7 +147,7 @@ void commandServer() {
 					}
 					else{
 						Reply(_tid, "0", 2);
-				break;
+						break;
 					}
 
 			case COMMAND_PN: // polling sensors
