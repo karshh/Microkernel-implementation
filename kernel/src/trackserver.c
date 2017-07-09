@@ -113,21 +113,23 @@ void trackServer() {
 
 			case TRACK_SENSORUPDATE:
 
+				bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to display server.\r\n");
+
 				for (j = 1; j < msgLen; j++) {
-					curSensorTime = getTicks4(0); //in ms
-					curSensorTimeT = Time(csTID);
+					// curSensorTime = getTicks4(0); //in ms
+					// curSensorTimeT = Time(csTID);
 					curSensor = msg[j];
 					//for train velocity model
 					//get distance between the current and last sensor in most direct route.
-					if(prevSensor && prevSensor != curSensor){
-						int path[102];
-						int pathLength = 0;
-						getShortestPath(&t,  prevSensor, curSensor,path, &pathLength);
+					if(prevSensor != curSensor){
+						//int path[102];
+						//int pathLength = 0;
+						//getShortestPath(&t,  prevSensor, curSensor,path, &pathLength);
 
 						nextSensor = findNextSensor(&t,curSensor, &distSensor);
 
-						prevSensorTime = curSensorTime;
-						prevSensorTimeT = curSensorTimeT;
+						// prevSensorTime = curSensorTime;
+						// prevSensorTimeT = curSensorTimeT;
 						prevSensor = curSensor;
 					
 						for (i = 58; i < 80; i++) {
