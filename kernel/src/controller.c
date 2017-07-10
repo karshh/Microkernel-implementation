@@ -243,7 +243,7 @@ int parseCommand(char * input, int * arg1, int * arg2, int * arg3){
 					case(DFA_MP_1):
 						//#define SENSOR_RAW_SINGLE 2
 						*arg1 = sens;
-                        			msg[0] = 2;
+                        			msg[0] = SENSOR_RAW_SINGLE;
                         			msg[1] = sens;
 
                         			bwassert(Send(spTID, &msg[0], 2, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send manual ping sensor command.\r\n");
@@ -256,6 +256,7 @@ int parseCommand(char * input, int * arg1, int * arg2, int * arg3){
 		return COMMAND_INVALID;
 
 	}
+
     // silencing warning.
     return COMMAND_INVALID;
 }

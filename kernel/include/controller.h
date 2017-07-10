@@ -38,11 +38,15 @@
 
 #define TRACK_INITSW 			1
 #define TRACK_VELOCITY			2
-#define TRACK_SENSORUPDATE		3
+#define TRACK_SENSORUPDATE		35
 #define TRACK_SS				4
 #define TRACK_IS				5
 #define TRACK_SW				6
 #define TRACK_GETNEXTSENSOR			7 //adjust if conflict
+
+
+#define SENSOR_CURRENT_SENSOR_STATUS		1 //adjust if conflict
+#define SENSOR_RAW_SINGLE 			2 //(controller.h)
 
 #define DFA_INIT 0
 #define DFA_ERROR -1

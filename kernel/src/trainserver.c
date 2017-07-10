@@ -11,6 +11,11 @@
 #include "controller.h"
 #include "time.h"
 
+
+//Please stop moving local macro's out of this c file. non-local exposed macros go to controller.h or an agreed apon macro header file
+//trainserver/sensorserver c files tell what are possible entires for each server with exposed or duplicate functions commented
+//out and refrenced where to find macro.
+
 //train server codes
 #define TRAINS_GETPROFILEID 1
 //#define COMMAND_TR 13 //set train speed   (controller)
@@ -21,6 +26,7 @@
 
 //train profile codes
 #define TRAIN_WORKER_READY 1
+#define TRAIN_WORKER_IS_REPLY 2
 //#define COMMAND_TR 13 //set train speed   (controller)
 //#define COMMAND_LI  14 //turn on lights    (controller)
 //#define COMMAND_IS	22 //Init at sensor "IS <TR> <SEN>" (controller)
@@ -224,6 +230,7 @@ void trainProfile(){ //will replace trainVelocityServer
 	int wkr2TID = Create(6,(void *)trainWorker);
 	int wkr1Status = WORKER_INIT;
 	int wkr2Status = WORKER_INIT;
+	trainWorkerSensorReportStruct tws;
 
 
 
@@ -232,6 +239,7 @@ void trainProfile(){ //will replace trainVelocityServer
 		msgLen = Receive(&_tid, msg, msgCap);
 		switch(msg[0]){
 			case TRAIN_WORKER_READY:
+				iodebug(dspTID, "D23 TRAINWORKER READY");
 				if(_tid == wkr1TID){
 					wkr1Status = WORKER_READY;
 				}
@@ -241,7 +249,7 @@ void trainProfile(){ //will replace trainVelocityServer
 				else{
 					bwassert(0,COM2, "<trainProfile %dr> someone [%d] calling himmself my worker who i don't know is telling me he's ready", trNumber, _tid);
 				}
-				
+				break;
 			case COMMAND_LI:
 				if(lightFlag) 
 					lightFlag = 0;
@@ -291,25 +299,47 @@ void trainProfile(){ //will replace trainVelocityServer
 				msg[1] = currentSensor;
 				bwassert(Send(tsTID, msg, 2, &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
 				if (tns.nextSensor == -1) {
-					iodebug(dspTID, "D25 IS command for tr %d failed, no next sensor from sensor %d",trNumber,currentSensor);
 				}else{
-					iodebug(dspTID, "D25 IS command for tr %d sucessful. next sensor to %d is %d",trNumber,currentSensor, tns.nextSensor);
+					
 
-				//send first child
-				if(wkr1Status == WORKER_READY){
-					iodebug(dspTID, "D25Train %d, IS WORKER 1 is ready",trNumbear);
-					msg[0] = TRAIN_WORKER_IS_SENSOR;
-					msg[1] = currentSensor;
-					Reply(wkr1TID,msg,2);
-				}else{
-					iodebug(dspTID, "D25Train %d, IS WORKER 1 is not ready",trNumbear);
+					//send first child
+					//wkr1 &2 used only for IS
+					if(wkr1Status == WORKER_READY){
+						iodebug(dspTID, "D25Train %d, IS WORKER 1 is ready",trNumber);
+						msg[0] = TRAIN_WORKER_IS_SENSOR;
+						msg[1] = currentSensor;
+						wkr1Status = WORKER_IS1;
+						Reply(wkr1TID,msg,2);
+					}
+					if(wkr2Status == WORKER_READY){
+						iodebug(dspTID, "D25Train %d, IS WORKER 2 is ready",trNumber);
+						msg[0] = TRAIN_WORKER_IS_SENSOR;
+						msg[1] = tns.nextSensor;
+						wkr2Status = WORKER_IS2;
+						Reply(wkr2TID,msg,2);
+					}
+
+
 				}
-				//send 2nd child
-
-
+				break;
+			case TRAIN_WORKER_IS_REPLY:
+		        	Reply(_tid, 0, 1); //k let the worker do it's thing now.
+				if(_tid == wkr1TID){
+					pkmemcpy((void *)&tws, (void *)msg, sizeof(trainWorkerSensorReportStruct));
+					if(wkr1Status == WORKER_IS1){
+						iodebug(dspTID, "D14 %d 's WKR1 is reply %d %d",trNumber,tws.sensor,tws.error,tws.lastSensorTime);
+					}
+				}
+				if(_tid == wkr2TID){
+					pkmemcpy((void *)&tws, (void *)msg, sizeof(trainWorkerSensorReportStruct));
+					if(wkr2Status == WORKER_IS2){
+						iodebug(dspTID, "D15 %d 's WKR2 is reply %d %d",trNumber,tws.sensor,tws.error,tws.lastSensorTime);
+					}
 				}
 
-
+				else{
+		        		Reply(_tid, 0, 1); //seriosly, why are you even here?
+				}
 				break;
 			default:
 		        	Reply(_tid, 0, 1); //seriosly, why are you even here?
@@ -325,9 +355,8 @@ void trainProfile(){ //will replace trainVelocityServer
 void trainWorker(){ 
 	int trTID = MyParentTid(); //train associated with this worker
 	int dspTID = WhoIs("displayServer"); //used for debugging
-	int ssTID = WhoIs("sensorserver");//used for sensor quering
+	int ssTID = WhoIs("sensorServer");//used for sensor quering
 	int csTID = WhoIs("clockServer");//used for delaying
-
     	char msg[64];
     	int msgCap = 64;
 	char rpl[64];
@@ -335,13 +364,69 @@ void trainWorker(){
 	int msgLen = 0;
 
 	int sensor;
+	sensorCurrentStatusStruct scs;
+	trainWorkerSensorReportStruct tws;
+	int first_sensorTime;
+	int poll_limit =0;
 	
+				iodebug(dspTID, "D6 SENSOR TID%d ",ssTID);
 	while(1){
 		msg[0] = TRAIN_WORKER_READY;
-		Send(tsTID, msg, 1, rpl, rpllen);
-		switch(rpl[0]){
-			TRAIN_WORKER_IS_SENSOR:
+		Send(trTID, msg, 1, rpl, rpllen);
+		switch(rpl[0]){ //jobs...don't return till job is finished
+			case TRAIN_WORKER_IS_SENSOR:
+				iodebug(dspTID, "D5 IS WORKER 1 is ready");
+				sensor = rpl[1];
+				msg[0] = SENSOR_CURRENT_SENSOR_STATUS;
+				msg[1] = sensor;
+				iodebug(dspTID, "D6 %d sensor",sensor);
+				iodebug(dspTID,"D9 sendErr %d",Send(ssTID, msg, 2, &scs, sizeof(sensorCurrentStatusStruct)));
+				iodebug(dspTID, "D10 %d",scs.sensor);
+				iodebug(dspTID, "D11 %d",scs.sensorHeld);
+
+				tws.message[0] = TRAIN_WORKER_IS_REPLY;
+				tws.sensor = sensor;
+				if(scs.sensor == -1){
+					iodebug(dspTID, "D12 invalid sensor");
+					//sensor is invalid sensor
+					tws.error = TWSR_INVALID_SENSOR;
+					 //invalid sensor	
+					 //let train know this sensor doesnt exist
+				}
+				else{
+					if(scs.sensorHeld){
+						iodebug(dspTID, "D12 sensor is held down");
+						//train stationary on is sensor or is stationary on is sensor
+						tws.error = TWSR_SUCCESS;
+						tws.lastSensorTime = scs.lastSensorTime;
+					}else{
+						iodebug(dspTID, "D12 sensor is not held down");
+						//cannot accept first sensor report unless if train is on sensor (could be super old, or just hit) but cant be used for calculating speed. get next hit sensor post withn 2 minutes
+						first_sensorTime = scs.lastSensorTime;
+						poll_limit = 0;
+						while(poll_limit < 20*60*1){
+							//poll once every 50ms for 2 minutes, else timeout;
+							Delay(csTID,5);
+							msg[0] = SENSOR_CURRENT_SENSOR_STATUS;
+							msg[1] = sensor;
+							Send(ssTID, msg, 2, &scs, sizeof(sensorCurrentStatusStruct));
+							if(scs.sensorHeld || (scs.lastSensorTime > first_sensorTime)){
+								tws.error = TWSR_SUCCESS;
+								tws.lastSensorTime = scs.lastSensorTime;
+								break;
+							}
+							poll_limit ++;
+						}
+						if(poll_limit == 20*60*1){
+							tws.error = TWSR_TIMEOUT;
+						}
+						iodebug(dspTID, "D13 sensorserver sensor asked:%d last time[%8d] held[%d]",scs.sensor, scs.lastSensorTime, scs.sensorHeld);
 					
+					}
+				}
+				Send(trTID, &tws, sizeof(trainWorkerSensorReportStruct), rpl, rpllen);
+				
+				
 				break;
 			default:
 				iodebug(dspTID, "D24 a trainworker got a wierd reply");

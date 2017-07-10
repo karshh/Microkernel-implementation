@@ -5,6 +5,32 @@
 #include "userRequestCall.h"
 #include "controller.h"
 
+//Please stop moving local macro's out of this c file. non-local exposed macros go to controller.h or an agreed apon macro header file
+//trainserver/sensorserver c files tell what are possible entires for each server with exposed or duplicate functions commented
+//out and refrenced where to find macro.
+
+//Sensor Server
+//
+//#define SENSOR_CURRENT_SENSOR_STATUS	1 (controller.h)
+#define SENSOR_COURIER_TO_SENSOR_SERVER 3
+#define SENSOR_COURIER_TO_DISPLAY_SERVER 4
+
+//Sensor Processor
+//
+#define SENSOR_RAW_BATCH 1
+//#define SENSOR_RAW_SINGLE 			2 //(controller.h)
+//#define SENSOR_COURIER_TO_SENSOR_SERVER 3
+
+#define SENSOR_BIT_MASK_1 0x80
+#define SENSOR_BIT_MASK_2 0x40
+#define SENSOR_BIT_MASK_3 0x20
+#define SENSOR_BIT_MASK_4 0x10
+#define SENSOR_BIT_MASK_5 0x08
+#define SENSOR_BIT_MASK_6 0x04
+#define SENSOR_BIT_MASK_7 0x02
+#define SENSOR_BIT_MASK_8 0x01
+
+
 
 void sensorServer(){
  //holds sensor database and communicates to outside
@@ -12,13 +38,18 @@ void sensorServer(){
 
  	sensorWarehouseStruct sw;
  	sensorCourierStruct sc;
+	sensorCurrentStatusStruct scs;
 	int dcTID = Create(3,(void *)sensorDisplayCourier); 
 	bwassert(dcTID >= 0, COM2, "<sensorServer>: sensor to display courier has not been set up.\r\n");
 	int dcWaiting =0;
+
+	int dspTID = WhoIs("displayServer"); //used for debugging
+
 	char msg[512];
     	int msgCap = 512;
 	int msgLen;
 	int unsentSensors =0;
+	
 
     	int _tid = -1;
 	int i =0;
@@ -35,11 +66,23 @@ void sensorServer(){
 	bwassert(spTID >= 0, COM2, "<sensorServer>: sensor processor has not been set up.\r\n");
 	
 	
-	
-	
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
 		switch(msg[0]){
+			case SENSOR_CURRENT_SENSOR_STATUS:
+				
+				if(msg[1] >= 1 && msg[1] <= 80){
+					scs.sensor = msg[1];
+					scs.lastSensorTime = sw.lastSensorTime[scs.sensor-1];
+					scs.sensorHeld = sw.sensorHeld[scs.sensor-1];
+				}
+				else{
+					scs.sensor = -1;
+				}
+				
+		        	Reply(_tid,(char *) &scs, sizeof(sensorCurrentStatusStruct)); //finished synching libary. send recent sensor report to display server.
+				break;
+
 			case SENSOR_COURIER_TO_DISPLAY_SERVER:
 				if(unsentSensors){
 					unsentSensors = 0;
@@ -64,9 +107,6 @@ void sensorServer(){
 					dcWaiting = 0;
 					
 				}
-				
-
-				break;
 			default:
 		        	Reply(_tid, "0", 2); //seriosly, why are you even here?
 				break;
