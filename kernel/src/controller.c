@@ -125,6 +125,8 @@ int parseCommand(char * input, int * arg1, int * arg2, int * arg3){
 	if(state > 0 && terminator == 1){
 				//push_message(glbv, "VALID COMMAND! CHOO CHOO MOTHERFUCKA!!", MESSAGE_VALID);
 				switch(state){
+					case(DFA_QUIT_TERMINATOR_HARD):
+						Quit(); //hard quits
 					case(DFA_QUIT_TERMINATOR):
 						return COMMAND_Q;
 					//	push_message(glbv, "Quiting!", MESSAGE_VALID);
@@ -230,14 +232,11 @@ int parseCommand(char * input, int * arg1, int * arg2, int * arg3){
 						*arg1 = train;
 						*arg2 = sens;
 
-
-
-                        			msg[0] = 'I';
+                        			msg[0] = COMMAND_IS;
                         			msg[1] = train;
                         			msg[2] = sens;
-                        			msg[3] = '\0';
 
-                        			bwassert(Send(trainTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Init sensor command.\r\n");
+                        			bwassert(Send(trainTID, &msg[0], 3, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Init sensor command.\r\n");
 
 						return COMMAND_IS;
 						break;
@@ -270,7 +269,11 @@ int nextState(int state, char c, int * terminator, int *train, int * speed, int 
 	case 'p':
                     *terminator = 1;
                     return DFA_SENSOR_PING;
+                 case 'Q':
+                    *terminator = 1;
+                    return DFA_QUIT_TERMINATOR_HARD;
                     break;
+                 break;
 
                 case 'q':
                     *terminator = 1;

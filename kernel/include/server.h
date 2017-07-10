@@ -41,8 +41,16 @@ int nameServerRun();
 void NameServerTask();
 
 /************************************************
-TRAINSERVER
+TRACKSERVER
 *************************************************/
+typedef struct trackNextSensorstruct {
+	int curSensor ; //4
+	int nextSensor; //4
+	int dist ; //4
+	//12 bytes
+} trackNextSensorstruct;
+
+
 void trackServer();
 
 /*************************************************

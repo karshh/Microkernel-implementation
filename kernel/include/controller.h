@@ -42,6 +42,7 @@
 #define TRACK_SS				4
 #define TRACK_IS				5
 #define TRACK_SW				6
+#define TRACK_GETNEXTSENSOR			7 //adjust if conflict
 
 #define DFA_INIT 0
 #define DFA_ERROR -1
@@ -62,6 +63,7 @@
 #define DFA_SS_3 62 //ss ### #1 [#]^[1-*]
 #define DFA_IS_1 56 //change
 #define DFA_MP_1 69 //mp <SEN>
+#define DFA_QUIT_TERMINATOR_HARD 70 //HARD QUIT to test on trackless computer. (Capital Q)
 #define DFA_SENSOR_PING 90
 
 

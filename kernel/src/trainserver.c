@@ -16,10 +16,13 @@
 //#define COMMAND_TR 13 //set train speed   (controller)
 //#define COMMAND_LI  14 //turn on lights    (controller)
 //#define COMMAND_RV 12 //reverse train (controller)
+//#define COMMAND_IS	22 //Init at sensor "IS <TR> <SEN>" (controller)
+//#define TRACK_GETNEXTSENSOR  7//reverse train (controller) //remove when moved to trackserver
 
 //train profile codes
 //#define COMMAND_TR 13 //set train speed   (controller)
 //#define COMMAND_LI  14 //turn on lights    (controller)
+//#define COMMAND_IS	22 //Init at sensor "IS <TR> <SEN>" (controller)
 //#define COMMAND_RV 12 //reverse train (controller)
 
 void initTrains(int csTID, int commandServerTID, int dspTID, int trackServerTID){
@@ -52,14 +55,12 @@ void initTrains(int csTID, int commandServerTID, int dspTID, int trackServerTID)
 	bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<initTrains>: Displaying switches failed."); 
 
 
-////////////////////////////// move below to trackserver
 	//init switches
 
 	msg[0] = TRACK_INITSW;
 	msg[1] = 0;
 	bwassert(Send(trackServerTID, msg, 2, rpl, rpllen) >= 0, COM2, "<initTrains>: Displaying switches failed."); 
 
-//////////////////////////// move above to trackserver
 	//send message to display that init is done. allow command line input
 	msg[0] = COMMAND_TRAIN_INIT; //no warning
 	msg[1] = 2;
@@ -85,10 +86,6 @@ void trainServer(){
     	int rpllen = 3;
 	int msgLen = 0;
 
-	//move to trackserver
-	int sw;
-	int swd;
-   //////////////////////////////////////
  	initTrains(csTID,commandServerTID, dspTID, trackTID);
 
 	int tr58TID = Create(23,(void *)trainProfile);
@@ -96,13 +93,17 @@ void trainServer(){
 
 
 	iodebug(dspTID, "D5SUCH TRAINS");
-	iodebug(dspTID, "D10CHOOCHOO MOTHERFUCKERS!");
-	iodebug(dspTID, "D%dThis is an IOStream test: %d %c %d %c", 15, COMMAND_DEBUG, COMMAND_DEBUG, COMMAND_DEBUG, COMMAND_DEBUG);
-	iodebug(dspTID, "D21Time(csTID)=%d", Time(csTID));
-	iodebug(dspTID, "D22Look up section of the code that prints this in trainserver.c:99 and remove it.");
-	iodebug(dspTID, "D23I left it intentionally here to serve as an example.");
+	iodebug(dspTID, "D1TID is %d", MyTid() );
+///////////////////////// MOVE BELOW TO TRACKSERVER
+	//delete and migrate to trackserver
+	TrackGraph t;
+	TrackGraphInit(&t);
+	TrackGraphNode * node = t.node;
+	//delete above and migrate to trackserver
+	trackNextSensorstruct tns; //struct decleration in server.h
 
 
+//////////////////////// MOVE ABOVE TO TRACKSERVER
 
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
@@ -147,9 +148,35 @@ void trainServer(){
 						break;
 				}		
 				break;
+			case COMMAND_IS:
+				switch(msg[1]){
+					case 58:
+		        			Reply(_tid, "1", 2);
+						bwassert(Send(tr58TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+						break;
+					case 76:
+		        			Reply(_tid, "1", 2);
+						bwassert(Send(tr76TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+
+						break;
+					default:
+		        			Reply(_tid, "0", 2); //seriosly, why are you even here?
+						break;
+				}		
+				break;
+
+				break;
+///////////////////////// MOVE BELOW TO TRACKSERVER
+			case TRACK_GETNEXTSENSOR:
+					tns.curSensor = msg[1];	
+					tns.nextSensor = findNextSensor(&t, tns.curSensor, &(tns.dist)); //return -1 if i'm at a dead end and there are no more sensors on this route
+					iodebug(dspTID, "D24GETNEXTSENSOR cur:%d, next:%d, dist:%d",tns.curSensor, tns.nextSensor, tns.dist);
+		        		Reply(_tid, &tns, sizeof(trackNextSensorstruct)); //send the nextSEnsor Stuct (12 bytes). Note no need to format integers into characters, just send raw bytes.
+					break;
+//////////////////////// MOVE ABOVE TO TRACKSERVER
 			default:
 					// changed this to a bwassert since bugs were silently passing through here causing me a debugging headache.
-					bwassert(0,COM2, "<trainServer> seriosly, why are you even here?");
+					bwassert(0,COM2, "<trainServer> INVALIDE CASE [%d] seriosly, why are you even here?",msg[0]);
 		        	
 				break;
 		}
@@ -158,8 +185,9 @@ void trainServer(){
 }
 
 void trainProfile(){ //will replace trainVelocityServer
-	int trainServer = MyParentTid();
+	int tsTID = MyParentTid();
 	int commandServerTID = WhoIs("commandServer");
+	int dspTID = WhoIs("displayServer");
 	int trNumber = 0;
 	int trSpeed = 0;
 	int lightFlag = 0;
@@ -167,14 +195,24 @@ void trainProfile(){ //will replace trainVelocityServer
 
     	char msg[64];
     	int msgCap = 64;
-	char rpl[3];
-	char rpllen = 3;
+	char rpl[64];
+	char rpllen = 64;
 	int msgLen = 0;
+	
+	int init_status = 0;
+	int currentSensor = -1;
+	int nextSensor =-1;
+	int dist =0;
+	int velocity =0;
+	trackNextSensorstruct tns;
 
 	msg[0] = TRAINS_GETPROFILEID;
-	Send(trainServer, msg, 1, rpl, rpllen);
+	Send(tsTID, msg, 1, rpl, rpllen);
 	trNumber = rpl[0];
 	if(!trNumber) Exit();
+
+	
+
 
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
@@ -214,7 +252,44 @@ void trainProfile(){ //will replace trainVelocityServer
 				msg[0] = trSpeed;
 				msg[1] = rpl[0];
 		        	Reply(_tid, msg, 2);
+			case COMMAND_IS: //initialize sensor
+				//purpose of IS to determine where the train is and get initial velocity.
+				// since we don't know what speed the train is at when is is called (could be at constant speed/in the middle of changing speeds/at rest)
+				//we can't estimate the time when the next two sensors are hit. must rely on sensorserver to wake up. 
+				//right now assume no faulty sensors, but will fix this later.
+				init_status = 0;
+				iodebug(dspTID, "D2 parent TID %d", tsTID);
 
+		        	Reply(_tid, msg, 2);
+				currentSensor = msg[2]; //get is sensor
+				msg[0] = TRACK_GETNEXTSENSOR;
+				msg[1] = currentSensor;
+				bwassert(Send(tsTID, msg, 2, &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
+				if (tns.nextSensor == -1) {
+					iodebug(dspTID, "D25 IS command for tr %d failed, no next sensor from sensor %d",trNumber,currentSensor);
+				}else{
+					iodebug(dspTID, "D25 IS command for tr %d sucessful. next sensor to %d is %d",trNumber,currentSensor, tns.nextSensor);
+				}
+/*
+				currentSensor = msg[2]; //get is sensor
+				msg[0] = TRACK_GETNEXTSENSOR;
+				msg[1] = currentSensor;
+				bwassert(Send(tsTID, msg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+				pkmemcpy((void *) &tns,(void *) rpl, sizeof(trackNextSensorstruct));//convert message to sensor courier struct
+				if (tns.nextSensor == -1) {
+					iodebug(dspTID, "D25 IS command for tr %d failed, no next sensor from sensor %d",trNumber,currentSensor);
+				}else{
+					iodebug(dspTID, "D25 IS command for tr %d sucessful. next sensor to %d is %d",trNumber,currentSensor, tns.nextSensor);
+				}
+*/
+
+
+				//send first child
+
+				//send get next sensor info
+				//send 2nd child
+
+				break;
 			default:
 		        	Reply(_tid, 0, 1); //seriosly, why are you even here?
 				break;
@@ -225,6 +300,21 @@ void trainProfile(){ //will replace trainVelocityServer
 	
 
 }
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////
+//
+//	HERE BE DRAGONS AND DINOSAURS WAITING FOR EXTINCTION
+//
+//////////////////////////////////////////
 
 int stopDistance(int velocity){
         int v[7];
