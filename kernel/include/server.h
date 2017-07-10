@@ -137,6 +137,12 @@ void trainTask(); //will be called by displayServer, code in userTasks
 
 void trainServer();
 void trainProfile(); //will replace trainVelocityServer
+void trainWorker(); // child worker used to do work for any given train
+
+typedef enum WORKER_STATE {
+	WORKER_INIT,
+	WORKER_READY
+} WORKER_STATE;
 
 
 void trainVelocityServer(); //holds velocity/position information for mutiple trains //will be replaced by trainProfile

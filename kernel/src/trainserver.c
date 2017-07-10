@@ -20,10 +20,17 @@
 //#define TRACK_GETNEXTSENSOR  7//reverse train (controller) //remove when moved to trackserver
 
 //train profile codes
+#define TRAIN_WORKER_READY 1
 //#define COMMAND_TR 13 //set train speed   (controller)
 //#define COMMAND_LI  14 //turn on lights    (controller)
 //#define COMMAND_IS	22 //Init at sensor "IS <TR> <SEN>" (controller)
 //#define COMMAND_RV 12 //reverse train (controller)
+
+//train Worker codes
+#define TRAIN_WORKER_IS_SENSOR 1
+
+
+
 
 void initTrains(int csTID, int commandServerTID, int dspTID, int trackServerTID){
     	char msg[64];
@@ -88,12 +95,11 @@ void trainServer(){
 
  	initTrains(csTID,commandServerTID, dspTID, trackTID);
 
-	int tr58TID = Create(23,(void *)trainProfile);
-	int tr76TID = Create(23,(void *)trainProfile);
+	int tr58TID = Create(7,(void *)trainProfile);
+	int tr76TID = Create(7,(void *)trainProfile);
 
 
-	iodebug(dspTID, "D5SUCH TRAINS");
-	iodebug(dspTID, "D1TID is %d", MyTid() );
+	iodebug(dspTID, "D6TID is %d", MyTid() );
 ///////////////////////// MOVE BELOW TO TRACKSERVER
 	//delete and migrate to trackserver
 	TrackGraph t;
@@ -184,6 +190,8 @@ void trainServer(){
 	}
 }
 
+
+
 void trainProfile(){ //will replace trainVelocityServer
 	int tsTID = MyParentTid();
 	int commandServerTID = WhoIs("commandServer");
@@ -211,12 +219,29 @@ void trainProfile(){ //will replace trainVelocityServer
 	trNumber = rpl[0];
 	if(!trNumber) Exit();
 
-	
+	//will need at least 3 for now. may require 6-10 children...we shall see
+	int wkr1TID = Create(6,(void *)trainWorker); 
+	int wkr2TID = Create(6,(void *)trainWorker);
+	int wkr1Status = WORKER_INIT;
+	int wkr2Status = WORKER_INIT;
+
+
 
 
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
 		switch(msg[0]){
+			case TRAIN_WORKER_READY:
+				if(_tid == wkr1TID){
+					wkr1Status = WORKER_READY;
+				}
+				else if(_tid == wkr2TID){
+					wkr2Status = WORKER_READY;
+				}
+				else{
+					bwassert(0,COM2, "<trainProfile %dr> someone [%d] calling himmself my worker who i don't know is telling me he's ready", trNumber, _tid);
+				}
+				
 			case COMMAND_LI:
 				if(lightFlag) 
 					lightFlag = 0;
@@ -269,25 +294,21 @@ void trainProfile(){ //will replace trainVelocityServer
 					iodebug(dspTID, "D25 IS command for tr %d failed, no next sensor from sensor %d",trNumber,currentSensor);
 				}else{
 					iodebug(dspTID, "D25 IS command for tr %d sucessful. next sensor to %d is %d",trNumber,currentSensor, tns.nextSensor);
-				}
-/*
-				currentSensor = msg[2]; //get is sensor
-				msg[0] = TRACK_GETNEXTSENSOR;
-				msg[1] = currentSensor;
-				bwassert(Send(tsTID, msg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-				pkmemcpy((void *) &tns,(void *) rpl, sizeof(trackNextSensorstruct));//convert message to sensor courier struct
-				if (tns.nextSensor == -1) {
-					iodebug(dspTID, "D25 IS command for tr %d failed, no next sensor from sensor %d",trNumber,currentSensor);
-				}else{
-					iodebug(dspTID, "D25 IS command for tr %d sucessful. next sensor to %d is %d",trNumber,currentSensor, tns.nextSensor);
-				}
-*/
-
 
 				//send first child
-
-				//send get next sensor info
+				if(wkr1Status == WORKER_READY){
+					iodebug(dspTID, "D25Train %d, IS WORKER 1 is ready",trNumbear);
+					msg[0] = TRAIN_WORKER_IS_SENSOR;
+					msg[1] = currentSensor;
+					Reply(wkr1TID,msg,2);
+				}else{
+					iodebug(dspTID, "D25Train %d, IS WORKER 1 is not ready",trNumbear);
+				}
 				//send 2nd child
+
+
+				}
+
 
 				break;
 			default:
@@ -301,14 +322,36 @@ void trainProfile(){ //will replace trainVelocityServer
 
 }
 
+void trainWorker(){ 
+	int trTID = MyParentTid(); //train associated with this worker
+	int dspTID = WhoIs("displayServer"); //used for debugging
+	int ssTID = WhoIs("sensorserver");//used for sensor quering
+	int csTID = WhoIs("clockServer");//used for delaying
 
+    	char msg[64];
+    	int msgCap = 64;
+	char rpl[64];
+	char rpllen = 64;
+	int msgLen = 0;
 
+	int sensor;
+	
+	while(1){
+		msg[0] = TRAIN_WORKER_READY;
+		Send(tsTID, msg, 1, rpl, rpllen);
+		switch(rpl[0]){
+			TRAIN_WORKER_IS_SENSOR:
+					
+				break;
+			default:
+				iodebug(dspTID, "D24 a trainworker got a wierd reply");
+				break;
+		}
+	}
+	Exit();
+	
 
-
-
-
-
-
+}
 
 /////////////////////////////////////////////
 //
