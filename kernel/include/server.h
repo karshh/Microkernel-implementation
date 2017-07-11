@@ -129,19 +129,38 @@ typedef enum WORKER_STATE {
 	WORKER_IS2
 } WORKER_STATE;
 
+typedef enum trainTasks {
+	TTK_NONE,
+	TTK_IS,
+	TTK_VEL
+} trainTasks;
+
 typedef enum trainWorkerSensorReportStatus {
 	TWSR_SUCCESS,
 	TWSR_INVALID_SENSOR,
 	TWSR_TIMEOUT
 } trainWorkerSensorReportStatus;
+
+
 typedef struct trainWorkerSensorReportStruct {
 	//used by trainworker to pass latest sensor ping info to it's train
 	char message[4];
+	int trainTask;
+	int taskStatus;
 	int  error;
 	int  sensor;
 	int  lastSensorTime;
 } trainWorkerSensorReportStruct;
 
+typedef struct trainWorkerListItem {
+	int  tid;
+	int  taskStatus;
+} trainWorkerListItem;
+
+void initTrainWorker(trainWorkerListItem * workerList);
+int nextFreeTrainWorker(trainWorkerListItem * workerList);
+int setTrainWorkerStatus(trainWorkerListItem * workerList, int tid, int taskStatus);
+int trainWorkerIndex(trainWorkerListItem * workerList, int tid);
 
 void trainVelocityServer(); //holds velocity/position information for mutiple trains //will be replaced by trainProfile
 void trainStopServer(); 

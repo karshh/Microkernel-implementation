@@ -36,7 +36,7 @@
 #define TRAIN_WORKER_IS_SENSOR 1
 
 
-
+#define TRAIN_CREW_COUNT 10
 
 void initTrains(int csTID, int commandServerTID, int dspTID, int trackServerTID){
     	char msg[64];
@@ -102,7 +102,7 @@ void trainServer(){
  	initTrains(csTID,commandServerTID, dspTID, trackTID);
 
 	int tr58TID = Create(7,(void *)trainProfile);
-	int tr76TID = Create(7,(void *)trainProfile);
+	int tr76TID = 0;//Create(7,(void *)trainProfile);
 
 
 	iodebug(dspTID, "D6TID is %d", MyTid() );
@@ -213,11 +213,13 @@ void trainProfile(){ //will replace trainVelocityServer
 	char rpllen = 64;
 	int msgLen = 0;
 	
-	int init_status = 0;
 	int currentSensor = -1;
 	int nextSensor =-1;
 	int dist =0;
-	int velocity =0;
+	int time1 =0; //in ticks
+	int time2 =0; //in ticks
+	int deltaTime=0; //in ticks
+	int velocity=1; //in um/ms
 	trackNextSensorstruct tns;
 
 	msg[0] = TRAINS_GETPROFILEID;
@@ -226,25 +228,42 @@ void trainProfile(){ //will replace trainVelocityServer
 	if(!trNumber) Exit();
 
 	//will need at least 3 for now. may require 6-10 children...we shall see
-	int wkr1TID = Create(6,(void *)trainWorker); 
-	int wkr2TID = Create(6,(void *)trainWorker);
+	//worker list.
+	//int wkr1TID = Create(6,(void *)trainWorker); 
+	//int wkr2TID = Create(6,(void *)trainWorker);
 	int wkr1Status = WORKER_INIT;
 	int wkr2Status = WORKER_INIT;
+
+	trainWorkerListItem workerList[TRAIN_CREW_COUNT];
+	initTrainWorker(workerList);
+
+	//iodebug(dspTID, "D5 train init. Free worker TID %d",nextFreeTrainWorker(workerList));
+	//task management
 	trainWorkerSensorReportStruct tws;
+	
+	int trainTask =-1;
+	int trainTaskType = TTK_NONE;
 
 
 
+	int csTID = WhoIs("clockServer");//used for delaying
 
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
 		switch(msg[0]){
 			case TRAIN_WORKER_READY:
 				iodebug(dspTID, "D23 TRAINWORKER READY");
-				if(_tid == wkr1TID){
+/*
+				if(_tid == wkr1TID ){
 					wkr1Status = WORKER_READY;
 				}
-				else if(_tid == wkr2TID){
+				else if( _tid == wkr2TID){
 					wkr2Status = WORKER_READY;
+				}
+				elsea*/ 
+				if( trainWorkerIndex(workerList, _tid) >= 0){
+					setTrainWorkerStatus(workerList, _tid,WORKER_READY);
+					iodebug(dspTID, "D%d train worker ready <0  %d",_tid -36 +25, _tid);
 				}
 				else{
 					bwassert(0,COM2, "<trainProfile %dr> someone [%d] calling himmself my worker who i don't know is telling me he's ready", trNumber, _tid);
@@ -290,7 +309,6 @@ void trainProfile(){ //will replace trainVelocityServer
 				// since we don't know what speed the train is at when is is called (could be at constant speed/in the middle of changing speeds/at rest)
 				//we can't estimate the time when the next two sensors are hit. must rely on sensorserver to wake up. 
 				//right now assume no faulty sensors, but will fix this later.
-				init_status = 0;
 				iodebug(dspTID, "D2 parent TID %d", tsTID);
 
 		        	Reply(_tid, msg, 2);
@@ -300,43 +318,68 @@ void trainProfile(){ //will replace trainVelocityServer
 				bwassert(Send(tsTID, msg, 2, &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
 				if (tns.nextSensor == -1) {
 				}else{
-					
 
-					//send first child
-					//wkr1 &2 used only for IS
-					if(wkr1Status == WORKER_READY){
-						iodebug(dspTID, "D25Train %d, IS WORKER 1 is ready",trNumber);
-						msg[0] = TRAIN_WORKER_IS_SENSOR;
-						msg[1] = currentSensor;
-						wkr1Status = WORKER_IS1;
-						Reply(wkr1TID,msg,2);
-					}
-					if(wkr2Status == WORKER_READY){
-						iodebug(dspTID, "D25Train %d, IS WORKER 2 is ready",trNumber);
-						msg[0] = TRAIN_WORKER_IS_SENSOR;
-						msg[1] = tns.nextSensor;
-						wkr2Status = WORKER_IS2;
-						Reply(wkr2TID,msg,2);
+					trainTask++;
+					trainTaskType = TTK_IS;
+					dist = tns.dist;
+					time1 = -1;
+					time2 = -1;
+					int wkr1 = nextFreeTrainWorker(workerList);
+					if( wkr1 >=0){
+						setTrainWorkerStatus(workerList, wkr1,WORKER_IS1);
+						int wkr2 = nextFreeTrainWorker(workerList);
+						if( wkr1 >=0 && wkr2 >=0){
+						//send first child
+						//wkr1 &2 used only for IS
+								iodebug(dspTID, "D3Train %d, IS WORKER 1 is ready",trNumber);
+								msg[0] = TRAIN_WORKER_IS_SENSOR;
+								msg[1] = currentSensor;
+								msg[2] = trainTask; //keep track what task im dealing with.
+								msg[3] = WORKER_IS1;
+								setTrainWorkerStatus(workerList, wkr1,WORKER_IS1);
+								Reply(wkr1,msg,4);
+
+								iodebug(dspTID, "D4Train %d, IS WORKER 2 is ready",trNumber);
+								msg[0] = TRAIN_WORKER_IS_SENSOR;
+								msg[1] = tns.nextSensor;
+								msg[2] = trainTask;
+								msg[3] = WORKER_IS2;
+								setTrainWorkerStatus(workerList, wkr2,WORKER_IS2);
+								Reply(wkr2,msg,4);
+						}else{
+							bwassert(0,COM2, "<trainProfile %dr> ran out of workers, COMMAND IS. Fix this Paily", trNumber);
+
+						}
 					}
 
 
 				}
 				break;
 			case TRAIN_WORKER_IS_REPLY:
-		        	Reply(_tid, 0, 1); //k let the worker do it's thing now.
-				if(_tid == wkr1TID){
+				if( trainWorkerIndex(workerList, _tid) >= 0){
+				//if(_tid == wkr1TID || wkr2TID){
+					setTrainWorkerStatus(workerList, _tid, WORKER_INIT);
+		        		Reply(_tid, 1, 1); //k let the worker go home and return when its fresh
 					pkmemcpy((void *)&tws, (void *)msg, sizeof(trainWorkerSensorReportStruct));
-					if(wkr1Status == WORKER_IS1){
-						iodebug(dspTID, "D14 %d 's WKR1 is reply %d %d",trNumber,tws.sensor,tws.error,tws.lastSensorTime);
+					if(trainTask == tws.trainTask){
+						//if its a older train task ignore report
+						//assume IS does not have faulty sensors
+						if(tws.taskStatus == WORKER_IS1 && tws.error == TWSR_SUCCESS){
+							time1 = tws.lastSensorTime;
+							iodebug(dspTID, "D20 Train %d, next tid [%d]",trNumber,nextFreeTrainWorker(workerList));
+						}else if(tws.taskStatus == WORKER_IS2 && tws.error == TWSR_SUCCESS){
+							time2 = tws.lastSensorTime;
+							iodebug(dspTID, "D14Train %d, got both times, time1[%d] time2[%d] dist[%d]",trNumber,time1, time2,dist);
+							deltaTime =( (time2 - time1) * 10);
+							velocity = (dist * 1000) / deltaTime;
+							iodebug(dspTID, "D22 Train %d, next tid [%d]",trNumber,nextFreeTrainWorker(workerList));
+							iodebug(dspTID, "D15Train %d, init velocity[%d]",trNumber,velocity);
+						}
 					}
-				}
-				if(_tid == wkr2TID){
-					pkmemcpy((void *)&tws, (void *)msg, sizeof(trainWorkerSensorReportStruct));
-					if(wkr2Status == WORKER_IS2){
-						iodebug(dspTID, "D15 %d 's WKR2 is reply %d %d",trNumber,tws.sensor,tws.error,tws.lastSensorTime);
-					}
-				}
+					//going to assume no missed sensors for IS.
 
+					
+				}
 				else{
 		        		Reply(_tid, 0, 1); //seriosly, why are you even here?
 				}
@@ -350,6 +393,51 @@ void trainProfile(){ //will replace trainVelocityServer
 	Exit();
 	
 
+}
+
+void initTrainWorker(trainWorkerListItem * workerList){
+	int dspTID = WhoIs("displayServer"); //used for debugging
+	int i;
+	for(i =0; i< TRAIN_CREW_COUNT; i++){
+		workerList[i].taskStatus = WORKER_INIT;	
+		workerList[i].tid = Create(6, (void *) trainWorker); 
+	}
+
+}
+
+
+int trainWorkerIndex(trainWorkerListItem * workerList, int tid){
+	int dspTID = WhoIs("displayServer"); //used for debugging
+	int i;
+	for(i =0; i< TRAIN_CREW_COUNT; i++){
+		if(workerList[i].tid == tid){
+			 return i;
+		}
+	}
+	return -1;
+
+}
+
+
+int setTrainWorkerStatus(trainWorkerListItem * workerList, int tid, int taskStatus){
+	int i;
+	for(i =0; i< TRAIN_CREW_COUNT; i++){
+		if(workerList[i].tid == tid){
+			workerList[i].taskStatus = taskStatus;
+			 return 0;
+		}
+	}
+	return -1;
+
+}
+int nextFreeTrainWorker(trainWorkerListItem * workerList){
+	int i;
+	for(i =0; i< TRAIN_CREW_COUNT; i++){
+		if(workerList[i].taskStatus == WORKER_READY){
+			 return workerList[i].tid;
+		}
+	}
+	return -1;
 }
 
 void trainWorker(){ 
@@ -368,6 +456,8 @@ void trainWorker(){
 	trainWorkerSensorReportStruct tws;
 	int first_sensorTime;
 	int poll_limit =0;
+	int trainTask;
+	int taskStatus;
 	
 				iodebug(dspTID, "D6 SENSOR TID%d ",ssTID);
 	while(1){
@@ -377,12 +467,17 @@ void trainWorker(){
 			case TRAIN_WORKER_IS_SENSOR:
 				iodebug(dspTID, "D5 IS WORKER 1 is ready");
 				sensor = rpl[1];
+				trainTask = rpl[2];
+				taskStatus = rpl[3];
 				msg[0] = SENSOR_CURRENT_SENSOR_STATUS;
 				msg[1] = sensor;
 				iodebug(dspTID, "D6 %d sensor",sensor);
 				iodebug(dspTID,"D9 sendErr %d",Send(ssTID, msg, 2, &scs, sizeof(sensorCurrentStatusStruct)));
 				iodebug(dspTID, "D10 %d",scs.sensor);
 				iodebug(dspTID, "D11 %d",scs.sensorHeld);
+
+				tws.taskStatus = taskStatus;
+				tws.trainTask = trainTask;
 
 				tws.message[0] = TRAIN_WORKER_IS_REPLY;
 				tws.sensor = sensor;
