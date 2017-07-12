@@ -300,7 +300,7 @@ void displayServer() {
 				j = 0;
 				for (i=1; msg[i] >= '0' && msg[i] <= '9'; i++) j = (j*10) + (msg[i]-'0');
 
-				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;85H\033[K", j);
+				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;105H\033[K", j);
 
                 for (;i < msgLen; i++) Putc(iosTID, COM2, msg[i]);
                 Printf(iosTID, COM2, "\033[u\033[?25h");
