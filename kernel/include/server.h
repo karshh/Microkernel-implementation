@@ -126,7 +126,10 @@ typedef enum WORKER_STATE {
 	WORKER_INIT,
 	WORKER_READY,
 	WORKER_IS1,
-	WORKER_IS2
+	WORKER_IS2,
+	WORKER_VELE, //worker waiting on expected sensor
+	WORKER_VELN, //worker waiting on next sensor (broken sensor case)
+	WORKER_VELS //worker waiting on sensor on other side of switch (broken switch cases)
 } WORKER_STATE;
 
 typedef enum trainTasks {
@@ -152,15 +155,26 @@ typedef struct trainWorkerSensorReportStruct {
 	int  lastSensorTime;
 } trainWorkerSensorReportStruct;
 
+typedef struct trainWorkerSensorTask {
+	//used by trainworker to pass latest sensor ping info to it's train
+	char message[4];
+	int trainTask;
+	int taskStatus;
+	int  sensor;
+	int  expectedTime;
+} trainWorkerSensorTask;
+
+
 typedef struct trainWorkerListItem {
 	int  tid;
 	int  taskStatus;
 } trainWorkerListItem;
 
 void initTrainWorker(trainWorkerListItem * workerList);
-int nextFreeTrainWorker(trainWorkerListItem * workerList);
+int Worker(trainWorkerListItem * workerList);
 int setTrainWorkerStatus(trainWorkerListItem * workerList, int tid, int taskStatus);
 int trainWorkerIndex(trainWorkerListItem * workerList, int tid);
+int nextFreeTrainWorker(trainWorkerListItem * workerList);
 
 void trainVelocityServer(); //holds velocity/position information for mutiple trains //will be replaced by trainProfile
 void trainStopServer(); 
@@ -168,6 +182,7 @@ void trainStopServer();
 
 int stopDistance(int velocity);
 void initTrains(int csTID, int commandServerTID, int dspTID, int trackServerTID);
+
 
 /*****************************************************************************
 SENSORSERVER
