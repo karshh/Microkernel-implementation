@@ -107,17 +107,6 @@ void trainServer(){
 	int tr76TID = 0;//Create(7,(void *)trainProfile);
 
 
-///////////////////////// MOVE BELOW TO TRACKSERVER
-	//delete and migrate to trackserver
-	TrackGraph t;
-	TrackGraphInit(&t);
-	TrackGraphNode * node = t.node;
-	//delete above and migrate to trackserver
-	trackNextSensorstruct tns; //struct decleration in server.h
-
-
-//////////////////////// MOVE ABOVE TO TRACKSERVER
-
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
 		switch(msg[0]){
@@ -179,14 +168,7 @@ void trainServer(){
 				break;
 
 				break;
-///////////////////////// MOVE BELOW TO TRACKSERVER
-			case TRACK_GETNEXTSENSOR:
-					tns.curSensor = msg[1];	
-					tns.nextSensor = findNextSensor(&t, tns.curSensor, &(tns.dist)); //return -1 if i'm at a dead end and there are no more sensors on this route
-					iodebug(dspTID, "D24GETNEXTSENSOR cur:%d, next:%d, dist:%d",tns.curSensor, tns.nextSensor, tns.dist);
-		        		Reply(_tid, (char*)&tns, sizeof(trackNextSensorstruct)); //send the nextSEnsor Stuct (12 bytes). Note no need to format integers into characters, just send raw bytes.
-					break;
-//////////////////////// MOVE ABOVE TO TRACKSERVER
+
 			default:
 					// changed this to a bwassert since bugs were silently passing through here causing me a debugging headache.
 					bwassert(0,COM2, "<trainServer> INVALIDE CASE [%d] seriosly, why are you even here?",msg[0]);
@@ -203,6 +185,7 @@ void trainProfile(){ //will replace trainVelocityServer
 	int tsTID = MyParentTid();
 	int commandServerTID = WhoIs("commandServer");
 	int dspTID = WhoIs("displayServer");
+	int trkTID = WhoIs("trackServer");
 	int trNumber = 0;
 	int trSpeed = 0;
 	int lightFlag = 0;
@@ -315,7 +298,7 @@ void trainProfile(){ //will replace trainVelocityServer
 				currentSensor = msg[2]; //get is sensor
 				msg[0] = TRACK_GETNEXTSENSOR;
 				msg[1] = currentSensor;
-				bwassert(Send(tsTID, msg, 2,(char *) &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
+				bwassert(Send(trkTID, msg, 2,(char *) &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
 				if (tns.nextSensor == -1) {
 					iodebug(dspTID, "D2 %d is failed, reached dead end", trNumber);
 				}else{
@@ -378,7 +361,7 @@ void trainProfile(){ //will replace trainVelocityServer
 							currentSensor = tws.sensor;	
 							msg[0] = TRACK_GETNEXTSENSOR;
 							msg[1] = currentSensor;
-							bwassert(Send(tsTID, msg, 2,(char *) &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
+							bwassert(Send(trkTID, msg, 2,(char *) &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
 							if(tns.nextSensor == -1){
 								iodebug(dspTID, "D2 %d first velocity call failed, reached dead end", trNumber);
 							}{
@@ -441,7 +424,7 @@ void trainProfile(){ //will replace trainVelocityServer
 								currentSensor = tws.sensor;	
 								msg[0] = TRACK_GETNEXTSENSOR;
 								msg[1] = currentSensor;
-								bwassert(Send(tsTID, msg, 2,(char *) &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
+								bwassert(Send(trkTID, msg, 2,(char *) &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
 								if(tns.nextSensor == -1){
 									iodebug(dspTID, "D8 %d first velocity call failed, reached dead end", trNumber);
 								}{
