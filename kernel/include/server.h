@@ -6,23 +6,6 @@
 
 
 #include "bwio.h"
-//#define ALERT_SENSORPING		29
-//note only used in this particular group of tasks
-#define SENSOR_RAW_BATCH 1
-#define SENSOR_RAW_SINGLE 2
-#define SENSOR_COURIER_TO_SENSOR_SERVER 3
-#define SENSOR_COURIER_TO_DISPLAY_SERVER 4
-
-#define SENSOR_BIT_MASK_1 0x80
-#define SENSOR_BIT_MASK_2 0x40
-#define SENSOR_BIT_MASK_3 0x20
-#define SENSOR_BIT_MASK_4 0x10
-#define SENSOR_BIT_MASK_5 0x08
-#define SENSOR_BIT_MASK_6 0x04
-#define SENSOR_BIT_MASK_7 0x02
-#define SENSOR_BIT_MASK_8 0x01
-
-
 /*************************************************
  NAMESERVER
 **************************************************/
@@ -41,8 +24,16 @@ int nameServerRun();
 void NameServerTask();
 
 /************************************************
-TRAINSERVER
+TRACKSERVER
 *************************************************/
+typedef struct trackNextSensorstruct {
+	int curSensor ; //4
+	int nextSensor; //4
+	int dist ; //4
+	//12 bytes
+} trackNextSensorstruct;
+
+
 void trackServer();
 
 /*************************************************
@@ -129,6 +120,27 @@ void trainTask(); //will be called by displayServer, code in userTasks
 
 void trainServer();
 void trainProfile(); //will replace trainVelocityServer
+void trainWorker(); // child worker used to do work for any given train
+
+typedef enum WORKER_STATE {
+	WORKER_INIT,
+	WORKER_READY,
+	WORKER_IS1,
+	WORKER_IS2
+} WORKER_STATE;
+
+typedef enum trainWorkerSensorReportStatus {
+	TWSR_SUCCESS,
+	TWSR_INVALID_SENSOR,
+	TWSR_TIMEOUT
+} trainWorkerSensorReportStatus;
+typedef struct trainWorkerSensorReportStruct {
+	//used by trainworker to pass latest sensor ping info to it's train
+	char message[4];
+	int  error;
+	int  sensor;
+	int  lastSensorTime;
+} trainWorkerSensorReportStruct;
 
 
 void trainVelocityServer(); //holds velocity/position information for mutiple trains //will be replaced by trainProfile
@@ -157,6 +169,11 @@ typedef struct sensorCourierStruct {
 	//489 bytes
 } sensorCourierStruct;
 
+typedef struct sensorCurrentStatusStruct {
+	int sensor;
+	char sensorHeld;
+	int lastSensorTime;
+} sensorCurrentStatusStruct;
 
 
 void sensorServer(); //holds sensor database and communicates to outside (usually train specific servers)

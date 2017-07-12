@@ -52,6 +52,7 @@ void UserPrompt() {
 	        msg[5] = (arg3 / 100) % 100;
 	        msg[6] = arg3 % 100;
 	        msg[7] = 0;
+
 	        bwassert(Send(parentTID, msg, 8, rpl, rpllen) >= 0, COM2, "<UserPrompt>: could not send prompt response to server. \r\n");
             for (; cleanup <= terminalInputIndex; cleanup++) terminalInput[cleanup] = '\0';
             terminalInputIndex = 0;

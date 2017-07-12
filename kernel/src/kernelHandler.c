@@ -12,7 +12,11 @@
 
 int getNextTID(kernelHandler  * ks, int * TID){
 	TD * task = 0;
-	if(!free_Pop(ks,&task)) return -1;
+	if(!free_Pop(ks,&task)) {
+
+		bwassert(0,COM2, "getNextTID: WE RAN OUT OF FREE TID's. PAILY:IMPLIMENT DESTROY, DIVIDE STACK FARTHER OR ALLOCATE MORE SPACE!\r\n");
+		return -1;
+	}
 	*TID = task->TID;
 	return 0;
 }
