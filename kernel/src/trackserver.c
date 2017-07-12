@@ -260,6 +260,9 @@ void trackServer() {
 
 			case TRACK_VELOCITY:
 				// will get to this once I begin on spawns.
+				//velocity
+				//sensor ping
+				//
 				break;
 
 			case TRACK_NEXTNODE:
