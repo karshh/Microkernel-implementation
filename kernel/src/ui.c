@@ -48,6 +48,7 @@ void displayGrid() {
 		Printf(iosTID, COM2, "\033[%d;12H|", i);
 		Printf(iosTID, COM2, "\033[%d;24H|", i);
 		Printf(iosTID, COM2, "\033[%d;41H|", i);
+		Printf(iosTID, COM2, "\033[%d;81H|", i);
 		// Printf(iosTID, COM2, "\033[%d;84H|", i);
 		// Printf(iosTID, COM2, "\033[%d;203H|", i);
 	}

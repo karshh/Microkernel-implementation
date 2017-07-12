@@ -198,7 +198,7 @@ void TrackGraphInitA(TrackGraph * t) {
     node[sensor2i("C09")].nextNodeDistance = 305+70;
 	node[sensor2i("C10")].nextNodeIndex = switch2i(16);
     node[sensor2i("C10")].nextNodeDistance = 146;
-	node[sensor2i("C11")].nextNodeIndex = switch2i(12);
+	node[sensor2i("C11")].nextNodeIndex = switch2i(13);
     node[sensor2i("C11")].nextNodeDistance = 140;
 	node[sensor2i("C12")].nextNodeIndex = sensor2i("A04");
     node[sensor2i("C12")].nextNodeDistance = 314+62;
@@ -485,7 +485,7 @@ void TrackGraphInitB(TrackGraph * t) {
     node[sensor2i("C09")].nextNodeDistance = 326+50;
     node[sensor2i("C10")].nextNodeIndex = switch2i(16);
     node[sensor2i("C10")].nextNodeDistance = 128;
-    node[sensor2i("C11")].nextNodeIndex = switch2i(12);
+    node[sensor2i("C11")].nextNodeIndex = switch2i(13);
     node[sensor2i("C11")].nextNodeDistance = 120;
     node[sensor2i("C12")].nextNodeIndex = sensor2i("A04");
     node[sensor2i("C12")].nextNodeDistance = 333+43;

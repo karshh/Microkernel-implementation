@@ -42,6 +42,10 @@
 #define TRACK_SS				4
 #define TRACK_IS				5
 #define TRACK_SW				6
+#define TRACK_TRLOC_NUM			7
+#define TRACK_TRLOC_VEL			8
+#define TRACK_TRLOC_EXPSENSOR	9
+#define TRACK_NEXTNODE			10
 
 #define DFA_INIT 0
 #define DFA_ERROR -1

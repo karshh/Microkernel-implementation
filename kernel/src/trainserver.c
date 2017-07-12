@@ -95,15 +95,6 @@ void trainServer(){
 	int tr76TID = Create(23,(void *)trainProfile);
 
 
-	iodebug(dspTID, "D5SUCH TRAINS");
-	iodebug(dspTID, "D10CHOOCHOO MOTHERFUCKERS!");
-	iodebug(dspTID, "D%dThis is an IOStream test: %d %c %d %c", 15, COMMAND_DEBUG, COMMAND_DEBUG, COMMAND_DEBUG, COMMAND_DEBUG);
-	iodebug(dspTID, "D21Time(csTID)=%d", Time(csTID));
-	iodebug(dspTID, "D22Look up section of the code that prints this in trainserver.c:99 and remove it.");
-	iodebug(dspTID, "D23I left it intentionally here to serve as an example.");
-
-
-
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
 		switch(msg[0]){
