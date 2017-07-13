@@ -27,18 +27,21 @@
 //train profile codes
 #define TRAIN_WORKER_READY 1
 #define TRAIN_WORKER_IS_REPLY 2
+#define TRAIN_WORKER_IS_REPLY2 5 //depreciate when done
 #define TRAIN_WORKER_VELOCITY_REPLY 3
+#define TRAIN_WORKER_VELOCITY_REPLY2 6 //depreciate when done
 //#define COMMAND_TR 13 //set train speed   (controller)
 //#define COMMAND_LI  14 //turn on lights    (controller)
 //#define COMMAND_IS	22 //Init at sensor "IS <TR> <SEN>" (controller)
 //#define COMMAND_RV 12 //reverse train (controller)
+#define TRAIN_TIMER_PING 4
 
 //train Worker codes
 #define TRAIN_WORKER_IS_SENSOR 1
 #define TRAIN_WORKER_VELOCITY_SENSOR 2
 
 
-#define TRAIN_CREW_COUNT 10
+#define TRAIN_CREW_COUNT 3
 
 void initTrains(int csTID, int commandServerTID, int dspTID, int trackServerTID){
     	char msg[64];
@@ -105,6 +108,7 @@ void trainServer(){
 
 	int tr58TID = Create(7,(void *)trainProfile);
 	int tr76TID = 0;//Create(7,(void *)trainProfile);
+	
 
 
 	while(1){
@@ -217,11 +221,12 @@ void trainProfile(){ //will replace trainVelocityServer
 	//worker list.
 	//int wkr1TID = Create(6,(void *)trainWorker); 
 	//int wkr2TID = Create(6,(void *)trainWorker);
-	int wkr1Status = WORKER_INIT;
-	int wkr2Status = WORKER_INIT;
+	//int wkr1Status = WORKER_INIT;
+	//int wkr2Status = WORKER_INIT;
 
 	trainWorkerListItem workerList[TRAIN_CREW_COUNT];
 	initTrainWorker(workerList);
+	int worker_crew_count_out = TRAIN_CREW_COUNT;
 
 	//iodebug(dspTID, "D5 train init. Free worker TID %d",nextFreeTrainWorker(workerList));
 	//task management
@@ -229,6 +234,7 @@ void trainProfile(){ //will replace trainVelocityServer
 	
 	int trainTask =-1;
 	int trainTaskType = TTK_NONE;
+	int lost = 1; // true if we don't know where train is.
 
 
 
@@ -238,6 +244,7 @@ void trainProfile(){ //will replace trainVelocityServer
 		msgLen = Receive(&_tid, msg, msgCap);
 		switch(msg[0]){
 			case TRAIN_WORKER_READY:
+				//called by init
 /*
 				if(_tid == wkr1TID ){
 					wkr1Status = WORKER_READY;
@@ -248,6 +255,7 @@ void trainProfile(){ //will replace trainVelocityServer
 				elsea*/ 
 				if( trainWorkerIndex(workerList, _tid) >= 0){
 					setTrainWorkerStatus(workerList, _tid,WORKER_READY);
+					worker_crew_count_out --;
 				}
 				else{
 					bwassert(0,COM2, "<trainProfile %dr> someone [%d] calling himmself my worker who i don't know is telling me he's ready", trNumber, _tid);
@@ -299,6 +307,7 @@ void trainProfile(){ //will replace trainVelocityServer
 				msg[0] = TRACK_GETNEXTSENSOR;
 				msg[1] = currentSensor;
 				bwassert(Send(trkTID, msg, 2,(char *) &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
+/*
 				if (tns.nextSensor == -1) {
 					iodebug(dspTID, "D2 %d is failed, reached dead end", trNumber);
 				}else{
@@ -338,6 +347,7 @@ void trainProfile(){ //will replace trainVelocityServer
 
 
 				}
+*/
 				break;
 			case TRAIN_WORKER_IS_REPLY:
 				if( trainWorkerIndex(workerList, _tid) >= 0){
@@ -403,16 +413,17 @@ void trainProfile(){ //will replace trainVelocityServer
 		        		Reply(_tid, 0, 1); //seriosly, why are you even here?
 				}
 				break;
-		case TRAIN_WORKER_VELOCITY_REPLY:
+			case TRAIN_WORKER_VELOCITY_REPLY:
 				if( trainWorkerIndex(workerList, _tid) >= 0){
 				//if(_tid == wkr1TID || wkr2TID){
 					setTrainWorkerStatus(workerList, _tid, WORKER_INIT);
 		        		Reply(_tid, "1", 2); //k let the worker go home and return when its fresh
 					pkmemcpy((void *)&tws, (void *)msg, sizeof(trainWorkerSensorReportStruct));
 					if(trainTask == tws.trainTask){
+
 						//if its a older train task ignore report
 						//assume IS does not have faulty sensors
-						if(tws.taskStatus == WORKER_VELE)
+						if(tws.taskStatus == WORKER_VELE){
 							if(tws.error == TWSR_SUCCESS){
 								time2 = tws.lastSensorTime;
 								deltaTime =( (time2 - time1) * 10);
@@ -458,11 +469,10 @@ void trainProfile(){ //will replace trainVelocityServer
 								iodebug(dspTID, "D16Train %d dist[%d], last time[%d], time2[%d] expTime[%d]",trNumber,dist,time1,Time(csTID), expectedTime);
 							}
 
-
-							//lets start with assumumption everything works then work with edge cases
 						}
+							//lets start with assumumption everything works then work with edge cases
+					}
 					//going to assume no missed sensors for IS.
-
 					
 				}
 				else{
@@ -479,6 +489,24 @@ void trainProfile(){ //will replace trainVelocityServer
 	Exit();
 	
 
+}
+
+void trainTimer(){
+//all it does is poll parent  train profile once every 60 ms. mainly used to timeout tests;
+	int csTID = WhoIs("clockServer");
+	int trTID = MyParentTid();
+
+   	char msg[64];
+	char rpl[64];
+	char rpllen = 64;
+
+
+	while(1){
+		Delay(csTID,6);
+		msg[0] = TRAIN_TIMER_PING;
+		Send(trTID, msg, 1, rpl, rpllen);
+	}
+	Exit();
 }
 
 void initTrainWorker(trainWorkerListItem * workerList){
@@ -608,6 +636,8 @@ void trainWorker(){
 
 				//first check sensor (should be locked so only i should have access to it)
 			case TRAIN_WORKER_IS_SENSOR:
+
+/*
 				sensor = rpl[1];
 				trainTask = rpl[2];
 				taskStatus = rpl[3];
@@ -658,6 +688,7 @@ void trainWorker(){
 				Send(trTID, (char *)&tws, sizeof(trainWorkerSensorReportStruct), rpl, rpllen);
 				
 				
+*/
 				break;
 			default:
 				iodebug(dspTID, "D24 a trainworker got a wierd reply");

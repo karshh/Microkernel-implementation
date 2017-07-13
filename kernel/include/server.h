@@ -28,9 +28,19 @@ TRACKSERVER
 *************************************************/
 typedef struct trackNextSensorstruct {
 	int curSensor ; //4
-	int nextSensor; //4
-	int dist ; //4
-	//12 bytes
+	int expectedSensor; //4
+	int expectedDist ; //4
+	int followingSensor;//4
+	int followingDist; //4
+	int alternateSensor;//4
+	int alternateDist;//4
+
+//            AS
+//           //
+//	CS ======ES===FS
+
+
+	// 28
 } trackNextSensorstruct;
 
 
@@ -81,7 +91,6 @@ void clockNotifier();
 
 void clockServer();
 
-
 /******************************************************************************
 FIRST USER TASK
 *****************************************************************************/
@@ -120,7 +129,11 @@ void trainTask(); //will be called by displayServer, code in userTasks
 
 void trainServer();
 void trainProfile(); //will replace trainVelocityServer
+
 void trainWorker(); // child worker used to do work for any given train
+
+void trainTimer();
+void trainSensorCourier();
 
 typedef enum WORKER_STATE {
 	WORKER_INIT,
@@ -170,6 +183,8 @@ typedef struct trainWorkerListItem {
 	int  taskStatus;
 } trainWorkerListItem;
 
+
+//might depreciate next set of functions
 void initTrainWorker(trainWorkerListItem * workerList);
 int Worker(trainWorkerListItem * workerList);
 int setTrainWorkerStatus(trainWorkerListItem * workerList, int tid, int taskStatus);
@@ -205,9 +220,22 @@ typedef struct sensorCourierStruct {
 
 typedef struct sensorCurrentStatusStruct {
 	int sensor;
-	char sensorHeld;
+	char sensorHeld; //will depreciate 
 	int lastSensorTime;
+	int taskStatus;
+	
 } sensorCurrentStatusStruct;
+
+typedef struct sensorWorkerRegStruct{
+	int exists;
+	int tid;
+	int sensor;
+} sensorWorkerRegStruct;
+
+int registerSensorWorker(sensorWorkerRegStruct * workerList, int tid, int sensor);
+void bootSensorWorker(sensorWorkerRegStruct * workerList, int tid);
+void wakeupWaitingSensorWorker(sensorWorkerRegStruct * workerList,  sensorWarehouseStruct * sw);
+void initSensorWorker(sensorWorkerRegStruct * workerList);
 
 
 void sensorServer(); //holds sensor database and communicates to outside (usually train specific servers)

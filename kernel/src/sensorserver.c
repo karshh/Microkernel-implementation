@@ -14,6 +14,8 @@
 //#define SENSOR_CURRENT_SENSOR_STATUS	1 (controller.h)
 #define SENSOR_COURIER_TO_SENSOR_SERVER 3
 #define SENSOR_COURIER_TO_DISPLAY_SERVER 4
+//#define SENSOR_REGISTER_WORKER 			5 //(controller.h)
+//#define SENSOR_BOOT_WORKERS 			6 //(controller.h)
 
 //Sensor Processor
 //
@@ -30,6 +32,7 @@
 #define SENSOR_BIT_MASK_7 0x02
 #define SENSOR_BIT_MASK_8 0x01
 
+#define MAX_SENSOR_WORKERS 18
 
 
 void sensorServer(){
@@ -43,7 +46,7 @@ void sensorServer(){
 	bwassert(dcTID >= 0, COM2, "<sensorServer>: sensor to display courier has not been set up.\r\n");
 	int dcWaiting =0;
 
-	int dspTID = WhoIs("displayServer"); //used for debugging
+	//int dspTID = WhoIs("displayServer"); //used for debugging
 
 	char msg[512];
     	int msgCap = 512;
@@ -65,10 +68,48 @@ void sensorServer(){
 	int spTID = Create(3,(void *)sensorProcessor);
 	bwassert(spTID >= 0, COM2, "<sensorServer>: sensor processor has not been set up.\r\n");
 	
+	sensorWorkerRegStruct workerList[MAX_SENSOR_WORKERS];
+	
 	
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
 		switch(msg[0]){
+
+
+			case SENSOR_REGISTER_WORKER:
+				if(msg[1] >= 1 && msg[1] <= 80){
+					//first check if sensor is on (or in last sensor report).
+					scs.sensor = msg[1];
+					if(sw.sensorHeld[scs.sensor-1]){
+						scs.lastSensorTime =  sw.lastSensorTime[scs.sensor -1];
+						scs.sensorHeld =  sw.sensorHeld[scs.sensor -1];
+						scs.taskStatus = TWSR_SUCCESS;
+		        			Reply(_tid,(char *) &scs, sizeof(sensorCurrentStatusStruct)); //finished synching libary. send recent sensor report to display server.
+					}else{
+						//register worker to sleep till sensor hit or booted
+						bwassert(registerSensorWorker(workerList, _tid, scs.sensor), COM2, "<sensorServer>: sensor register worker. we ran out of space to save workers...call Paily.\r\n");
+
+					}
+					scs.lastSensorTime = sw.lastSensorTime[scs.sensor-1];
+					scs.sensorHeld = sw.sensorHeld[scs.sensor-1];
+				}
+				else{
+					scs.sensor = msg[1];
+					scs.lastSensorTime =  0;
+					scs.sensorHeld = 0;
+					scs.taskStatus = TWSR_INVALID_SENSOR;
+		        		Reply(_tid,(char *) &scs, sizeof(sensorCurrentStatusStruct)); //finished synching libary. send recent sensor report to display server.
+				}
+				
+				break;
+			case SENSOR_BOOT_WORKERS:
+				bootSensorWorker(workerList, msg[1]);
+				bootSensorWorker(workerList, msg[2]);
+				bootSensorWorker(workerList, msg[3]);
+				//msg1 = worker1, msg2 = worker2, msg3 = worker3
+		        	Reply(_tid,"1",2); //finished synching libary. send recent sensor report to display server.
+				
+				break;
 			case SENSOR_CURRENT_SENSOR_STATUS:
 				
 				if(msg[1] >= 1 && msg[1] <= 80){
@@ -408,5 +449,68 @@ void sensorProcessor(){
 	Exit();
 }
  
+void initSensorWorker(sensorWorkerRegStruct * workerList){
+	int i =0;
+	for (i=0;i<MAX_SENSOR_WORKERS; i++){
+		workerList[i].exists = 0;
+		workerList[i].tid = -1;
+		workerList[i].sensor = 0;
+	}
+}
 
+int registerSensorWorker(sensorWorkerRegStruct * workerList, int tid, int sensor){
+	int i =0;
+	//look for first free spot
+	for (i=0;i<MAX_SENSOR_WORKERS; i++){
+		if(!workerList[i].exists){
+			workerList[i].exists = 1;
+			workerList[i].tid = tid;
+			workerList[i].sensor = sensor;
+			return 1;
+		}
+	}
+	//bwassert
+	return 0;
+	
+}
 
+void bootSensorWorker(sensorWorkerRegStruct * workerList, int tid){
+	int i = 0;
+	sensorCurrentStatusStruct scs;
+	for (i=0;i<MAX_SENSOR_WORKERS; i++){
+		if(workerList[i].exists && workerList[i].tid == tid){ //if the worker exists boot him. if not...well its only 18 possible workers
+
+			scs.sensor =workerList[i].sensor;
+			scs.taskStatus = TWSR_TIMEOUT;
+			scs.lastSensorTime = 0;
+			scs.sensorHeld =  0;
+				
+		       	Reply(workerList[i].tid,(char *) &scs, sizeof(sensorCurrentStatusStruct)); //finished synching libary. send recent sensor report to display server.
+			workerList[i].exists = 0;
+			workerList[i].tid = 0;
+			workerList[i].sensor = 0;
+			break;
+		}
+	}
+}
+
+void wakeupWaitingSensorWorker(sensorWorkerRegStruct * workerList,  sensorWarehouseStruct * sw){
+	int i=0;
+	sensorCurrentStatusStruct scs;
+	for (i=0;i<MAX_SENSOR_WORKERS; i++){ 	
+		if(workerList[i].exists){//for each worker waiting for a sensor
+			if(sw->sensorHeld[workerList[i].sensor -1]){  //if the worker's sensor is on, send the worker back
+				scs.sensor =workerList[i].sensor;
+				scs.taskStatus = TWSR_SUCCESS;
+				scs.lastSensorTime = sw->lastSensorTime[workerList[i].sensor -1];
+				scs.sensorHeld = sw->sensorHeld[workerList[i].sensor -1];
+					
+				Reply(workerList[i].tid,(char *) &scs, sizeof(sensorCurrentStatusStruct)); //finished synching libary. send recent sensor report to display server.
+				workerList[i].exists = 0;
+				workerList[i].tid = 0;
+				workerList[i].sensor = 0;
+			}
+			
+		}
+	}
+}
