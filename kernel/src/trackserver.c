@@ -38,6 +38,8 @@ void trainLocation() {
 	int prevTime = 0;
 	int curTime = 0;
 
+	int reservations[80];
+
 	// get train number.
 	msg[0] = TRACK_TRLOC_NUM;
 	bwassert(Send(trackTID, msg, 1, rpl, rplCap) >= 0, COM2, "<trainLocation %d>: Send error [1].\r\n", myTID);
@@ -49,7 +51,7 @@ void trainLocation() {
 
 	int rpl0 = 0;
 	int rpl1 = 0;
-
+	int pCursor = 0;
 	prevTime = getTicks4(0);
 	while(1) {
 		Delay(csTID, 6); // breathing room for trackserver.
@@ -84,6 +86,27 @@ void trainLocation() {
 			expnode = rpl0;
 			expnodedist = (rpl[1] * 100) + rpl[2];
 			dist = 0;
+
+			if (print) {
+				if (curnode < 80) {
+					if (expnode <= 80) {
+						iodebug(dspTID, "D1\033[%d;42H                              \033[%d;43H%d:%c%d%d->%c%d%d", 
+							train-52, train-52, train, ((curnode-1)/16)+'A',((curnode-1)%16+1)/10, ((curnode-1)%16+1)%10, ((expnode-1)/16)+'A',((expnode-1)%16+1)/10, ((expnode-1)%16+1)%10);
+							
+					} else {
+						iodebug(dspTID, "D1\033[%d;42H                              \033[%d;43H%d:%c%d%d->sw%d", train-52, train-52, train, ((curnode-1)/16)+'A',((curnode-1)%16+1)/10, ((curnode-1)%16+1)%10, expnode-80);
+							
+					}
+				} else {
+					if (expnode <= 80) {
+						iodebug(dspTID, "D1\033[%d;42H                              \033[%d;43H%d:sw%d->%c%d%d", train-52, train-52,train, curnode-80, ((expnode-1)/16)+'A',((expnode-1)%16+1)/10, ((expnode-1)%16+1)%10 );
+					} else {
+						iodebug(dspTID, "D1\033[%d;42H                              \033[%d;43H%d:sw%d->sw%d", train-52, train-52,train, curnode-80, expnode-80);
+
+					}
+
+				}
+			}
 			if (print) iodebug(dspTID, "D%d<%d>:Expnode# %d Curnode# %d", myTID+9, myTID, expnode, curnode);
 		} 
 
@@ -91,7 +114,7 @@ void trainLocation() {
 		curTime = getTicks4(0);
 		dist += ((curTime - prevTime) * vel) / 1000;
 		prevTime = curTime;
-		if (print) iodebug(dspTID, "D%d<%d>: %d->%d Done: %d%%[dist:%d expnodedist:%d]", myTID-3, train, curnode, expnode, (dist*100)/expnodedist, dist, expnodedist);
+
 
 		if ((dist*100)/expnodedist >= 100) {
 			curnode = expnode;
@@ -102,7 +125,31 @@ void trainLocation() {
 			expnode = rpl0;
 			expnodedist = (rpl[1] * 100) + rpl[2];
 			dist = 0;
-		}
+
+			if (print) {
+				if (curnode < 80) {
+						if (expnode <= 80) {
+							iodebug(dspTID, "D1\033[%d;42H                              \033[%d;43H%d:%c%d%d->%c%d%d", 
+								train-52, train-52, train, ((curnode-1)/16)+'A',((curnode-1)%16+1)/10, ((curnode-1)%16+1)%10, ((expnode-1)/16)+'A',((expnode-1)%16+1)/10, ((expnode-1)%16+1)%10);
+								
+						} else {
+							iodebug(dspTID, "D1\033[%d;42H                              \033[%d;43H%d:%c%d%d->sw%d", train-52, train-52, train, ((curnode-1)/16)+'A',((curnode-1)%16+1)/10, ((curnode-1)%16+1)%10, expnode-80);
+								
+						}
+					} else {
+						if (expnode <= 80) {
+							iodebug(dspTID, "D1\033[%d;42H                              \033[%d;43H%d:sw%d->%c%d%d", train-52, train-52,train, curnode-80, ((expnode-1)/16)+'A',((expnode-1)%16+1)/10, ((expnode-1)%16+1)%10 );
+						} else {
+							iodebug(dspTID, "D1\033[%d;42H                              \033[%d;43H%d:sw%d->sw%d", train-52, train-52,train, curnode-80, expnode-80);
+
+						}
+
+					}
+				} else {
+					iodebug(dspTID, "D1\033[%d;75H[%d%d%%]", train-52, ((dist*100)/expnodedist)/10, ((dist*100)/expnodedist) %10);
+				}
+
+			}
 
 
 		//print and wait.
@@ -141,6 +188,18 @@ void trackServer() {
 
 	// used for initializing the spawns.
 	int initExpectedSensor[80]; 
+
+
+	int tr58switches[20];
+	int tr58switchConfig[20];
+	int tr58switchCount = 0;
+	int tr76switches[20];
+	int tr76switchConfig[20];
+	int tr76switchCount = 0;
+
+	int * trSwitches = 0;
+	int * trSwitchConfig = 0;
+	int * trSwitchCount = 0;
 
 
     int _tid = -1;
@@ -317,10 +376,83 @@ void trackServer() {
 								commandMsg[2] = i;
 								commandMsg[3] = 0;
 								bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-													}
+							}
+
 							if (trainExpectedSensor[i] == msg[j] || msg[j] == findNextSensor(&t,trainExpectedSensor[i], &distSensor)) {
 								trainCurrentSensor[i] = msg[j];
 								trainExpectedSensor[i] = findNextSensor(&t, msg[j], &distSensor);
+								
+								if (i == 58) {
+									trSwitches = tr58switches;
+									trSwitchConfig = tr58switchConfig;
+									trSwitchCount = &tr58switchCount;
+								} else {
+									trSwitches = tr76switches;
+									trSwitchConfig = tr76switchConfig;
+									trSwitchCount = &tr76switchCount;
+
+								}
+
+								if (*trSwitchCount > 0 && (node[trainExpectedSensor[i]].nextNodeIndex == trSwitches[*trSwitchCount - 1] || node[trainCurrentSensor[i]].nextNodeIndex == trSwitches[*trSwitchCount - 1])) {
+									if (trSwitches[*trSwitchCount - 1] <= 98) {
+										node[trSwitches[*trSwitchCount - 1]].switchConfig = trSwitchConfig[*trSwitchCount - 1] == 33 ? S : C;
+										commandMsg[0] = COMMAND_SW;
+										commandMsg[1] = trSwitchConfig[*trSwitchCount - 1];
+										commandMsg[2] = trSwitches[*trSwitchCount - 1] - 80;
+										commandMsg[3] = 0;
+										bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
+										update_switch(trSwitches[*trSwitchCount - 1] - 80, &t, &trainExpectedSensor[0]); //updates the display	
+									} else {
+										node[trSwitches[*trSwitchCount - 1]].switchConfig = trSwitchConfig[*trSwitchCount - 1] == 1 ? SC : CS;
+										commandMsg[0] = COMMAND_SW;
+										commandMsg[1] = trSwitchConfig[*trSwitchCount - 1] == 1 ? 33 : 34;
+										commandMsg[2] = trSwitches[*trSwitchCount - 1] == 99 ? 153 : 155;
+										commandMsg[3] = 0;
+										bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
+										commandMsg[0] = COMMAND_SW;
+										commandMsg[1] = trSwitchConfig[*trSwitchCount - 1] == 1 ? 34 : 33;
+										commandMsg[2] = trSwitches[*trSwitchCount - 1] == 99 ? 154 : 156;
+										commandMsg[3] = 0;
+										bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
+										update_switch(trSwitches[*trSwitchCount - 1] == 99 ? 154 : 156, &t, &trainExpectedSensor[0]); //updates the display	
+									}
+
+									*trSwitchCount -= 1;
+
+
+									if (*trSwitchCount > 0 && ((node[trSwitches[*trSwitchCount]].switchConfig == C && node[trSwitches[*trSwitchCount]].CnextNodeIndex == trSwitches[*trSwitchCount - 1])
+																|| (node[trSwitches[*trSwitchCount]].switchConfig == S && node[trSwitches[*trSwitchCount]].SnextNodeIndex == trSwitches[*trSwitchCount - 1]))) {
+										if (trSwitches[*trSwitchCount - 1] <= 98) {
+											node[trSwitches[*trSwitchCount - 1]].switchConfig = trSwitchConfig[*trSwitchCount - 1] == 33 ? S : C;
+											commandMsg[0] = COMMAND_SW;
+											commandMsg[1] = trSwitchConfig[*trSwitchCount - 1];
+											commandMsg[2] = trSwitches[*trSwitchCount - 1] - 80;
+											commandMsg[3] = 0;
+											bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
+											update_switch(trSwitches[*trSwitchCount - 1] - 80, &t, &trainExpectedSensor[0]); //updates the display	
+										} else {
+											node[trSwitches[*trSwitchCount - 1]].switchConfig = trSwitchConfig[*trSwitchCount - 1] == 1 ? SC : CS;
+											commandMsg[0] = COMMAND_SW;
+											commandMsg[1] = trSwitchConfig[*trSwitchCount - 1] == 1 ? 33 : 34;
+											commandMsg[2] = trSwitches[*trSwitchCount - 1] == 99 ? 153 : 155;
+											commandMsg[3] = 0;
+											bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
+											commandMsg[0] = COMMAND_SW;
+											commandMsg[1] = trSwitchConfig[*trSwitchCount - 1] == 1 ? 34 : 33;
+											commandMsg[2] = trSwitches[*trSwitchCount - 1] == 99 ? 154 : 156;
+											commandMsg[3] = 0;
+											bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
+											update_switch(trSwitches[*trSwitchCount - 1] == 99 ? 154 : 156, &t, &trainExpectedSensor[0]); //updates the display	
+										}
+
+										*trSwitchCount -= 1;
+										//iodebug(dspTID, "D4switchCount=%d trSwitches[0]=%d trSwitchConfig[0]=%d", *trSwitchCount, trSwitches[*trSwitchCount],trSwitchConfig[*trSwitchCount]);
+									}
+								}
+									//iodebug(dspTID, "D3switchCount=%d trSwitches[0]=%d trSwitchConfig[0]=%d", *trSwitchCount, trSwitches[*trSwitchCount],trSwitchConfig[*trSwitchCount]);	
+									
+
+
 								dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
 								dspMsg[1] = i;
 								dspMsg[2] = trainExpectedSensor[i];
@@ -379,29 +511,35 @@ void trackServer() {
 					//Send path info to velocity server here
 					trainDestinationSensor[train] = sens;
 
+					if (train == 58) {
+						trSwitches = tr58switches;
+						trSwitchConfig = tr58switchConfig;
+						trSwitchCount = &tr58switchCount;
+					} else {
+						trSwitches = tr76switches;
+						trSwitchConfig = tr76switchConfig;
+						trSwitchCount = &tr76switchCount;
+
+					}
+
+					*trSwitchCount = 0;
+
 					for (i = 0; i < pathLength; i++) {
 						if (node[path[i]].type == Sensor) continue;
 						else if (node[path[i]].type == Switch) {
 							switch(node[path[i]].switchConfig) {
 								case C:
 									if (node[path[i]].CnextNodeIndex == path[i-1]) break;
-									node[path[i]].switchConfig = S;
-									commandMsg[0] = COMMAND_SW;
-									commandMsg[1] = 33;
-									commandMsg[2] = path[i] - 80;
-									commandMsg[3] = 0;
-									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-									update_switch(path[i] - 80, &t, &trainExpectedSensor[0]); //updates the display
+									trSwitches[*trSwitchCount] = path[i];
+									trSwitchConfig[*trSwitchCount] = 33;
+									*trSwitchCount += 1;
 									break;
 								case S:
 									if (node[path[i]].SnextNodeIndex == path[i-1]) break;
 									node[path[i]].switchConfig = C;
-									commandMsg[0] = COMMAND_SW;
-									commandMsg[1] = 34;
-									commandMsg[2] = path[i] - 80;
-									commandMsg[3] = 0;
-									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-									update_switch(path[i] - 80, &t, &trainExpectedSensor[0]); //updates the display
+									trSwitches[*trSwitchCount] = path[i];
+									trSwitchConfig[*trSwitchCount] = 34;
+									*trSwitchCount += 1;
 									break;
 								default:
 									bwassert( 0, COM2, "<trackServer>: Got an invalid single switch configuration.");
@@ -413,46 +551,31 @@ void trackServer() {
 							switch(node[path[i]].switchConfig) {
 								case CS:
 									if (node[path[i]].CSnextNodeIndex == path[i-1]) break;
-									node[path[i]].switchConfig = SC;
-									commandMsg[0] = COMMAND_SW;
-									commandMsg[1] = 33;
-									commandMsg[2] = path[i] == 99 ? 153 : 155;
-									commandMsg[3] = 0;
-									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-									update_switch(path[i] == 99 ? 153 : 155, &t, &trainExpectedSensor[0]); //updates the display
-									commandMsg[0] = COMMAND_SW;
-									commandMsg[1] = 34;
-									commandMsg[2] = path[i] == 99 ? 154 : 156;
-									commandMsg[3] = 0;
-									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-									update_switch(path[i] == 99 ? 154 : 156, &t, &trainExpectedSensor[0]); //updates the display
+									trSwitches[*trSwitchCount] = path[i];
+									trSwitchConfig[*trSwitchCount] = 1;
+									*trSwitchCount += 1;
 									break;
 
 								case SC:
 									if (node[path[i]].SCnextNodeIndex == path[i-1]) break;
-									node[path[i]].switchConfig = CS;
-									commandMsg[0] = COMMAND_SW;
-									commandMsg[1] = 34;
-									commandMsg[2] = path[i] == 99 ? 153 : 155;
-									commandMsg[3] = 0;
-									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-									update_switch(path[i] == 99 ? 153 : 155, &t, &trainExpectedSensor[0]); //updates the display
-									commandMsg[0] = COMMAND_SW;
-									commandMsg[1] = 33;
-									commandMsg[2] = path[i] == 99 ? 154 : 156;
-									commandMsg[3] = 0;
-									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-									update_switch(path[i] == 99 ? 154 : 156, &t, &trainExpectedSensor[0]); //updates the display
+									trSwitches[*trSwitchCount] = path[i];
+									trSwitchConfig[*trSwitchCount] = 2;
+									*trSwitchCount += 1;
 									break;
 								default:
 									bwassert( 0, COM2, "<trackServer>: Got an invalid multi switch configuration.");
 									break;
 
 							}
+
+
 						} else {
 							bwassert( 0, COM2, "<trackServer>: Got an invalid node.");
 
 						}
+
+
+						//iodebug(dspTID, "D2switchCount=%d trSwitches[0]=%d,%d,%d trSwitchConfig[0]=%d,%d,%d", *trSwitchCount, trSwitches[*trSwitchCount-1],trSwitches[*trSwitchCount-2],trSwitches[*trSwitchCount-3], trSwitchConfig[*trSwitchCount-1], trSwitchConfig[*trSwitchCount-2], trSwitchConfig[*trSwitchCount-3]);	
 					}
 				} 
 				Reply(_tid, "1", 2);
@@ -532,222 +655,3 @@ void trackServer() {
 	}
 }
 
-
-
-void trackview() {
-
-
-	char msg[80];
-
-
-	while(1) {
-
-		// send call
-
-
-		switch ((int) msg[0]) {
-			case 1:
-				break;
-			case 2:
-				break;
-			case 3:
-				break;
-			case 4:
-				break;
-			case 5:
-				break;
-			case 6:
-				break;
-			case 7:
-				break;
-			case 8:
-				break;
-			case 9:
-				break;
-			case 10:
-				break;
-			case 11:
-				break;
-			case 12:
-				break;
-			case 13:
-				break;
-			case 14:
-				break;
-			case 15:
-				break;
-			case 16:
-				break;
-			case 17:
-				break;
-			case 18:
-				break;
-			case 19:
-				break;
-			case 20:
-				break;
-			case 21:
-				break;
-			case 22:
-				break;
-			case 23:
-				break;
-			case 24:
-				break;
-			case 25:
-				break;
-			case 26:
-				break;
-			case 27:
-				break;
-			case 28:
-				break;
-			case 29:
-				break;
-			case 30:
-				break;
-			case 31:
-				break;
-			case 32:
-				break;
-			case 33:
-				break;
-			case 34:
-				break;
-			case 35:
-				break;
-			case 36:
-				break;
-			case 37:
-				break;
-			case 38:
-				break;
-			case 39:
-				break;
-			case 40:
-				break;
-			case 41:
-				break;
-			case 42:
-				break;
-			case 43:
-				break;
-			case 44:
-				break;
-			case 45:
-				break;
-			case 46:
-				break;
-			case 47:
-				break;
-			case 48:
-				break;
-			case 49:
-				break;
-			case 50:
-				break;
-			case 51:
-				break;
-			case 52:
-				break;
-			case 53:
-				break;
-			case 54:
-				break;
-			case 55:
-				break;
-			case 56:
-				break;
-			case 57:
-				break;
-			case 58:
-				break;
-			case 59:
-				break;
-			case 60:
-				break;
-			case 61:
-				break;
-			case 62:
-				break;
-			case 63:
-				break;
-			case 64:
-				break;
-			case 65:
-				break;
-			case 66:
-				break;
-			case 67:
-				break;
-			case 68:
-				break;
-			case 69:
-				break;
-			case 70:
-				break;
-			case 71:
-				break;
-			case 72:
-				break;
-			case 73:
-				break;
-			case 74:
-				break;
-			case 75:
-				break;
-			case 76:
-				break;
-			case 77:
-				break;
-			case 78:
-				break;
-			case 79:
-				break;
-			case 80:
-				break;
-			case 81:
-				break;
-			case 82:
-				break;
-			case 83:
-				break;
-			case 84:
-				break;
-			case 85:
-				break;
-			case 86:
-				break;
-			case 87:
-				break;
-			case 88:
-				break;
-			case 89:
-				break;
-			case 90:
-				break;
-			case 91:
-				break;
-			case 92:
-				break;
-			case 93:
-				break;
-			case 94:
-				break;
-			case 95:
-				break;
-			case 96:
-				break;
-			case 97:
-				break;
-			case 98:
-				break;
-			case 99:
-				break;
-			case 100:
-				break;
-			default:
-				break;
-		}
-	}
-}

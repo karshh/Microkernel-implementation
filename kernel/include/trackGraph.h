@@ -38,6 +38,7 @@ typedef struct TrackGraphNode {
 	int SCnextNodeIndex; // for multi switches only;
 	int SCnextNodeDistance;
 	unsigned int timeToNextSensor;
+
 } TrackGraphNode;
 
 typedef struct TrackGraph {
