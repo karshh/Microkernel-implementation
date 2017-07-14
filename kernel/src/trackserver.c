@@ -545,7 +545,7 @@ void trackServer() {
 						} 
 						else if (node[path[i]].type == MultiSwitch) {
 							trSwitches[*trSwitchCount] = path[i];
-							trSwitchConfig[*trSwitchCount] = (node[path[i]].SCnextNodeIndex == path[i-1]) ? 2 : 1;
+							trSwitchConfig[*trSwitchCount] = (node[path[i]].SCnextNodeIndex == path[i-1]) ? 1 : 2;
 							*trSwitchCount += 1;
 
 						} else {
