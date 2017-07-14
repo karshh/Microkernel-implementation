@@ -32,6 +32,7 @@ typedef struct trackNextSensorstruct {
 	int expectedDist ; //4
 	int followingSensor;//4
 	int followingDist; //4
+	int hasSwitch; //4
 	int alternateSensor;//4
 	int alternateDist;//4
 
@@ -40,7 +41,7 @@ typedef struct trackNextSensorstruct {
 //	CS ======ES===FS
 
 
-	// 28
+	// 32
 } trackNextSensorstruct;
 
 

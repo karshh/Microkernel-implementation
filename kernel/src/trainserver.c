@@ -107,7 +107,7 @@ void trainServer(){
  	initTrains(csTID,commandServerTID, dspTID, trackTID);
 
 	int tr58TID = Create(7,(void *)trainProfile);
-	int tr76TID = 0;//Create(7,(void *)trainProfile);
+	int tr76TID = Create(7,(void *)trainProfile);
 	
 
 
@@ -145,7 +145,10 @@ void trainServer(){
 		        			Reply(_tid, rpl, 2);
 						break;
 					case 76:
-						bwassert(Send(tr76TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+						{
+						int err = Send(tr76TID, msg, 3, rpl, rpllen) ;
+						bwassert(err >= 0, COM2, "<trainServer>: Error %d sending TR 76 message to CommandServer.\r\n",err);
+						}
 		        			Reply(_tid, rpl, 2);
 
 						break;
@@ -281,7 +284,7 @@ void trainProfile(){ //will replace trainVelocityServer
 				msg[1] = lightFlag + trSpeed;
 				msg[2] = trNumber;
 				msg[3] = 0;
-				bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+				bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainProfile>: Error sending message to CommandServer.\r\n");
 		        	Reply(_tid, rpl, 2);
 				break;
 
@@ -307,49 +310,43 @@ void trainProfile(){ //will replace trainVelocityServer
 				msg[0] = TRACK_GETNEXTSENSOR;
 				msg[1] = currentSensor;
 				bwassert(Send(trkTID, msg, 2,(char *) &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
-/*
-				if (tns.nextSensor == -1) {
+				if (tns.expectedSensor == -1 ) {
 					iodebug(dspTID, "D2 %d is failed, reached dead end", trNumber);
 				}else{
-
-					trainTask++;
-					trainTaskType = TTK_IS;
-					dist = tns.dist;
-					time1 = -1;
-					time2 = -1;
-					int wkr1 = nextFreeTrainWorker(workerList);
-					if( wkr1 >=0){
+					//should keep track of all the workers who have returned
+					//if they all returned, run is
+					//else set nextTast to this and leave a reminder to run when all workers have returned.
+					if(worker_crew_count_out){ //true if we don't have full cappacity
+							bwassert(0,COM2, "<trainProfile %dr> ran out of workers, COMMAND IS. Fix this Paily", trNumber);
+					}else{
+						trainTask++;
+						trainTaskType = TTK_IS;
+						dist = tns.expectedDist;
+						time1 = -1;
+						time2 = -1;
+						int wkr1 = nextFreeTrainWorker(workerList);
 						setTrainWorkerStatus(workerList, wkr1,WORKER_IS1);
 						int wkr2 = nextFreeTrainWorker(workerList);
-						if( wkr1 >=0 && wkr2 >=0){
-						//send first child
-						//wkr1 &2 used only for IS
-								msg[0] = TRAIN_WORKER_IS_SENSOR;
-								msg[1] = currentSensor;
-								msg[2] = trainTask; //keep track what task im dealing with.
-								msg[3] = WORKER_IS1;
-								setTrainWorkerStatus(workerList, wkr1,WORKER_IS1);
-								Reply(wkr1,msg,4);
+						setTrainWorkerStatus(workerList, wkr2,WORKER_IS2);
 
-								msg[0] = TRAIN_WORKER_IS_SENSOR;
-								msg[1] = tns.nextSensor;
-								msg[2] = trainTask;
-								msg[3] = WORKER_IS2;
-								setTrainWorkerStatus(workerList, wkr2,WORKER_IS2);
-								Reply(wkr2,msg,4);
-						}else{
-							bwassert(0,COM2, "<trainProfile %dr> ran out of workers, COMMAND IS. Fix this Paily", trNumber);
+						msg[0] = TRAIN_WORKER_IS_SENSOR;
+						msg[1] = currentSensor;
+						msg[2] = trainTask; //keep track what task im dealing with.
+						msg[3] = WORKER_IS1;
+						Reply(wkr1,msg,4);
 
-						}
-					}else{
-							bwassert(0,COM2, "<trainProfile %dr> ran out of workers, COMMAND IS. Fix this Paily", trNumber);
+						msg[0] = TRAIN_WORKER_IS_SENSOR;
+						msg[1] = tns.expectedSensor;
+						msg[2] = trainTask;
+						msg[3] = WORKER_IS2;
+						Reply(wkr2,msg,4);
+
 					}
 
-
 				}
-*/
 				break;
 			case TRAIN_WORKER_IS_REPLY:
+/*
 				if( trainWorkerIndex(workerList, _tid) >= 0){
 				//if(_tid == wkr1TID || wkr2TID){
 					setTrainWorkerStatus(workerList, _tid, WORKER_INIT);
@@ -412,8 +409,10 @@ void trainProfile(){ //will replace trainVelocityServer
 				else{
 		        		Reply(_tid, 0, 1); //seriosly, why are you even here?
 				}
+*/
 				break;
 			case TRAIN_WORKER_VELOCITY_REPLY:
+/*
 				if( trainWorkerIndex(workerList, _tid) >= 0){
 				//if(_tid == wkr1TID || wkr2TID){
 					setTrainWorkerStatus(workerList, _tid, WORKER_INIT);
@@ -478,6 +477,7 @@ void trainProfile(){ //will replace trainVelocityServer
 				else{
 		        		Reply(_tid, 0, 1); //seriosly, why are you even here?
 				}
+*/
 				break;
 
 			default:
@@ -637,10 +637,24 @@ void trainWorker(){
 				//first check sensor (should be locked so only i should have access to it)
 			case TRAIN_WORKER_IS_SENSOR:
 
-/*
 				sensor = rpl[1];
 				trainTask = rpl[2];
 				taskStatus = rpl[3];
+				msg[0] = SENSOR_REGISTER_WORKER;
+				msg[1] = sensor;
+				Send(ssTID, msg, 2,(char *) &scs, sizeof(sensorCurrentStatusStruct));
+
+				tws.taskStatus = taskStatus;
+				tws.trainTask = trainTask;
+				tws.message[0] = TRAIN_WORKER_IS_REPLY;
+				tws.sensor = sensor;
+
+				tws.error = scs.taskStatus;
+				tws.lastSensorTime =scs.lastSensorTime;
+
+				Send(trTID, (char *)&tws, sizeof(trainWorkerSensorReportStruct), rpl, rpllen);
+
+/*
 				msg[0] = SENSOR_CURRENT_SENSOR_STATUS;
 				msg[1] = sensor;
 				Send(ssTID, msg, 2,(char *) &scs, sizeof(sensorCurrentStatusStruct));

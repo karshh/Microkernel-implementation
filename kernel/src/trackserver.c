@@ -249,8 +249,17 @@ void trackServer() {
 		switch((int) msg[0]) {
 			case TRACK_GETNEXTSENSOR:
 					tns.curSensor = msg[1];	
-					tns.nextSensor = findNextSensor(&t, tns.curSensor, &(tns.dist)); //return -1 if i'm at a dead end and there are no more sensors on this route
-					iodebug(dspTID, "D24GETNEXTSENSOR cur:%d, next:%d, dist:%d",tns.curSensor, tns.nextSensor, tns.dist);
+					tns.expectedSensor = findNextSensor(&t, tns.curSensor, &(tns.expectedDist)); //return -1 if i'm at a dead end and there are no more sensors on this route
+					tns.followingSensor = findNextSensor(&t, tns.expectedSensor, &(tns.followingDist)); //return -1 if i'm at a dead end and there are no more sensors on this route
+					if(node[node[tns.curSensor].nextNodeIndex].type == Switch){
+						tns.alternateSensor = findAltSensor(&t, node[tns.curSensor].nextNodeIndex, &(tns.alternateDist)) ;
+						tns.hasSwitch = 1;
+					}
+					else{
+						tns.hasSwitch = 0;
+					}
+
+					iodebug(dspTID, "D24GETNEXTSENSOR cur:%d, next:%d, dist:%d fol:%d fold:%d, hasAlt:%d alt:%d altd:%d",tns.curSensor, tns.expectedSensor, tns.expectedDist,tns.followingSensor,tns.followingDist,tns.hasSwitch, tns.alternateSensor, tns.alternateDist);
 		        		Reply(_tid, (char*)&tns, sizeof(trackNextSensorstruct)); //send the nextSEnsor Stuct (12 bytes). Note no need to format integers into characters, just send raw bytes.
 					break;
 			case TRACK_TRLOC_NUM:
