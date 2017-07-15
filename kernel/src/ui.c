@@ -27,18 +27,18 @@ void displayGrid() {
 	// drawing borders
     volatile int j = 2;
     Printf(iosTID, COM2, "\033[2;1H");   
-    for (; j < 83; j++) { 
+    for (; j < 53; j++) { 
     	Printf(iosTID, COM2, "_"); 
     }
 
     Printf(iosTID, COM2, "\033[5;1H");   
-    for (j = 5; j < 86; j++) { 
+    for (j = 5; j < 56; j++) { 
     	Printf(iosTID, COM2, "="); 
     }
 
     Printf(iosTID, COM2, "\033[31;1H");   
 
-    for (j = 5; j < 86; j++) { 
+    for (j = 5; j < 56; j++) { 
     	Printf(iosTID, COM2, "_");
     }
 
@@ -48,7 +48,7 @@ void displayGrid() {
 		Printf(iosTID, COM2, "\033[%d;12H|", i);
 		Printf(iosTID, COM2, "\033[%d;24H|", i);
 		Printf(iosTID, COM2, "\033[%d;41H|", i);
-		Printf(iosTID, COM2, "\033[%d;81H|", i);
+		Printf(iosTID, COM2, "\033[%d;51H|", i);
 		// Printf(iosTID, COM2, "\033[%d;84H|", i);
 		// Printf(iosTID, COM2, "\033[%d;203H|", i);
 	}
@@ -59,21 +59,28 @@ void displayGrid() {
     for (i = 4; i < 13; i++) {
         Printf(iosTID, COM2,"\033[%d;2H00%d", i+2, i-3);
         Printf(iosTID, COM2,"\033[%d;26H%d: ", i+2, i+54);
+        Printf(iosTID, COM2,"\033[%d;43H%d: ", i+2, i+54);
     }
     for (; i < 22; i++) {
         Printf(iosTID, COM2,"\033[%d;2H0%d", i+2, i-3);
         Printf(iosTID, COM2,"\033[%d;26H%d: ", i+2, i+54);
+        Printf(iosTID, COM2,"\033[%d;43H%d: ", i+2, i+54);
     }
     Printf(iosTID, COM2,"\033[%d;26H%d: ", i+2, i+54);
+    Printf(iosTID, COM2,"\033[%d;43H%d: ", i+2, i+54);
     Printf(iosTID, COM2,"\033[%d;26H%d: ", i+3, i+55);
+    Printf(iosTID, COM2,"\033[%d;43H%d: ", i+3, i+55);
     Printf(iosTID, COM2,"\033[%d;26H%d: ", i+4, i+56);
+    Printf(iosTID, COM2,"\033[%d;43H%d: ", i+4, i+56);
     Printf(iosTID, COM2,"\033[%d;26H%d: ", i+5, i+57);
+    Printf(iosTID, COM2,"\033[%d;43H%d: ", i+5, i+57);
     for (; i < 26; i++) {
         Printf(iosTID, COM2,"\033[%d;2H%d", i+2, i+131);
     }
         
 	Printf(iosTID, COM2, "\033[3;15HSensor\033[4;14HTriggers");
-	Printf(iosTID, COM2, "\033[3;28HNext Train\033[4;26HSensor Trigger");
+	Printf(iosTID, COM2, "\033[3;30HSensor\033[4;27HAttribution");
+	Printf(iosTID, COM2, "\033[3;44HArrêt\033[4;44HFinal");
 
 	drawTrack(iosTID);
         

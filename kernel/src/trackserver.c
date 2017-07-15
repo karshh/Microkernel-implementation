@@ -170,6 +170,8 @@ int shortEdge(TrackGraph * t, int sensor) {
 
 	return node[sensor].nextNodeDistance < 200;
 }
+
+
 void trackServer() {
 
 	bwassert(!RegisterAs("trackServer"), COM2, "Failed to register trackServer.\r\n");
@@ -204,6 +206,9 @@ void trackServer() {
 	int tr76switchConfig[20];
 	int tr76switchCount = 0;
 
+	// reserve sensor and switch nodes here.
+	int trackReservation[102];
+
 	int * trSwitches = 0;
 	int * trSwitchConfig = 0;
 	int * trSwitchCount = 0;
@@ -229,6 +234,7 @@ void trackServer() {
 		trainDestinationSensor[i] = 0;
 		trainVelocity[i] = i;
 		initExpectedSensor[i] = 0;
+		trackReservation[i] = 0;
 	}
 
 
@@ -377,11 +383,13 @@ void trackServer() {
 					
 						for (i = 58; i < 80; i++) {
 							if (trainDestinationSensor[i] == msg[j]) {
-	
+				
 								commandMsg[0] = COMMAND_TR;
 								commandMsg[1] = 0;
 								commandMsg[2] = i;
 								commandMsg[3] = 0;
+
+								iodebug(dspTID, "D1\033[s\033[%d;47H   \033[u", train - 52);
 								bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
 							}
 
@@ -556,6 +564,8 @@ void trackServer() {
 
 						//iodebug(dspTID, "D2switchCount=%d trSwitches[0]=%d,%d,%d trSwitchConfig[0]=%d,%d,%d", *trSwitchCount, trSwitches[*trSwitchCount-1],trSwitches[*trSwitchCount-2],trSwitches[*trSwitchCount-3], trSwitchConfig[*trSwitchCount-1], trSwitchConfig[*trSwitchCount-2], trSwitchConfig[*trSwitchCount-3]);	
 					}
+
+					iodebug(dspTID, "D1\033[s\033[%d;47H%c%d%d\033[u", train - 52, ((sens-1)/16)+'A',((sens-1)%16+1)/10, ((sens-1)%16+1)%10);
 				} 
 				Reply(_tid, "1", 2);
 		        break;
