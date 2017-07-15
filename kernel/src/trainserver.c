@@ -104,7 +104,7 @@ void trainServer(){
  	initTrains(csTID,commandServerTID, dspTID, trackTID);
 
 	int tr58TID = Create(7,(void *)trainProfile);
-	int tr76TID = 0;//Create(7,(void *)trainProfile);
+	int tr76TID = Create(7,(void *)trainProfile);
 
 
 	while(1){
