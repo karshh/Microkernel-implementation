@@ -42,6 +42,11 @@ typedef struct TrackGraphNode {
 
 } TrackGraphNode;
 
+typedef struct exclusionEdge{
+	int nextNode;
+	int currentNode;
+} exclusionEdge;
+
 typedef struct TrackGraph {
 	TrackGraphNode node[102];
 } TrackGraph;
@@ -77,7 +82,7 @@ int getShortestPath(TrackGraph * t, int sensorStart, int sensorEnd, int * path, 
 int getShortestPathDjikstra(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength);
 
 //paily's version to include reversals
-int getShortestPathPlus(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength);
+int getShortestPathPlus(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength, exclusionEdge * exclusionList, int exclusionCount);
 
 /*
 * This function takes in path and pathlength (set through a getShortestPath() call) along with the current train speed, and returns a list of sensors, the distance between them
