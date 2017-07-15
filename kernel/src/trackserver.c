@@ -282,8 +282,7 @@ void trackServer() {
 									trackReservation[farSensor] = i;
 									trackReservation[node[farSensor].inverse] = i;
 									iodebug(dspTID, "D%d\033[s%d:%2d & %2d\033[u", i-52, i, trainExpectedSensor[i], farSensor);
-								
-								} else if (trackReservation[trainExpectedSensor[i]] != 0) {
+								} else {
 									commandMsg[0] = COMMAND_TR;
 									commandMsg[1] = 0;
 									commandMsg[2] = i;
