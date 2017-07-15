@@ -29,6 +29,7 @@ typedef struct TrackGraphNode {
 	int nextNodeIndex; // for sensors only.
 	int nextNodeDistance;
 	int inverse;
+	//inverse distance = 0
 	int CnextNodeIndex; // for single switches only;
 	int CnextNodeDistance;
 	int SnextNodeIndex; // for single switches only;
@@ -49,7 +50,7 @@ typedef struct TrackGraph {
 // void sensorModelInit(sensorModel * vm);
 
 int findAltSensor(TrackGraph * t, int i, int * dist);
-
+//find next sensor in path 
 int findNextSensor(TrackGraph * t, int i, int * dist);
 
 int sensor2i(char * c);
@@ -75,6 +76,8 @@ void TrackGraphInit(TrackGraph * t);
 int getShortestPath(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength);
 int getShortestPathDjikstra(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength);
 
+//paily's version to include reversals
+int getShortestPathPlus(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength);
 
 /*
 * This function takes in path and pathlength (set through a getShortestPath() call) along with the current train speed, and returns a list of sensors, the distance between them

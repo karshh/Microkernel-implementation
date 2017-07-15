@@ -1319,7 +1319,6 @@ int findEdge(TrackGraph * t, int s1, int s2) {
     TrackGraphNode * node = t->node;
     switch(node[s1].type) {
         case Sensor:
-            // bwprintf(COM2, "%c%d%d->%c%d%d mapping = %d\r\n", ((s1-1)/16)+'A',((s1-1)%16+1)/10, ((s1-1)%16+1)%10, ((s2-1)/16)+'A',((s2-1)%16+1)/10, ((s2-1)%16+1)%10, node[s1].nextNodeIndex == s2);
             return node[s1].nextNodeIndex == s2;
             break;
         case Switch:
@@ -1378,6 +1377,140 @@ int getEdgeInfo(TrackGraph * t, int * path, int pathLength, int * distanceList, 
 
 }
 
+//this version accounts for reverses
+int getShortestPathPlus(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength) { 
+
+    	TrackGraphNode * node = t->node;
+	int print = 1;
+	if (sensorStart <= 0 || sensorEnd <= 0) return 0;
+	
+	if (sensorStart == sensorEnd || sensorStart == node[sensorStart].inverse) {
+		path[0] = sensorStart;
+		*pathLength = 1;
+		return 1;
+	}
+	//volatile int print = 0; // use this to toggle print
+	circularBuffer cb;
+
+	// storing reverse paths in here.
+	int flag[101]; //visited
+	int prev[101]; //previous
+	volatile int i = 0;
+
+	// variables for while loop.
+	int val = 0;
+	BUFFER_TYPE valb = 0;
+	int nextNode = -1;
+
+	for (; i < 101; i++){
+		 flag[i] = 0; // init all efficient step.
+		 prev[i] = -1; //has no previous node in search
+	}
+	
+	circularBufferInit(&cb); //initialize empty queue
+	flag[sensorStart] = 1;  //indicate we visited start sensor in graph.
+
+	bwassert(addToBuffer(sensorStart, &cb), COM2, "<TrackGraphFind>:ERROR 1, Could not add %d to cb.", sensorStart); //enque node start sensor into path 
+
+	while((getFromBuffer(&valb, &cb))){
+	val = valb;
+//bwprintf(1,"val: %d",val);
+		if (node[val].type == Sensor) {
+		//bwprintf(1," sens %d\n\r",val);
+			//look at next node in sensor's path
+			nextNode = node[val].nextNodeIndex;
+	//		bwprintf(1," %d 's next %d\n\r",val , nextNode);
+			if(nextNode > 0 && flag[nextNode] == 0 ){
+				flag[nextNode] = 1;
+				prev[nextNode] = val;
+				bwassert(addToBuffer(nextNode, &cb), COM2, "<TrackGraphFind>:ERROR 2, Could not add %d to cb.", nextNode); //enque node start sensor into path 
+				if (nextNode == sensorEnd) break; //we only need to process this much if we reached end sensor
+			}
+
+			//check reverse/inverse node as well
+			nextNode = node[val].inverse;
+		//	bwprintf(1," %d 's inv %d\n\r",val , nextNode);
+			if(nextNode > 0 && flag[nextNode] == 0){
+				flag[nextNode] = 1;
+				prev[nextNode] = val;
+				bwassert(addToBuffer(nextNode, &cb), COM2, "<TrackGraphFind>:ERROR 3, Could not add %d to cb.", nextNode); //enque node start sensor into path 
+				if (nextNode == sensorEnd) break; //we only need to process this much if we reached end sensor
+			}
+
+		} else if (node[val].type == Switch){
+//bwprintf(1," switch %d\n\r",val);
+			//c case
+//bwprintf(1," %d 's cnext %d\n\r",val , nextNode);
+			nextNode = node[val].CnextNodeIndex;
+			if(nextNode > 0 && flag[nextNode] == 0){
+				flag[nextNode] = 1;
+				prev[nextNode] = val;
+				bwassert(addToBuffer(nextNode, &cb), COM2, "<TrackGraphFind>:ERROR 4, Could not add %d to cb.", nextNode); //enque node start sensor into path 
+				if (nextNode == sensorEnd) break; //we only need to process this much if we reached end sensor
+			}
+
+			//S case
+//bwprintf(1," %d 's snext %d\n\r",val , nextNode);
+			nextNode = node[val].SnextNodeIndex;
+			if(nextNode > 0 && flag[nextNode] == 0){
+				flag[nextNode] = 1;
+				prev[nextNode] = val;
+				bwassert(addToBuffer(nextNode, &cb), COM2, "<TrackGraphFind>:ERROR 5, Could not add %d to cb.", nextNode); //enque node start sensor into path 
+				if (nextNode == sensorEnd) break; //we only need to process this much if we reached end sensor
+			}
+
+		} else {//else multi-switch
+//bwprintf(1," multiswitch %d\n\r",val);
+			//bwprintf(COM2, "Found node %d, which is a multiswitch.\r\n", val);
+			//cs case
+			nextNode = node[val].CSnextNodeIndex;
+			if(nextNode > 0 && flag[nextNode] == 0){
+				flag[nextNode] = 1;
+				prev[nextNode] = val;
+				bwassert(addToBuffer(nextNode, &cb), COM2, "<TrackGraphFind>:ERROR 6, Could not add %d to cb.", nextNode); //enque node start sensor into path 
+				if (nextNode == sensorEnd) break; //we only need to process this much if we reached end sensor
+			}
+
+			//Sc case
+			nextNode = node[val].SCnextNodeIndex;
+			if(nextNode > 0 && flag[nextNode] == 0){
+				flag[nextNode] = 1;
+				prev[nextNode] = val;
+				bwassert(addToBuffer(nextNode, &cb), COM2, "<TrackGraphFind>:ERROR 7, Could not add %d to cb.", nextNode); //enque node start sensor into path 
+				if (nextNode == sensorEnd) break; //we only need to process this much if we reached end sensor
+			}
+
+		}
+	}
+	
+	if(prev[i] == -1) return 0; //there is no path to this node
+	*pathLength = 0;
+	i = sensorEnd;
+	for (;i != sensorStart; i = prev[i]) {
+		path[*pathLength] = i;
+		*pathLength += 1;
+	}
+
+	path[*pathLength] = sensorStart;
+	*pathLength += 1;
+
+
+	// toggle print variable to print this, for purposes of debugging (and potentially your sanity if you hate graphs).
+	if (print) {
+		bwprintf(COM2, "Shortest path, reversed from end to start:\r\n");
+		i = sensorEnd;
+		for (;i != sensorStart; i = prev[i]) {
+			if (i < 81) bwprintf(COM2, "%c%d%d <- ", ((i-1)/16)+'A',((i-1)%16+1)/10, ((i-1)%16+1)%10);
+			else if (i < 98) bwprintf(COM2, "sw %d <- ", i-80);
+			else bwprintf(COM2, "multsw %d %d <- ", i == 99 ? 153 : 155, i == 99 ? 154 : 156);
+
+		}
+		bwprintf(COM2, "%c%d%d\r\n\r\n", ((sensorStart-1)/16)+'A',((sensorStart-1)%16+1)/10, ((sensorStart-1)%16+1)%10);
+	}
+
+	return 1;
+}
+
 // 3 semesters of graph theory and this is what my best solution ends up being.... FML
 
 int getShortestPath(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength) {
@@ -1409,29 +1542,23 @@ int getShortestPath(TrackGraph * t, int sensorStart, int sensorEnd, int * path, 
 	TrackGraphNode * node = t->node;
 	// add sensor start as the root node in the queue
 
-	//bwprintf(COM2, "Adding root %d\r\n", sensorStart);
 	bwassert(addToBuffer(sensorStart, &cb), COM2, "<TrackGraphFind>:ERROR 1, Could not add %d to cb.", i);
 
-	//bwprintf(COM2, "Beginning BFS find.\r\n");
 	while(1) {
 		// pop a node out
 		// if we can't get a node from this buffer, we've reached a dead end. Return 0.
 		if (!getFromBuffer(&val, &cb)) return 0;
 
 		if (node[val].type == Sensor) {
-			//bwprintf(COM2, "Found node %d, which is a sensor.\r\n", val);
 			 next = node[val].nextNodeIndex;
-			//bwprintf(COM2, "The child is %d.\r\n", next);
 			if (next <= 0 || tree[next] > 0) continue;
 			tree[next] = val;
 			if (next == sensorEnd) {
-				//bwprintf(COM2, "Looks like %d is the chosen child!\r\n", next);
 				break;
 			}
 			bwassert(addToBuffer(next, &cb), COM2, "<TrackGraphFind>:ERROR 3, Could not add %d to cb.", next);
 
 		} else if (node[val].type == Switch){
-			//bwprintf(COM2, "Found node %d, which is a switch.\r\n", val);
 			 Cnext = node[val].CnextNodeIndex;
 			 Snext = node[val].SnextNodeIndex;
 			if (Cnext > 0 && tree[Cnext] <= 0) {
