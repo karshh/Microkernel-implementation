@@ -1,0 +1,403 @@
+	.file	"buffer.c"
+	.text
+	.globl	circularBufferInit
+	.type	circularBufferInit, @function
+circularBufferInit:
+.LFB0:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movq	%rdi, -8(%rbp)
+	movq	-8(%rbp), %rax
+	movl	$0, 16384(%rax)
+	movq	-8(%rbp), %rax
+	movl	$0, 16388(%rax)
+	movl	$1, %eax
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE0:
+	.size	circularBufferInit, .-circularBufferInit
+	.globl	addToBuffer
+	.type	addToBuffer, @function
+addToBuffer:
+.LFB1:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movl	%edi, -20(%rbp)
+	movq	%rsi, -32(%rbp)
+	movq	-32(%rbp), %rax
+	movl	16384(%rax), %eax
+	addl	$1, %eax
+	cmpl	$4095, %eax
+	jg	.L4
+	movq	-32(%rbp), %rax
+	movl	16384(%rax), %eax
+	addl	$1, %eax
+	jmp	.L5
+.L4:
+	movl	$0, %eax
+.L5:
+	movl	%eax, -4(%rbp)
+	movq	-32(%rbp), %rax
+	movl	16388(%rax), %eax
+	cmpl	-4(%rbp), %eax
+	jne	.L6
+	movl	$0, %eax
+	jmp	.L7
+.L6:
+	movq	-32(%rbp), %rax
+	movl	16384(%rax), %edx
+	movq	-32(%rbp), %rax
+	movslq	%edx, %rdx
+	movl	-20(%rbp), %ecx
+	movl	%ecx, (%rax,%rdx,4)
+	movq	-32(%rbp), %rax
+	movl	-4(%rbp), %edx
+	movl	%edx, 16384(%rax)
+	movl	$1, %eax
+.L7:
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE1:
+	.size	addToBuffer, .-addToBuffer
+	.globl	getFromBuffer
+	.type	getFromBuffer, @function
+getFromBuffer:
+.LFB2:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movq	%rdi, -24(%rbp)
+	movq	%rsi, -32(%rbp)
+	movq	-32(%rbp), %rax
+	movl	16388(%rax), %eax
+	addl	$1, %eax
+	cmpl	$4095, %eax
+	jg	.L9
+	movq	-32(%rbp), %rax
+	movl	16388(%rax), %eax
+	addl	$1, %eax
+	jmp	.L10
+.L9:
+	movl	$0, %eax
+.L10:
+	movl	%eax, -4(%rbp)
+	movq	-32(%rbp), %rax
+	movl	16384(%rax), %edx
+	movq	-32(%rbp), %rax
+	movl	16388(%rax), %eax
+	cmpl	%eax, %edx
+	jne	.L11
+	movl	$0, %eax
+	jmp	.L12
+.L11:
+	movq	-32(%rbp), %rax
+	movl	16388(%rax), %edx
+	movq	-32(%rbp), %rax
+	movslq	%edx, %rdx
+	movl	(%rax,%rdx,4), %edx
+	movq	-24(%rbp), %rax
+	movl	%edx, (%rax)
+	movq	-32(%rbp), %rax
+	movl	-4(%rbp), %edx
+	movl	%edx, 16388(%rax)
+	movl	$1, %eax
+.L12:
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE2:
+	.size	getFromBuffer, .-getFromBuffer
+	.globl	isBufferEmpty
+	.type	isBufferEmpty, @function
+isBufferEmpty:
+.LFB3:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movq	%rdi, -8(%rbp)
+	movq	-8(%rbp), %rax
+	movl	16384(%rax), %edx
+	movq	-8(%rbp), %rax
+	movl	16388(%rax), %eax
+	cmpl	%eax, %edx
+	jne	.L14
+	movl	$1, %eax
+	jmp	.L15
+.L14:
+	movl	$0, %eax
+.L15:
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE3:
+	.size	isBufferEmpty, .-isBufferEmpty
+	.globl	bufferLength
+	.type	bufferLength, @function
+bufferLength:
+.LFB4:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movq	%rdi, -8(%rbp)
+	movq	-8(%rbp), %rax
+	movl	16384(%rax), %edx
+	movq	-8(%rbp), %rax
+	movl	16388(%rax), %eax
+	cmpl	%eax, %edx
+	jne	.L17
+	movl	$0, %eax
+	jmp	.L18
+.L17:
+	movq	-8(%rbp), %rax
+	movl	16384(%rax), %edx
+	movq	-8(%rbp), %rax
+	movl	16388(%rax), %eax
+	cmpl	%eax, %edx
+	jle	.L19
+	movq	-8(%rbp), %rax
+	movl	16384(%rax), %edx
+	movq	-8(%rbp), %rax
+	movl	16388(%rax), %eax
+	subl	%eax, %edx
+	movl	%edx, %eax
+	jmp	.L18
+.L19:
+	movq	-8(%rbp), %rax
+	movl	16384(%rax), %eax
+	leal	4096(%rax), %edx
+	movq	-8(%rbp), %rax
+	movl	16388(%rax), %eax
+	subl	%eax, %edx
+	movl	%edx, %eax
+.L18:
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE4:
+	.size	bufferLength, .-bufferLength
+	.globl	circularBufferInitB
+	.type	circularBufferInitB, @function
+circularBufferInitB:
+.LFB5:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movq	%rdi, -8(%rbp)
+	movq	-8(%rbp), %rax
+	movl	$0, 102400(%rax)
+	movq	-8(%rbp), %rax
+	movl	$0, 102404(%rax)
+	movl	$1, %eax
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE5:
+	.size	circularBufferInitB, .-circularBufferInitB
+	.globl	addToBufferB
+	.type	addToBufferB, @function
+addToBufferB:
+.LFB6:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movl	%edi, %eax
+	movq	%rsi, -32(%rbp)
+	movb	%al, -20(%rbp)
+	movq	-32(%rbp), %rax
+	movl	102400(%rax), %eax
+	addl	$1, %eax
+	cmpl	$102399, %eax
+	jg	.L23
+	movq	-32(%rbp), %rax
+	movl	102400(%rax), %eax
+	addl	$1, %eax
+	jmp	.L24
+.L23:
+	movl	$0, %eax
+.L24:
+	movl	%eax, -4(%rbp)
+	movq	-32(%rbp), %rax
+	movl	102404(%rax), %eax
+	cmpl	-4(%rbp), %eax
+	jne	.L25
+	movl	$0, %eax
+	jmp	.L26
+.L25:
+	movq	-32(%rbp), %rax
+	movl	102400(%rax), %eax
+	movq	-32(%rbp), %rdx
+	cltq
+	movzbl	-20(%rbp), %ecx
+	movb	%cl, (%rdx,%rax)
+	movq	-32(%rbp), %rax
+	movl	-4(%rbp), %edx
+	movl	%edx, 102400(%rax)
+	movl	$1, %eax
+.L26:
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE6:
+	.size	addToBufferB, .-addToBufferB
+	.globl	getFromBufferB
+	.type	getFromBufferB, @function
+getFromBufferB:
+.LFB7:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movq	%rdi, -24(%rbp)
+	movq	%rsi, -32(%rbp)
+	movq	-32(%rbp), %rax
+	movl	102404(%rax), %eax
+	addl	$1, %eax
+	cmpl	$102399, %eax
+	jg	.L28
+	movq	-32(%rbp), %rax
+	movl	102404(%rax), %eax
+	addl	$1, %eax
+	jmp	.L29
+.L28:
+	movl	$0, %eax
+.L29:
+	movl	%eax, -4(%rbp)
+	movq	-32(%rbp), %rax
+	movl	102400(%rax), %edx
+	movq	-32(%rbp), %rax
+	movl	102404(%rax), %eax
+	cmpl	%eax, %edx
+	jne	.L30
+	movl	$0, %eax
+	jmp	.L31
+.L30:
+	movq	-32(%rbp), %rax
+	movl	102404(%rax), %eax
+	movq	-32(%rbp), %rdx
+	cltq
+	movzbl	(%rdx,%rax), %edx
+	movq	-24(%rbp), %rax
+	movb	%dl, (%rax)
+	movq	-32(%rbp), %rax
+	movl	-4(%rbp), %edx
+	movl	%edx, 102404(%rax)
+	movl	$1, %eax
+.L31:
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE7:
+	.size	getFromBufferB, .-getFromBufferB
+	.globl	isBufferEmptyB
+	.type	isBufferEmptyB, @function
+isBufferEmptyB:
+.LFB8:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movq	%rdi, -8(%rbp)
+	movq	-8(%rbp), %rax
+	movl	102400(%rax), %edx
+	movq	-8(%rbp), %rax
+	movl	102404(%rax), %eax
+	cmpl	%eax, %edx
+	jne	.L33
+	movl	$1, %eax
+	jmp	.L34
+.L33:
+	movl	$0, %eax
+.L34:
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE8:
+	.size	isBufferEmptyB, .-isBufferEmptyB
+	.globl	bufferLengthB
+	.type	bufferLengthB, @function
+bufferLengthB:
+.LFB9:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movq	%rdi, -8(%rbp)
+	movq	-8(%rbp), %rax
+	movl	102400(%rax), %edx
+	movq	-8(%rbp), %rax
+	movl	102404(%rax), %eax
+	cmpl	%eax, %edx
+	jne	.L36
+	movl	$0, %eax
+	jmp	.L37
+.L36:
+	movq	-8(%rbp), %rax
+	movl	102400(%rax), %edx
+	movq	-8(%rbp), %rax
+	movl	102404(%rax), %eax
+	cmpl	%eax, %edx
+	jle	.L38
+	movq	-8(%rbp), %rax
+	movl	102400(%rax), %edx
+	movq	-8(%rbp), %rax
+	movl	102404(%rax), %eax
+	subl	%eax, %edx
+	movl	%edx, %eax
+	jmp	.L37
+.L38:
+	movq	-8(%rbp), %rax
+	movl	102400(%rax), %eax
+	leal	102400(%rax), %edx
+	movq	-8(%rbp), %rax
+	movl	102404(%rax), %eax
+	subl	%eax, %edx
+	movl	%edx, %eax
+.L37:
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE9:
+	.size	bufferLengthB, .-bufferLengthB
+	.ident	"GCC: (Ubuntu 5.4.0-6ubuntu1~16.04.4) 5.4.0 20160609"
+	.section	.note.GNU-stack,"",@progbits
