@@ -41,7 +41,7 @@ void trainTask() {
 		bwassert(Create(5, (void *) sensorServer)>=0, COM2, "Failed Create sensorServer.\n\r");
 		
 		//trainServer
-		bwassert(Create(6, (void *) trainServer)>=0, COM2, "Failed Create trainServer.\n\r");
+		bwassert(Create(5, (void *) trainServer)>=0, COM2, "Failed Create trainServer.\n\r");
 		//trackServer
 	Exit();
 }
