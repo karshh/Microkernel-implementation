@@ -6,6 +6,10 @@
 #include "trackGraph.h"
 
 
+int markedOutSensor(int sensor) {
+  return 0;
+}
+
 
 
 

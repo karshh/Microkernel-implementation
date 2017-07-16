@@ -126,7 +126,7 @@ void trackServer() {
 			case TRACK_GETNEXTSENSOR:
 					tns.curSensor = msg[1];	
 					tns.nextSensor = findNextSensor(&t, tns.curSensor, &(tns.dist)); //return -1 if i'm at a dead end and there are no more sensors on this route
-					iodebug(dspTID, "D24GETNEXTSENSOR cur:%d, next:%d, dist:%d",tns.curSensor, tns.nextSensor, tns.dist);
+					// iodebug(dspTID, "D24GETNEXTSENSOR cur:%d, next:%d, dist:%d",tns.curSensor, tns.nextSensor, tns.dist);
 		        		Reply(_tid, (char*)&tns, sizeof(trackNextSensorstruct)); //send the nextSEnsor Stuct (12 bytes). Note no need to format integers into characters, just send raw bytes.
 					break;
 			case TRACK_TRLOC_NUM:
@@ -267,7 +267,7 @@ void trackServer() {
 
 
 
-						if (trainExpectedSensor[i] != 0 && (trainExpectedSensor[i] == msg[j] || msg[j] == findNextSensor(&t,trainExpectedSensor[i], &distSensor))) {
+						if (trainExpectedSensor[i] != 0 && (trainExpectedSensor[i] == msg[j] || (markedOutSensor(trainExpectedSensor[i]) && msg[j] == findNextSensor(&t,trainExpectedSensor[i], &distSensor)))) {
 
 							// release tracksegments.
 							volatile int k = 0;
@@ -293,7 +293,7 @@ void trackServer() {
 								iodebug(dspTID, "D%d\033[s%d:%2d & %2d\033[u", i-52, i, trainExpectedSensor[i], farSensor);
 
 							} else {
-								iodebug(dspTID, "D%d\033[s!!!Imminent collision with tr %d!!!\033[u", i-52, trackReservation[trainExpectedSensor[i]] ? trackReservation[trainExpectedSensor[i]] : trackReservation[farSensor]);
+								iodebug(dspTID, "D%d\033[s%d:%2d ! %2d\033[u", i-52, i, trainExpectedSensor[i], farSensor);
 								trainSpeed[i] = 0;
 								msg[0] = COMMAND_TR;
 								msg[1] = 0;
@@ -321,7 +321,7 @@ void trackServer() {
 
 							int rev = *trSwitchCount > 0 && node[node[trainCurrentSensor[i]].inverse].nextNodeIndex == trSwitches[*trSwitchCount - 1];
 							int nextRev = *trSwitchCount > 0 && node[node[trainExpectedSensor[i]].inverse].nextNodeIndex == trSwitches[*trSwitchCount - 1];
-							iodebug(dspTID, "D1\033[s\033[%d;60Hrev:%d[%d] nextRev:%d[%d]..\033[u", train - 51, rev, node[node[trainCurrentSensor[i]].inverse].nextNodeIndex, nextRev, node[node[trainExpectedSensor[i]].inverse].nextNodeIndex);
+							// iodebug(dspTID, "D1\033[s\033[%d;60Hrev:%d[%d] nextRev:%d[%d]..\033[u", train - 51, rev, node[node[trainCurrentSensor[i]].inverse].nextNodeIndex, nextRev, node[node[trainExpectedSensor[i]].inverse].nextNodeIndex);
 
 
 							if (*trSwitchCount > 0 && 
@@ -384,7 +384,7 @@ void trackServer() {
 								}
 
 								if (rev) {
-									iodebug(dspTID, "D1\033[s\033[%d;60HReversing train..\033[u", train - 52);
+									// iodebug(dspTID, "D1\033[s\033[%d;60HReversing train..\033[u", train - 52);
 
 									trainExpectedSensor[i] = node[trainCurrentSensor[i]].inverse;
 									dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
@@ -398,7 +398,7 @@ void trackServer() {
 									bwassert(Send(trainTID, msg, 2, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
 								} else if (nextRev) {			
 
-									iodebug(dspTID, "D1\033[s\033[%d;60HRev approach..\033[u", train - 52);	
+									// iodebug(dspTID, "D1\033[s\033[%d;60HRev approach..\033[u", train - 52);	
 
 									bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
 									msg[0] = COMMAND_TR;
@@ -439,7 +439,7 @@ void trackServer() {
 					for (; k < 102; k++) if (trackReservation[k] == i) trackReservation[k] = 0;
 
 					
-					if (trackReservation[sens] != 0 || trackReservation[node[sens].nextNodeIndex] != 0) {
+					if (trackReservation[sens] != 0) {
 						// track segment is reserved. Decline the IS command.
 						Reply(_tid, "0", 2);
 						break;
