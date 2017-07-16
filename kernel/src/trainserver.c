@@ -158,9 +158,11 @@ void trainServer(){
 					case 76:
 						bwassert(Send(tr76TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 		        			Reply(_tid, rpl, 2);
+						break;
 					case 70:
 						bwassert(Send(tr70TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 		        			Reply(_tid, rpl, 2);
+						break;
 					case 69:
 						bwassert(Send(tr69TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 		        			Reply(_tid, rpl, 2);
@@ -323,6 +325,7 @@ void trainProfile(){ //will replace trainVelocityServer
 				msg[0] = trSpeed;
 				msg[1] = rpl[0];
 		        	Reply(_tid, msg, 2);
+				break;
 			case COMMAND_IS: //initialize sensor
 				//purpose of IS to determine where the train is and get initial velocity.
 				// since we don't know what speed the train is at when is is called (could be at constant speed/in the middle of changing speeds/at rest)

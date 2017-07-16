@@ -7,6 +7,7 @@
 
 #include <ts7200.h>
 #include <bwio.h>
+#include "userRequestCall.h" 
 
 /*
  * The UARTs are initialized by RedBoot to the following state
@@ -271,7 +272,9 @@ void bwassert( int condition, int channel, char *fmt, ... ) {
 
 	        bwprintf(channel, "\r\nRestart required.\r\n");
 	        bwprintf(channel, "\r\nRestart required.\r\n");
-	        while(1) {}
+		//assuming that this gets called only in user tasks (restart elsewise)
+		Quit();
+	        //while(1) {}
 
         }
 }
