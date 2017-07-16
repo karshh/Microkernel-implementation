@@ -108,7 +108,6 @@ void trainServer(){
 	int tr70TID = Create(7,(void *)trainProfile);
 	int tr69TID = Create(7,(void *)trainProfile);
 
-
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
 		switch(msg[0]){
