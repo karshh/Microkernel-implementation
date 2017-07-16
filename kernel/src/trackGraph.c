@@ -720,7 +720,7 @@ int getEdgeInfo(TrackGraph * t, int * path, int pathLength, int * distanceList, 
 int getShortestPathPlus(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength, exclusionEdge * exclusionList, int exclusionCount){
 
     	TrackGraphNode * node = t->node;
-	int print = 1;
+	int print = 0;
 	circularBuffer cb;
 
 	// storing reverse paths in here.

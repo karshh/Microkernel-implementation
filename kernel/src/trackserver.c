@@ -54,6 +54,12 @@ void trackServer() {
 	int tr58switches[20];
 	int tr58switchConfig[20];
 	int tr58switchCount = 0;
+	int tr69switches[20];
+	int tr69switchConfig[20];
+	int tr69switchCount = 0;
+	int tr70switches[20];
+	int tr70switchConfig[20];
+	int tr70switchCount = 0;
 	int tr76switches[20];
 	int tr76switchConfig[20];
 	int tr76switchCount = 0;
@@ -274,6 +280,7 @@ void trackServer() {
 								trackReservation[farSensor] = i;
 								trackReservation[node[farSensor].inverse] = i;
 								iodebug(dspTID, "D%d\033[s%d:%2d & %2d\033[u", i-52, i, trainExpectedSensor[i], farSensor);
+
 							} else {
 								trainSpeed[i] = 0;
 								commandMsg[0] = COMMAND_TR;
@@ -291,15 +298,25 @@ void trackServer() {
 								trSwitches = tr58switches;
 								trSwitchConfig = tr58switchConfig;
 								trSwitchCount = &tr58switchCount;
+							} else if (i == 69) {
+								trSwitches = tr69switches;
+								trSwitchConfig = tr69switchConfig;
+								trSwitchCount = &tr69switchCount;
+							} else if (i == 70) {
+								trSwitches = tr70switches;
+								trSwitchConfig = tr70switchConfig;
+								trSwitchCount = &tr70switchCount;
 							} else {
 								trSwitches = tr76switches;
 								trSwitchConfig = tr76switchConfig;
 								trSwitchCount = &tr76switchCount;
 							}
 
+							int rev = *trSwitchCount > 0 && node[node[trainCurrentSensor[i]].inverse].nextNodeIndex == trSwitches[*trSwitchCount - 1];
 							if (*trSwitchCount > 0 && 
 								((node[trainExpectedSensor[i]].nextNodeIndex == trSwitches[*trSwitchCount - 1] && shortEdge(&t, trainExpectedSensor[i])) || 
-									node[trainCurrentSensor[i]].nextNodeIndex == trSwitches[*trSwitchCount - 1])) {
+									node[trainCurrentSensor[i]].nextNodeIndex == trSwitches[*trSwitchCount - 1] ||
+									node[node[trainCurrentSensor[i]].inverse].nextNodeIndex == trSwitches[*trSwitchCount - 1])) {
 
 								if (trSwitches[*trSwitchCount - 1] <= 98) {
 									node[trSwitches[*trSwitchCount - 1]].switchConfig = trSwitchConfig[*trSwitchCount - 1] == 33 ? S : C;
@@ -355,7 +372,22 @@ void trackServer() {
 									*trSwitchCount -= 1;
 								}
 
-							}
+								if (rev) {
+									iodebug(dspTID, "D1\033[s\033[%d;60HReversing train..\033[u", train - 52);
+
+									trainExpectedSensor[i] = node[trainCurrentSensor[i]].inverse;
+									dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
+									dspMsg[1] = i;
+									dspMsg[2] = trainExpectedSensor[i];
+									dspMsg[3] = 0;
+									bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to DisplayServer.\r\n");
+
+									commandMsg[0] = COMMAND_RV;
+									commandMsg[1] = i;
+									bwassert(Send(commandServerTID, commandMsg, 2, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
+								}
+
+							} 
 						}
 
 						if (i == 58) {
@@ -430,7 +462,10 @@ void trackServer() {
 
 					int path[102];
 					int pathLength = 0;
-					if (!getShortestPath(&t, trainExpectedSensor[train], sens, path, &pathLength)) {
+
+					int exclusionList[100];
+					int exclusionListLength = 0;
+					if (!getShortestPathPlus(&t, trainExpectedSensor[train], sens, path, &pathLength, exclusionList, exclusionListLength)) {
 						Reply(_tid, "0", 2);
 						break;
 					}
@@ -442,6 +477,14 @@ void trackServer() {
 						trSwitches = tr58switches;
 						trSwitchConfig = tr58switchConfig;
 						trSwitchCount = &tr58switchCount;
+					} else if (train == 69) {
+						trSwitches = tr69switches;
+						trSwitchConfig = tr69switchConfig;
+						trSwitchCount = &tr69switchCount;
+					} else if (train == 70) {
+						trSwitches = tr70switches;
+						trSwitchConfig = tr70switchConfig;
+						trSwitchCount = &tr70switchCount;
 					} else {
 						trSwitches = tr76switches;
 						trSwitchConfig = tr76switchConfig;
