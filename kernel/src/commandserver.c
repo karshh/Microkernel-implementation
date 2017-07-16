@@ -129,10 +129,13 @@ void commandServer() {
 				break;
 			case COMMAND_RV_DELAY: // reverse part 2
 				trainMutex[(int)msg[1]] = 0;
+
 				Putc(iosUS1TID, COM1, 15);
 				Putc(iosUS1TID, COM1, msg[1]);
+
 				Putc(iosUS1TID, COM1, msg[2]);
 				Putc(iosUS1TID, COM1, msg[1]);
+
 				Reply(_tid, "1", 2);
 				break;
 			case COMMAND_TR: // train speed

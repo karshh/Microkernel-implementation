@@ -36,6 +36,7 @@
 
 
 void sensorServer(){
+	int dspTID = WhoIs("displayServer");
  //holds sensor database and communicates to outside
 	bwassert(!RegisterAs("sensorServer"), COM2, "Failed to register sensorServer.\r\n");
 
@@ -77,9 +78,13 @@ void sensorServer(){
 
 
 			case SENSOR_REGISTER_WORKER:
+
+				iodebug(dspTID, "D8  SS sensor register worker %d",_tid);
 				if(msg[1] >= 1 && msg[1] <= 80){
+				iodebug(dspTID, "D8  valid sensor %d",_tid);
 					//first check if sensor is on (or in last sensor report).
 					scs.sensor = msg[1];
+					iodebug(dspTID, "D8 is sensor held? tid=%d, sensorheld=%d sensor%d",_tid, sw.sensorHeld[scs.sensor -1], scs.sensor);
 					if(sw.sensorHeld[scs.sensor-1]){
 						scs.lastSensorTime =  sw.lastSensorTime[scs.sensor -1];
 						scs.sensorHeld =  sw.sensorHeld[scs.sensor -1];
@@ -140,6 +145,8 @@ void sensorServer(){
 				pkmemcpy((void *) &sw,(void *) &(sc.sw), sizeof(sensorWarehouseStruct));
 				//updates libray
 				//should reply to courier to display server
+				wakeupWaitingSensorWorker(workerList,&sw);
+				
 				if(!dcWaiting && sw.counter > 1){
 					unsentSensors = 1;
 				}

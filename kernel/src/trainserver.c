@@ -330,25 +330,32 @@ void trainProfile(){ //will replace trainVelocityServer
 						time1 = -1;
 						time2 = -1;
 						workerIS1TID = nextFreeTrainWorker(workerList);
-						iodebug(dspTID, "D2 %d 's woker 1 TID%d", trNumber,workerIS1TID);
+						iodebug(dspTID, "D2 %d 's woker 1 TID ?%d A", trNumber,workerIS1TID);
 						setTrainWorkerStatus(workerList, workerIS1TID,WORKER_IS1);
-					//	workerIS2TID = nextFreeTrainWorker(workerList);
-						//setTrainWorkerStatus(workerList, workerIS2TID,WORKER_IS2);
+
+						workerIS2TID = nextFreeTrainWorker(workerList);
+						iodebug(dspTID, "D3 %d 's woker 2 TID ?%d B", trNumber,workerIS2TID);
+						setTrainWorkerStatus(workerList, workerIS2TID,WORKER_IS2);
 
 						msg[0] = TRAIN_WORKER_IS_SENSOR;
 						msg[1] = currentSensor;
 						msg[2] = trainTask; //keep track what task im dealing with.
 						msg[3] = WORKER_IS1;
+						iodebug(dspTID, "D4 %d 's woker 1 TID ?%d C", trNumber,workerIS1TID);
 						Reply(workerIS1TID,msg,4);
+
+						iodebug(dspTID, "D5 %d 's woker 1 sent tr_worker_is_sensor %d sens=%d", trNumber,workerIS1TID,msg[1]);
 						worker_crew_count_out ++;
-/*
+
+
 						msg[0] = TRAIN_WORKER_IS_SENSOR;
 						msg[1] = tns.expectedSensor;
 						msg[2] = trainTask;
 						msg[3] = WORKER_IS2;
-						Reply(workerIS1TID,msg,4);
+						iodebug(dspTID, "D6 %d 's woker 2 TID ?%d C", trNumber,workerIS2TID);
+						Reply(workerIS2TID,msg,4);
+						iodebug(dspTID, "D5 %d 's woker 2 sent tr_worker_is_sensor %d sens=%d", trNumber,workerIS2TID,msg[1]);
 						worker_crew_count_out ++;
-*/
 						
 
 					}
@@ -775,14 +782,15 @@ void trainWorker(){
 
 				//first check sensor (should be locked so only i should have access to it)
 			case TRAIN_WORKER_IS_SENSOR:
-
 				sensor = rpl[1];
 				trainTask = rpl[2];
 				taskStatus = rpl[3];
 				msg[0] = SENSOR_REGISTER_WORKER;
 				msg[1] = sensor;
+				iodebug(dspTID, "D4 Train worker %d before ss", MyTid());
 				Send(ssTID, msg, 2,(char *) &scs, sizeof(sensorCurrentStatusStruct));
 
+				iodebug(dspTID, "D10 Train worker %d is back from ss",MyTid());
 				tws.taskStatus = taskStatus;
 				tws.trainTask = trainTask;
 				tws.message[0] = TRAIN_WORKER_IS_REPLY;

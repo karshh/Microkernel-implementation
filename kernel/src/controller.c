@@ -235,7 +235,7 @@ int parseCommand(char * input, int * arg1, int * arg2, int * arg3){
                         			msg[1] = train;
                         			msg[2] = sens;
 
-                        			bwassert(Send(trackTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Init sensor command.\r\n");
+                        			//bwassert(Send(trackTID, &msg[0], 4, reply, 2) >= 0, COM2, "<Parse_Command>: Error with send Init sensor command.\r\n");
 
                         			 msg[0] = COMMAND_IS;
                         			 msg[1] = train;
