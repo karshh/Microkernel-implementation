@@ -330,9 +330,10 @@ void trainProfile(){ //will replace trainVelocityServer
 						time1 = -1;
 						time2 = -1;
 						workerIS1TID = nextFreeTrainWorker(workerList);
+						iodebug(dspTID, "D2 %d 's woker 1 TID%d", trNumber,workerIS1TID);
 						setTrainWorkerStatus(workerList, workerIS1TID,WORKER_IS1);
-						workerIS2TID = nextFreeTrainWorker(workerList);
-						setTrainWorkerStatus(workerList, workerIS2TID,WORKER_IS2);
+					//	workerIS2TID = nextFreeTrainWorker(workerList);
+						//setTrainWorkerStatus(workerList, workerIS2TID,WORKER_IS2);
 
 						msg[0] = TRAIN_WORKER_IS_SENSOR;
 						msg[1] = currentSensor;
@@ -340,13 +341,14 @@ void trainProfile(){ //will replace trainVelocityServer
 						msg[3] = WORKER_IS1;
 						Reply(workerIS1TID,msg,4);
 						worker_crew_count_out ++;
-
+/*
 						msg[0] = TRAIN_WORKER_IS_SENSOR;
 						msg[1] = tns.expectedSensor;
 						msg[2] = trainTask;
 						msg[3] = WORKER_IS2;
 						Reply(workerIS1TID,msg,4);
 						worker_crew_count_out ++;
+*/
 						
 
 					}
