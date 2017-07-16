@@ -34,6 +34,7 @@
 #define COMMAND_TRAIN_SWWAR		32
 #define COMMAND_TRAIN_SWNOR		33
 #define VELOCITY_DEBUG			34
+#define COMMAND_ISW				36 //Init at sensor "IS <TR> <SEN>"
 #define COMMAND_DEBUG			68
 
 #define TRACK_INITSW 			1
@@ -47,6 +48,7 @@
 #define TRACK_TRLOC_EXPSENSOR	9
 #define TRACK_NEXTNODE			10
 #define TRACK_GETNEXTSENSOR			11 //adjust if conflict
+#define TRACK_TR			12 //adjust if conflict
 
 
 #define SENSOR_CURRENT_SENSOR_STATUS		1 //adjust if conflict

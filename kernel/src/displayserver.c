@@ -279,6 +279,10 @@ void displayServer() {
         	case COMMAND_IS:
                 Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KProgram is now awaiting train %d to flick sensor %d in order to complete registration.\033[34;1H>",msg[1],msg[2]);
                 break;
+
+        	case COMMAND_ISW:
+                Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KCould not init train %d on sensor %d due to track reservation.\033[34;1H>",msg[1],msg[2]);
+                break;
     		case COMMAND_Q:
                 Printf(iosTID, COM2, "\033[34;1H\033[K\033[35;1H\033[KQuiting Kernel.\033[34;1H>");
 				Death_TID = Create(0,(void*) DeathServer);
@@ -301,7 +305,7 @@ void displayServer() {
 				j = 0;
 				for (i=1; msg[i] >= '0' && msg[i] <= '9'; i++) j = (j*10) + (msg[i]-'0');
 
-				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;82H\033[K", j);
+				Printf(iosTID, COM2, "\033[s\033[?25l\033[%d;71H\033[K", j);
 
                 for (;i < msgLen; i++) Putc(iosTID, COM2, msg[i]);
                 Printf(iosTID, COM2, "\033[u\033[?25h");

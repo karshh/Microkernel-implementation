@@ -108,8 +108,6 @@ void trainServer(){
 
 	int tr58TID = Create(7,(void *)trainProfile);
 	int tr76TID = Create(7,(void *)trainProfile);
-	
-
 
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
@@ -229,7 +227,10 @@ void trainProfile(){ //will replace trainVelocityServer
 
 	trainWorkerListItem workerList[TRAIN_CREW_COUNT];
 	initTrainWorker(workerList);
-	int worker_crew_count_out = TRAIN_CREW_COUNT;
+	int worker_crew_count_out = TRAIN_CREW_COUNT; //acts as a semephore
+	//used for timeout/boot
+	int workerIS1TID =0;
+	int workerIS2TID =0;
 
 	//iodebug(dspTID, "D5 train init. Free worker TID %d",nextFreeTrainWorker(workerList));
 	//task management
@@ -237,6 +238,10 @@ void trainProfile(){ //will replace trainVelocityServer
 	
 	int trainTask =-1;
 	int trainTaskType = TTK_NONE;
+	//trainTaskWorkerReturnVal[4];
+	int trainTaskWorkerReturnCount =0;
+	
+
 	int lost = 1; // true if we don't know where train is.
 
 
@@ -247,7 +252,7 @@ void trainProfile(){ //will replace trainVelocityServer
 		msgLen = Receive(&_tid, msg, msgCap);
 		switch(msg[0]){
 			case TRAIN_WORKER_READY:
-				//called by init
+				//called by init or if train worker got wierd reply
 /*
 				if(_tid == wkr1TID ){
 					wkr1Status = WORKER_READY;
@@ -319,33 +324,164 @@ void trainProfile(){ //will replace trainVelocityServer
 					if(worker_crew_count_out){ //true if we don't have full cappacity
 							bwassert(0,COM2, "<trainProfile %dr> ran out of workers, COMMAND IS. Fix this Paily", trNumber);
 					}else{
-						trainTask++;
+						trainTask ++;
 						trainTaskType = TTK_IS;
 						dist = tns.expectedDist;
 						time1 = -1;
 						time2 = -1;
-						int wkr1 = nextFreeTrainWorker(workerList);
-						setTrainWorkerStatus(workerList, wkr1,WORKER_IS1);
-						int wkr2 = nextFreeTrainWorker(workerList);
-						setTrainWorkerStatus(workerList, wkr2,WORKER_IS2);
+						workerIS1TID = nextFreeTrainWorker(workerList);
+						setTrainWorkerStatus(workerList, workerIS1TID,WORKER_IS1);
+						workerIS2TID = nextFreeTrainWorker(workerList);
+						setTrainWorkerStatus(workerList, workerIS2TID,WORKER_IS2);
 
 						msg[0] = TRAIN_WORKER_IS_SENSOR;
 						msg[1] = currentSensor;
 						msg[2] = trainTask; //keep track what task im dealing with.
 						msg[3] = WORKER_IS1;
-						Reply(wkr1,msg,4);
+						Reply(workerIS1TID,msg,4);
+						worker_crew_count_out ++;
 
 						msg[0] = TRAIN_WORKER_IS_SENSOR;
 						msg[1] = tns.expectedSensor;
 						msg[2] = trainTask;
 						msg[3] = WORKER_IS2;
-						Reply(wkr2,msg,4);
+						Reply(workerIS1TID,msg,4);
+						worker_crew_count_out ++;
+						
 
 					}
 
 				}
 				break;
 			case TRAIN_WORKER_IS_REPLY:
+				//first deal with good case then with timeout case
+				if( trainWorkerIndex(workerList, _tid) >= 0){
+					//first do some housekeeping to get worker ready for future tasks
+					setTrainWorkerStatus(workerList, _tid, WORKER_READY);
+					worker_crew_count_out --;
+					//now look at message
+					pkmemcpy((void *)&tws, (void *)msg, sizeof(trainWorkerSensorReportStruct));
+					//check we are talking about same task (might be redundant)
+					if(trainTask == tws.trainTask){
+						if(tws.taskStatus == WORKER_IS1){
+							if(tws.error == TWSR_SUCCESS){
+								
+								if( time2 > -1){
+									iodebug(dspTID, "D10 IS1 reply: %s is an valid sensor but came slower than other worker somehow",tws.sensor);
+									//this could indicate that the two sensors where pinged in same sensor report......hmmmm
+									if(!worker_crew_count_out){//this should be the case
+										//if last worker, increment task
+										trainTaskType = TTK_NONE;
+										lost = 1;
+										trainTask ++;
+									}
+								}
+								else{
+									iodebug(dspTID, "D10 IS1 reply: %s is an valid sensor and succeeded with right timing",tws.sensor);
+									time1 = tws.lastSensorTime;
+								}
+							}
+							else if(tws.error == TWSR_TIMEOUT){
+								//we got timeout (either from timeout or manual boot)
+								//other workers should be timing out as well
+									
+								//this test has been botched, if last worker increment task    
+								iodebug(dspTID, "D10 IS1 reply: %s is an valid sensor but timed out",tws.sensor);
+								if(!worker_crew_count_out){
+									//if last worker, increment task
+									trainTaskType = TTK_NONE;
+									lost = 1;
+									trainTask ++;
+								}
+							}
+							else{
+								//invalid sensor
+								iodebug(dspTID, "D10 IS1 reply : %s is an invalid sensor",tws.sensor);
+				
+								//test is bothced, recall the tests if not last ekse increment timer
+								if(!worker_crew_count_out){
+									//if last worker, increment task
+									trainTaskType = TTK_NONE;
+									lost = 1;
+									trainTask ++;
+								}else{
+									//other task may be waiting on sensor, boot them if the are waiting
+									msg[0] = SENSOR_BOOT_WORKERS;
+									msg[1] = workerIS2TID;
+									msg[2] = workerIS2TID;
+									msg[3] = workerIS2TID;
+									//call courier when you get it working
+								}
+							}
+							
+						}
+						else if(tws.taskStatus == WORKER_IS2){
+							if(tws.error == TWSR_SUCCESS){
+								
+								if( time1 == -1){
+									iodebug(dspTID, "D15 IS2 reply: %s is an valid sensor but came slower than other worker somehow",tws.sensor);
+								
+									//this could indicate that the two sensors where pinged in same sensor report......hmmmm
+									//this is botced....recall other
+									msg[0] = SENSOR_BOOT_WORKERS;
+									msg[1] = workerIS1TID;
+									msg[2] = workerIS1TID;
+									msg[3] = workerIS1TID;
+									//call courier when you get it working
+
+								}
+								else{
+									iodebug(dspTID, "D15 IS2 reply: %s is an valid sensor and succeeded with right timing",tws.sensor);
+									time2 = tws.lastSensorTime;
+									deltaTime =( (time2 - time1) * 10);
+									velocity = (dist * 1000) / deltaTime;
+ 									//when init velocity function created, this will be modified to Alpha change
+									iodebug(dspTID, "D5Train %d init velocity:%d",trNumber,velocity);
+									trainTask ++; //start test for next sensor
+	
+									time1 = tws.trainTask;
+								}
+							}
+							else if(tws.error == TWSR_TIMEOUT){
+								//we got timeout (either from timeout or manual boot)
+								//other workers should be timing out as well
+									
+								//this test has been botched, if last worker increment task    
+								iodebug(dspTID, "D15 IS2 reply: %s is an valid sensor but timed out",tws.sensor);
+								if(!worker_crew_count_out){
+									//if last worker, increment task
+									trainTaskType = TTK_NONE;
+									lost = 1;
+									trainTask ++;
+								}
+							}
+							else{
+								//invalid sensor
+								iodebug(dspTID, "D15 IS2 reply : %s is an invalid sensor",tws.sensor);
+				
+								//test is bothced, recall the tests if not last ekse increment timer
+								if(!worker_crew_count_out){
+									//if last worker, increment task
+									trainTaskType = TTK_NONE;
+									lost = 1;
+									trainTask ++;
+								}else{
+									//other task may be waiting on sensor, boot them if the are waiting
+									msg[0] = SENSOR_BOOT_WORKERS;
+									msg[1] = workerIS1TID;
+									msg[2] = workerIS1TID;
+									msg[3] = workerIS1TID;
+								
+								}
+							}
+
+						}else{	//in
+							bwassert(0,COM2,"We got a worker that doesnt have an IS based id,,,,PAILY?!!!!");
+							//how did we get here?
+						}
+						
+					}
+				}
 /*
 				if( trainWorkerIndex(workerList, _tid) >= 0){
 				//if(_tid == wkr1TID || wkr2TID){
@@ -381,7 +517,7 @@ void trainProfile(){ //will replace trainVelocityServer
 								iodebug(dspTID, "D6Train %d new dist[%d], last time[%d], velocity[%d] exDTime[%d], expTime[%d]",trNumber,dist,time1,velocity, expectedDeltaTime, expectedTime);
 								int wkr1 = nextFreeTrainWorker(workerList);
 								if(wkr1 >=0){
-									setTrainWorkerStatus(workerList, wkr1,WORKER_VELE);
+setTrainWorkerStatus(workerList, wkr1,WORKER_VELE);
 									trainWorkerSensorTask twst;
 									twst.message[0] = TRAIN_WORKER_VELOCITY_SENSOR;
 									twst.trainTask = trainTask;
@@ -575,9 +711,9 @@ void trainWorker(){
 	int taskStatus;
 	int expectedTime =0;
 	
+	msg[0] = TRAIN_WORKER_READY;
+	Send(trTID, msg, 1, rpl, rpllen);
 	while(1){
-		msg[0] = TRAIN_WORKER_READY;
-		Send(trTID, msg, 1, rpl, rpllen);
 		switch(rpl[0]){ //jobs...don't return till job is finished
 			case TRAIN_WORKER_VELOCITY_SENSOR:
 				pkmemcpy((void *)&twst, (void *)rpl,sizeof(trainWorkerSensorTask));
@@ -632,6 +768,7 @@ void trainWorker(){
 
 				iodebug(dspTID, "D10Train worker on vele on sensor[%d],eTime[%d]",sensor,expectedTime);
 				Send(trTID, (char *)&tws, sizeof(trainWorkerSensorReportStruct), rpl, rpllen);
+				//when return we will be at top of loop with new task in rpl,rplen
 				break;
 
 				//first check sensor (should be locked so only i should have access to it)
@@ -653,59 +790,14 @@ void trainWorker(){
 				tws.lastSensorTime =scs.lastSensorTime;
 
 				Send(trTID, (char *)&tws, sizeof(trainWorkerSensorReportStruct), rpl, rpllen);
-
-/*
-				msg[0] = SENSOR_CURRENT_SENSOR_STATUS;
-				msg[1] = sensor;
-				Send(ssTID, msg, 2,(char *) &scs, sizeof(sensorCurrentStatusStruct));
-
-				tws.taskStatus = taskStatus;
-				tws.trainTask = trainTask;
-
-				tws.message[0] = TRAIN_WORKER_IS_REPLY;
-				tws.sensor = sensor;
-				if(scs.sensor == -1){
-					iodebug(dspTID, "D12 invalid sensor(is)");
-					//sensor is invalid sensor
-					tws.error = TWSR_INVALID_SENSOR;
-					 //invalid sensor	
-					 //let train know this sensor doesnt exist
-				}
-				else{
-					if(scs.sensorHeld){
-						//train stationary on is sensor or is stationary on is sensor
-						tws.error = TWSR_SUCCESS;
-						tws.lastSensorTime = scs.lastSensorTime;
-					}else{
-						//cannot accept first sensor report unless if train is on sensor (could be super old, or just hit) but cant be used for calculating speed. get next hit sensor post withn 2 minutes
-						first_sensorTime = scs.lastSensorTime;
-						poll_limit = 0;
-						while(poll_limit < 20*60*1){
-							//poll once every 50ms for 2 minutes, else timeout;
-							Delay(csTID,5);
-							msg[0] = SENSOR_CURRENT_SENSOR_STATUS;
-							msg[1] = sensor;
-							Send(ssTID, msg, 2,(char *) &scs, sizeof(sensorCurrentStatusStruct));
-							if(scs.sensorHeld || (scs.lastSensorTime > first_sensorTime)){
-								tws.error = TWSR_SUCCESS;
-								tws.lastSensorTime = scs.lastSensorTime;
-								break;
-							}
-							poll_limit ++;
-						}
-						if(poll_limit == 20*60*1){
-							tws.error = TWSR_TIMEOUT;
-						}
-					
-					}
-				}
-				Send(trTID, (char *)&tws, sizeof(trainWorkerSensorReportStruct), rpl, rpllen);
-				
-				
-*/
+				//when return we will be at top of loop with new task in rpl,rplen
+				//thus there is no intermediate step to send TRAIN_WORKER_READY, as train already holds the lock on worker.
 				break;
 			default:
-				iodebug(dspTID, "D24 a trainworker got a wierd reply");
+				iodebug(dspTID, "D24 a trainworker got a wierd reply so we are going back to train and ask for work again");
+                      
+				msg[0] = TRAIN_WORKER_READY;
+				Send(trTID, msg, 1, rpl, rpllen);
 				break;
 		}
 	}

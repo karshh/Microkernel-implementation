@@ -1,0 +1,496 @@
+	.file	"buffer.c"
+	.text
+	.align	2
+	.global	circularBufferInit
+	.type	circularBufferInit, %function
+circularBufferInit:
+	@ args = 0, pretend = 0, frame = 4
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #4
+	str	r0, [fp, #-16]
+	ldr	r1, [fp, #-16]
+	mov	r2, #16384
+	mov	r3, #0
+	str	r3, [r1, r2]
+	ldr	r1, [fp, #-16]
+	mov	r3, #16384
+	add	r3, r3, #4
+	mov	r2, #0
+	str	r2, [r1, r3]
+	mov	r3, #1
+	mov	r0, r3
+	ldmfd	sp, {r3, fp, sp, pc}
+	.size	circularBufferInit, .-circularBufferInit
+	.align	2
+	.global	addToBuffer
+	.type	addToBuffer, %function
+addToBuffer:
+	@ args = 0, pretend = 0, frame = 20
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #20
+	str	r0, [fp, #-20]
+	str	r1, [fp, #-24]
+	ldr	r2, [fp, #-24]
+	mov	r3, #16384
+	ldr	r3, [r2, r3]
+	add	r2, r3, #1
+	mov	r3, #4080
+	add	r3, r3, #15
+	cmp	r2, r3
+	bgt	.L4
+	ldr	r3, [fp, #-24]
+	mov	r2, #16384
+	ldr	r3, [r3, r2]
+	add	r3, r3, #1
+	str	r3, [fp, #-32]
+	b	.L6
+.L4:
+	mov	r3, #0
+	str	r3, [fp, #-32]
+.L6:
+	ldr	r3, [fp, #-32]
+	str	r3, [fp, #-16]
+	ldr	r2, [fp, #-24]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r2, [r2, r3]
+	ldr	r3, [fp, #-16]
+	cmp	r2, r3
+	bne	.L7
+	mov	r3, #0
+	str	r3, [fp, #-28]
+	b	.L9
+.L7:
+	ldr	r2, [fp, #-24]
+	mov	r3, #16384
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-24]
+	ldr	r3, [fp, #-20]
+	str	r3, [r2, r1, asl #2]
+	ldr	r1, [fp, #-24]
+	mov	r2, #16384
+	ldr	r3, [fp, #-16]
+	str	r3, [r1, r2]
+	mov	r3, #1
+	str	r3, [fp, #-28]
+.L9:
+	ldr	r3, [fp, #-28]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	addToBuffer, .-addToBuffer
+	.align	2
+	.global	getFromBuffer
+	.type	getFromBuffer, %function
+getFromBuffer:
+	@ args = 0, pretend = 0, frame = 20
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #20
+	str	r0, [fp, #-20]
+	str	r1, [fp, #-24]
+	ldr	r2, [fp, #-24]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	add	r2, r3, #1
+	mov	r3, #4080
+	add	r3, r3, #15
+	cmp	r2, r3
+	bgt	.L12
+	ldr	r3, [fp, #-24]
+	mov	r2, #16384
+	add	r2, r2, #4
+	ldr	r3, [r3, r2]
+	add	r3, r3, #1
+	str	r3, [fp, #-32]
+	b	.L14
+.L12:
+	mov	r3, #0
+	str	r3, [fp, #-32]
+.L14:
+	ldr	r3, [fp, #-32]
+	str	r3, [fp, #-16]
+	ldr	r2, [fp, #-24]
+	mov	r3, #16384
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-24]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	bne	.L15
+	mov	r3, #0
+	str	r3, [fp, #-28]
+	b	.L17
+.L15:
+	ldr	r2, [fp, #-24]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r2, [r2, r3]
+	ldr	r3, [fp, #-24]
+	ldr	r2, [r3, r2, asl #2]
+	ldr	r3, [fp, #-20]
+	str	r2, [r3, #0]
+	ldr	r1, [fp, #-24]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r2, [fp, #-16]
+	str	r2, [r1, r3]
+	mov	r3, #1
+	str	r3, [fp, #-28]
+.L17:
+	ldr	r3, [fp, #-28]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	getFromBuffer, .-getFromBuffer
+	.align	2
+	.global	isBufferEmpty
+	.type	isBufferEmpty, %function
+isBufferEmpty:
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #8
+	str	r0, [fp, #-16]
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	bne	.L20
+	mov	r3, #1
+	str	r3, [fp, #-20]
+	b	.L22
+.L20:
+	mov	r3, #0
+	str	r3, [fp, #-20]
+.L22:
+	ldr	r3, [fp, #-20]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	isBufferEmpty, .-isBufferEmpty
+	.align	2
+	.global	bufferLength
+	.type	bufferLength, %function
+bufferLength:
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #8
+	str	r0, [fp, #-16]
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	bne	.L25
+	mov	r3, #0
+	str	r3, [fp, #-20]
+	b	.L27
+.L25:
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	ble	.L28
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	rsb	r1, r3, r1
+	str	r1, [fp, #-20]
+	b	.L27
+.L28:
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	rsb	r3, r3, r1
+	add	r3, r3, #4096
+	str	r3, [fp, #-20]
+.L27:
+	ldr	r3, [fp, #-20]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	bufferLength, .-bufferLength
+	.align	2
+	.global	circularBufferInitB
+	.type	circularBufferInitB, %function
+circularBufferInitB:
+	@ args = 0, pretend = 0, frame = 4
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #4
+	str	r0, [fp, #-16]
+	ldr	r1, [fp, #-16]
+	mov	r2, #102400
+	mov	r3, #0
+	str	r3, [r1, r2]
+	ldr	r1, [fp, #-16]
+	mov	r3, #102400
+	add	r3, r3, #4
+	mov	r2, #0
+	str	r2, [r1, r3]
+	mov	r3, #1
+	mov	r0, r3
+	ldmfd	sp, {r3, fp, sp, pc}
+	.size	circularBufferInitB, .-circularBufferInitB
+	.align	2
+	.global	addToBufferB
+	.type	addToBufferB, %function
+addToBufferB:
+	@ args = 0, pretend = 0, frame = 20
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #20
+	mov	r3, r0
+	str	r1, [fp, #-24]
+	strb	r3, [fp, #-20]
+	ldr	r2, [fp, #-24]
+	mov	r3, #102400
+	ldr	r3, [r2, r3]
+	add	r2, r3, #1
+	mov	r3, #101376
+	add	r3, r3, #1020
+	add	r3, r3, #3
+	cmp	r2, r3
+	bgt	.L34
+	ldr	r3, [fp, #-24]
+	mov	r2, #102400
+	ldr	r3, [r3, r2]
+	add	r3, r3, #1
+	str	r3, [fp, #-32]
+	b	.L36
+.L34:
+	mov	r3, #0
+	str	r3, [fp, #-32]
+.L36:
+	ldr	r3, [fp, #-32]
+	str	r3, [fp, #-16]
+	ldr	r2, [fp, #-24]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r2, [r2, r3]
+	ldr	r3, [fp, #-16]
+	cmp	r2, r3
+	bne	.L37
+	mov	r3, #0
+	str	r3, [fp, #-28]
+	b	.L39
+.L37:
+	ldr	r2, [fp, #-24]
+	mov	r3, #102400
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-24]
+	ldrb	r3, [fp, #-20]
+	strb	r3, [r2, r1]
+	ldr	r1, [fp, #-24]
+	mov	r2, #102400
+	ldr	r3, [fp, #-16]
+	str	r3, [r1, r2]
+	mov	r3, #1
+	str	r3, [fp, #-28]
+.L39:
+	ldr	r3, [fp, #-28]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	addToBufferB, .-addToBufferB
+	.align	2
+	.global	getFromBufferB
+	.type	getFromBufferB, %function
+getFromBufferB:
+	@ args = 0, pretend = 0, frame = 20
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #20
+	str	r0, [fp, #-20]
+	str	r1, [fp, #-24]
+	ldr	r2, [fp, #-24]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	add	r2, r3, #1
+	mov	r3, #101376
+	add	r3, r3, #1020
+	add	r3, r3, #3
+	cmp	r2, r3
+	bgt	.L42
+	ldr	r3, [fp, #-24]
+	mov	r2, #102400
+	add	r2, r2, #4
+	ldr	r3, [r3, r2]
+	add	r3, r3, #1
+	str	r3, [fp, #-32]
+	b	.L44
+.L42:
+	mov	r3, #0
+	str	r3, [fp, #-32]
+.L44:
+	ldr	r3, [fp, #-32]
+	str	r3, [fp, #-16]
+	ldr	r2, [fp, #-24]
+	mov	r3, #102400
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-24]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	bne	.L45
+	mov	r3, #0
+	str	r3, [fp, #-28]
+	b	.L47
+.L45:
+	ldr	r2, [fp, #-24]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r2, [r2, r3]
+	ldr	r3, [fp, #-24]
+	ldrb	r3, [r3, r2]	@ zero_extendqisi2
+	ldr	r2, [fp, #-20]
+	strb	r3, [r2, #0]
+	ldr	r1, [fp, #-24]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r2, [fp, #-16]
+	str	r2, [r1, r3]
+	mov	r3, #1
+	str	r3, [fp, #-28]
+.L47:
+	ldr	r3, [fp, #-28]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	getFromBufferB, .-getFromBufferB
+	.align	2
+	.global	isBufferEmptyB
+	.type	isBufferEmptyB, %function
+isBufferEmptyB:
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #8
+	str	r0, [fp, #-16]
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	bne	.L50
+	mov	r3, #1
+	str	r3, [fp, #-20]
+	b	.L52
+.L50:
+	mov	r3, #0
+	str	r3, [fp, #-20]
+.L52:
+	ldr	r3, [fp, #-20]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	isBufferEmptyB, .-isBufferEmptyB
+	.align	2
+	.global	bufferLengthB
+	.type	bufferLengthB, %function
+bufferLengthB:
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #8
+	str	r0, [fp, #-16]
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	bne	.L55
+	mov	r3, #0
+	str	r3, [fp, #-20]
+	b	.L57
+.L55:
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	ble	.L58
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	rsb	r1, r3, r1
+	str	r1, [fp, #-20]
+	b	.L57
+.L58:
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	rsb	r3, r3, r1
+	add	r3, r3, #102400
+	str	r3, [fp, #-20]
+.L57:
+	ldr	r3, [fp, #-20]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	bufferLengthB, .-bufferLengthB
+	.ident	"GCC: (GNU) 4.0.2"
