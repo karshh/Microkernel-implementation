@@ -105,6 +105,8 @@ void trainServer(){
 
 	int tr58TID = Create(7,(void *)trainProfile);
 	int tr76TID = Create(7,(void *)trainProfile);
+	int tr70TID = Create(7,(void *)trainProfile);
+	int tr69TID = Create(7,(void *)trainProfile);
 
 
 	while(1){
@@ -113,6 +115,8 @@ void trainServer(){
 			case TRAINS_GETPROFILEID:
 				if(_tid == tr58TID) rpl[0] = 58;
 				if(_tid == tr76TID) rpl[0] = 76;
+				if(_tid == tr69TID) rpl[0] = 69;
+				if(_tid == tr70TID) rpl[0] = 70;
 				rpl[1] = 0;
 		        	Reply(_tid,rpl, 2); 
 				break;
@@ -129,6 +133,17 @@ void trainServer(){
 		        			Reply(_tid, rpl, 2);
 
 						break;
+					case 70:
+						bwassert(Send(tr70TID, msg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        			Reply(_tid, rpl, 2);
+
+						break;
+					case 69:
+						bwassert(Send(tr69TID, msg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        			Reply(_tid, rpl, 2);
+
+						break;
+
 					default:
 		        			Reply(_tid, "0", 2); //seriosly, why are you even here?
 						break;
@@ -143,6 +158,14 @@ void trainServer(){
 					case 76:
 						bwassert(Send(tr76TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 		        			Reply(_tid, rpl, 2);
+					case 70:
+						bwassert(Send(tr70TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        			Reply(_tid, rpl, 2);
+					case 69:
+						bwassert(Send(tr69TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        			Reply(_tid, rpl, 2);
+
+
 
 						break;
 					default:
@@ -159,6 +182,18 @@ void trainServer(){
 					case 76:
 		        			Reply(_tid, "1", 2);
 						bwassert(Send(tr76TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+
+						break;
+
+					case 70:
+		        			Reply(_tid, "1", 2);
+						bwassert(Send(tr70TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+
+						break;
+
+					case 69:
+		        			Reply(_tid, "1", 2);
+						bwassert(Send(tr69TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 
 						break;
 					default:
