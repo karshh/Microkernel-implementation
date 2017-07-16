@@ -230,85 +230,105 @@ void trackServer() {
 				bwassert(Send(dspTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to display server.\r\n");
 
 				for (j = 1; j < msgLen; j++) {
-					// curSensorTime = getTicks4(0); //in ms
-					// curSensorTimeT = Time(csTID);
-					curSensor = msg[j];
-					//for train velocity model
-					//get distance between the current and last sensor in most direct route.
-					if(prevSensor != curSensor){
-						//int path[102];
-						//int pathLength = 0;
-						//getShortestPath(&t,  prevSensor, curSensor,path, &pathLength);
-
-						nextSensor = findNextSensor(&t,curSensor, &distSensor);
-
-						// prevSensorTime = curSensorTime;
-						// prevSensorTimeT = curSensorTimeT;
-						prevSensor = curSensor;
 					
-						for (i = 58; i < 80; i++) {
-							if (trainDestinationSensor[i] == msg[j]) {
-								trainDestinationSensor[i] = 0;
+					// i gets updated to 58, 69, 70 and 76 in the loop.
+					for (i = 58; i <= 76;) {
+
+						if (trainDestinationSensor[i] == msg[j]) {
+							trainDestinationSensor[i] = 0;
+							trainSpeed[i] = 0;
+							commandMsg[0] = COMMAND_TR;
+							commandMsg[1] = 0;
+							commandMsg[2] = i;
+							commandMsg[3] = 0;
+							bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
+							msg[0] = COMMAND_TR;
+							msg[1] = 0;
+							msg[2] = i;
+							bwassert(Send(trainTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to TrainServer[%d].\r\n", trainTID);
+							iodebug(dspTID, "D1\033[s\033[%d;47H   \033[u", i - 52);
+
+						}
+
+						if (trainExpectedSensor[i] != 0 && (trainExpectedSensor[i] == msg[j] || msg[j] == findNextSensor(&t,trainExpectedSensor[i], &distSensor))) {
+
+							// release tracksegments.
+							volatile int k = 0;
+							for (; k < 102; k++) if (trackReservation[k] == i) trackReservation[k] = 0;
+
+							trainCurrentSensor[i] = msg[j];
+							trainExpectedSensor[i] = findNextSensor(&t, msg[j], &distSensor);
+
+
+							dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
+							dspMsg[1] = i;
+							dspMsg[2] = trainExpectedSensor[i];
+							dspMsg[3] = 0;
+							bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to DisplayServer.\r\n");
+
+							trackReservation[trainCurrentSensor[i]] = i;	
+							int farSensor = findNextSensor(&t, trainExpectedSensor[i], &distSensor);
+							if (trackReservation[trainExpectedSensor[i]] == 0 && trackReservation[farSensor] == 0) {
+								trackReservation[trainExpectedSensor[i]] = i;
+								trackReservation[node[trainExpectedSensor[i]].inverse] = i;
+								trackReservation[farSensor] = i;
+								trackReservation[node[farSensor].inverse] = i;
+								iodebug(dspTID, "D%d\033[s%d:%2d & %2d\033[u", i-52, i, trainExpectedSensor[i], farSensor);
+							} else {
+								trainSpeed[i] = 0;
 								commandMsg[0] = COMMAND_TR;
 								commandMsg[1] = 0;
 								commandMsg[2] = i;
 								commandMsg[3] = 0;
 								bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-								iodebug(dspTID, "D1\033[s\033[%d;47H   \033[u", i - 52);
-
+								msg[0] = COMMAND_TR;
+								msg[1] = 0;
+								msg[2] = i;
+								bwassert(Send(trainTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to TrainServer[%d].\r\n", trainTID);
+							}
+							
+							if (i == 58) {
+								trSwitches = tr58switches;
+								trSwitchConfig = tr58switchConfig;
+								trSwitchCount = &tr58switchCount;
+							} else {
+								trSwitches = tr76switches;
+								trSwitchConfig = tr76switchConfig;
+								trSwitchCount = &tr76switchCount;
 							}
 
-							if (trainExpectedSensor[i] == msg[j] || msg[j] == findNextSensor(&t,trainExpectedSensor[i], &distSensor)) {
+							if (*trSwitchCount > 0 && 
+								((node[trainExpectedSensor[i]].nextNodeIndex == trSwitches[*trSwitchCount - 1] && shortEdge(&t, trainExpectedSensor[i])) || 
+									node[trainCurrentSensor[i]].nextNodeIndex == trSwitches[*trSwitchCount - 1])) {
 
-								// release tracksegments.
-								volatile int k = 0;
-								for (; k < 102; k++) if (trackReservation[k] == i) trackReservation[k] = 0;
-
-								trainCurrentSensor[i] = msg[j];
-								trainExpectedSensor[i] = findNextSensor(&t, msg[j], &distSensor);
-
-
-								dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
-								dspMsg[1] = i;
-								dspMsg[2] = trainExpectedSensor[i];
-								dspMsg[3] = 0;
-								bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to DisplayServer.\r\n");
-
-								trackReservation[trainCurrentSensor[i]] = i;	
-								int farSensor = findNextSensor(&t, trainExpectedSensor[i], &distSensor);
-								if (trackReservation[trainExpectedSensor[i]] == 0 && trackReservation[farSensor] == 0) {
-									trackReservation[trainExpectedSensor[i]] = i;
-									trackReservation[node[trainExpectedSensor[i]].inverse] = i;
-									trackReservation[farSensor] = i;
-									trackReservation[node[farSensor].inverse] = i;
-									iodebug(dspTID, "D%d\033[s%d:%2d & %2d\033[u", i-52, i, trainExpectedSensor[i], farSensor);
-								} else {
-									commandMsg[0] = COMMAND_TR;
-									commandMsg[1] = 0;
-									commandMsg[2] = i;
+								if (trSwitches[*trSwitchCount - 1] <= 98) {
+									node[trSwitches[*trSwitchCount - 1]].switchConfig = trSwitchConfig[*trSwitchCount - 1] == 33 ? S : C;
+									commandMsg[0] = COMMAND_SW;
+									commandMsg[1] = trSwitchConfig[*trSwitchCount - 1];
+									commandMsg[2] = trSwitches[*trSwitchCount - 1] - 80;
 									commandMsg[3] = 0;
-									bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-									commandMsg[0] = COMMAND_TR;
-									commandMsg[1] = 0;
-									commandMsg[2] = trackReservation[trainExpectedSensor[i]] != 0 ? trackReservation[trainExpectedSensor[i]] : trackReservation[farSensor];
-									commandMsg[3] = 0;
-									bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-								}
-								
-								if (i == 58) {
-									trSwitches = tr58switches;
-									trSwitchConfig = tr58switchConfig;
-									trSwitchCount = &tr58switchCount;
+									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
+									update_switch(trSwitches[*trSwitchCount - 1] - 80, &t, &trainExpectedSensor[0]); //updates the display	
 								} else {
-									trSwitches = tr76switches;
-									trSwitchConfig = tr76switchConfig;
-									trSwitchCount = &tr76switchCount;
+									node[trSwitches[*trSwitchCount - 1]].switchConfig = trSwitchConfig[*trSwitchCount - 1] == 1 ? SC : CS;
+									commandMsg[0] = COMMAND_SW;
+									commandMsg[1] = trSwitchConfig[*trSwitchCount - 1] == 1 ? 33 : 34;
+									commandMsg[2] = trSwitches[*trSwitchCount - 1] == 99 ? 153 : 155;
+									commandMsg[3] = 0;
+									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
+									commandMsg[0] = COMMAND_SW;
+									commandMsg[1] = trSwitchConfig[*trSwitchCount - 1] == 1 ? 34 : 33;
+									commandMsg[2] = trSwitches[*trSwitchCount - 1] == 99 ? 154 : 156;
+									commandMsg[3] = 0;
+									bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
+									update_switch(trSwitches[*trSwitchCount - 1] == 99 ? 154 : 156, &t, &trainExpectedSensor[0]); //updates the display	
 								}
 
-								if (*trSwitchCount > 0 && 
-									((node[trainExpectedSensor[i]].nextNodeIndex == trSwitches[*trSwitchCount - 1] && shortEdge(&t, trainExpectedSensor[i])) || 
-										node[trainCurrentSensor[i]].nextNodeIndex == trSwitches[*trSwitchCount - 1])) {
+								*trSwitchCount -= 1;
 
+
+								while (*trSwitchCount > 0 && ((node[trSwitches[*trSwitchCount]].switchConfig == C && node[trSwitches[*trSwitchCount]].CnextNodeIndex == trSwitches[*trSwitchCount - 1])
+															|| (node[trSwitches[*trSwitchCount]].switchConfig == S && node[trSwitches[*trSwitchCount]].SnextNodeIndex == trSwitches[*trSwitchCount - 1]))) {
 									if (trSwitches[*trSwitchCount - 1] <= 98) {
 										node[trSwitches[*trSwitchCount - 1]].switchConfig = trSwitchConfig[*trSwitchCount - 1] == 33 ? S : C;
 										commandMsg[0] = COMMAND_SW;
@@ -333,43 +353,19 @@ void trackServer() {
 									}
 
 									*trSwitchCount -= 1;
-
-
-									while (*trSwitchCount > 0 && ((node[trSwitches[*trSwitchCount]].switchConfig == C && node[trSwitches[*trSwitchCount]].CnextNodeIndex == trSwitches[*trSwitchCount - 1])
-																|| (node[trSwitches[*trSwitchCount]].switchConfig == S && node[trSwitches[*trSwitchCount]].SnextNodeIndex == trSwitches[*trSwitchCount - 1]))) {
-										if (trSwitches[*trSwitchCount - 1] <= 98) {
-											node[trSwitches[*trSwitchCount - 1]].switchConfig = trSwitchConfig[*trSwitchCount - 1] == 33 ? S : C;
-											commandMsg[0] = COMMAND_SW;
-											commandMsg[1] = trSwitchConfig[*trSwitchCount - 1];
-											commandMsg[2] = trSwitches[*trSwitchCount - 1] - 80;
-											commandMsg[3] = 0;
-											bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-											update_switch(trSwitches[*trSwitchCount - 1] - 80, &t, &trainExpectedSensor[0]); //updates the display	
-										} else {
-											node[trSwitches[*trSwitchCount - 1]].switchConfig = trSwitchConfig[*trSwitchCount - 1] == 1 ? SC : CS;
-											commandMsg[0] = COMMAND_SW;
-											commandMsg[1] = trSwitchConfig[*trSwitchCount - 1] == 1 ? 33 : 34;
-											commandMsg[2] = trSwitches[*trSwitchCount - 1] == 99 ? 153 : 155;
-											commandMsg[3] = 0;
-											bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-											commandMsg[0] = COMMAND_SW;
-											commandMsg[1] = trSwitchConfig[*trSwitchCount - 1] == 1 ? 34 : 33;
-											commandMsg[2] = trSwitches[*trSwitchCount - 1] == 99 ? 154 : 156;
-											commandMsg[3] = 0;
-											bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-											update_switch(trSwitches[*trSwitchCount - 1] == 99 ? 154 : 156, &t, &trainExpectedSensor[0]); //updates the display	
-										}
-
-										*trSwitchCount -= 1;
-										//iodebug(dspTID, "D4switchCount=%d trSwitches[0]=%d trSwitchConfig[0]=%d", *trSwitchCount, trSwitches[*trSwitchCount],trSwitchConfig[*trSwitchCount]);
-									}
-
 								}
-									//iodebug(dspTID, "D3switchCount=%d trSwitches[0]=%d trSwitchConfig[0]=%d", *trSwitchCount, trSwitches[*trSwitchCount],trSwitchConfig[*trSwitchCount]);	
-									
-
 
 							}
+						}
+
+						if (i == 58) {
+							i = 69;
+						} else if (i == 69) {
+							i = 70;
+						} else if (i == 70) {
+							i = 76;
+						} else {
+							i = 99;
 						}
 					}
 				}
@@ -389,20 +385,20 @@ void trackServer() {
 					// release tracksegments.
 					volatile int k = 0;
 					for (; k < 102; k++) if (trackReservation[k] == i) trackReservation[k] = 0;
+
 					
 					if (trackReservation[sens] != 0 || trackReservation[node[sens].nextNodeIndex] != 0) {
 						// track segment is reserved. Decline the IS command.
 						Reply(_tid, "0", 2);
 						break;
 					}
-					trackReservation[sens] = train;
-					trackReservation[node[sens].inverse] = train;
-					trackReservation[node[sens].nextNodeIndex] = train;
-					trackReservation[node[node[sens].nextNodeIndex].inverse] = train;
 
 					//iodebug(dspTID, "D1\033[s\033[%d;60H%d & %d\033[u", train - 52, sens, node[sens].nextNodeIndex);
 					trainCurrentSensor[train] = -1;
 					trainExpectedSensor[train] = sens;	
+
+					trackReservation[trainExpectedSensor[train]] = train;
+					trackReservation[node[trainExpectedSensor[train]].inverse] = train;
 
 					if (initExpectedSensor[train]) {
 						rpl[0] = sens;
