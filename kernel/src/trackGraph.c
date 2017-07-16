@@ -703,7 +703,6 @@ int getEdgeDistance(TrackGraph * t, int s1, int s2) {
 */
 int getEdgeInfo(TrackGraph * t, int * path, int pathLength, int * distanceList, int * infoLength) {
 
-    TrackGraphNode * node = t->node;
     *infoLength = 0;
 
     volatile int i = 0;
@@ -718,7 +717,7 @@ int getEdgeInfo(TrackGraph * t, int * path, int pathLength, int * distanceList, 
 }
 
 //this version accounts for reverses
-int getShortestPathPlus(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength) { 
+int getShortestPathPlus(TrackGraph * t, int sensorStart, int sensorEnd, int * path, int * pathLength, exclusionEdge * exclusionList, int exclusionCount){
 
     	TrackGraphNode * node = t->node;
 	int print = 1;
@@ -727,12 +726,12 @@ int getShortestPathPlus(TrackGraph * t, int sensorStart, int sensorEnd, int * pa
 	// storing reverse paths in here.
 	int flag[101]; //visited
 	int prev[101]; //previous
-	volatile int i = 0;
+	int i = 0;
 
 	// variables for while loop.
 	int val = 0;
 	int nextNode = -1;
-
+	int edgeInExclusionList = 0;
 
 	if (sensorStart <= 0 || sensorEnd <= 0) return 0;
 	
@@ -757,18 +756,41 @@ int getShortestPathPlus(TrackGraph * t, int sensorStart, int sensorEnd, int * pa
 			//bwprintf(1," sens %d\n\r",val);
 				//look at next node in sensor's path
 				nextNode = node[val].nextNodeIndex;
-		//		bwprintf(1," %d 's next %d\n\r",val , nextNode);
-				if(nextNode > 0 && flag[nextNode] == 0 ){
+
+				edgeInExclusionList = 0;
+			 
+				for(i=0;i<exclusionCount; i++){
+				    		//	bwprintf(1,"serching ExclusionList %d  %d\n\r",exclusionList[i].currentNode && exclusionList[i].nextNode);
+					if(exclusionList[i].currentNode == val && exclusionList[i].nextNode == nextNode){
+						edgeInExclusionList = 1;
+						break;
+					}
+				}
+			 
+				if(nextNode > 0 && flag[nextNode] == 0 && !edgeInExclusionList){
+			
+				    
 					flag[nextNode] = 1;
 					prev[nextNode] = val;
 					bwassert(addToBuffer(nextNode, &cb), COM2, "<TrackGraphFind>:ERROR 2, Could not add %d to cb.", nextNode); //enque node start sensor into path 
-					if (nextNode == sensorEnd) break; //we only need to process this much if we reached end sensor
+					if (nextNode == sensorEnd) {
+					          	 
+					       break; //we only need to process this much if we reached end sensor
+					 
+					}
 				}
 
 				//check reverse/inverse node as well
 				nextNode = node[val].inverse;
-			//	bwprintf(1," %d 's inv %d\n\r",val , nextNode);
-				if(nextNode > 0 && flag[nextNode] == 0){
+				edgeInExclusionList = 0;
+				for(i=0;i<exclusionCount; i++){
+					if(exclusionList[i].currentNode == val && exclusionList[i].nextNode == nextNode){
+						edgeInExclusionList = 1;
+						break;
+					}
+				}
+				if(nextNode > 0 && flag[nextNode] == 0 && !edgeInExclusionList){
+
 					flag[nextNode] = 1;
 					prev[nextNode] = val;
 					bwassert(addToBuffer(nextNode, &cb), COM2, "<TrackGraphFind>:ERROR 3, Could not add %d to cb.", nextNode); //enque node start sensor into path 
@@ -780,7 +802,14 @@ int getShortestPathPlus(TrackGraph * t, int sensorStart, int sensorEnd, int * pa
 				//c case
 	//bwprintf(1," %d 's cnext %d\n\r",val , nextNode);
 				nextNode = node[val].CnextNodeIndex;
-				if(nextNode > 0 && flag[nextNode] == 0){
+				edgeInExclusionList = 0;
+				for(i=0;i<exclusionCount; i++){
+					if(exclusionList[i].currentNode == val && exclusionList[i].nextNode == nextNode){
+						edgeInExclusionList = 1;
+						break;
+					}
+				}
+				if(nextNode > 0 && flag[nextNode] == 0 && !edgeInExclusionList){
 					flag[nextNode] = 1;
 					prev[nextNode] = val;
 					bwassert(addToBuffer(nextNode, &cb), COM2, "<TrackGraphFind>:ERROR 4, Could not add %d to cb.", nextNode); //enque node start sensor into path 
@@ -790,7 +819,14 @@ int getShortestPathPlus(TrackGraph * t, int sensorStart, int sensorEnd, int * pa
 				//S case
 	//bwprintf(1," %d 's snext %d\n\r",val , nextNode);
 				nextNode = node[val].SnextNodeIndex;
-				if(nextNode > 0 && flag[nextNode] == 0){
+				edgeInExclusionList = 0;
+				for(i=0;i<exclusionCount; i++){
+					if(exclusionList[i].currentNode == val && exclusionList[i].nextNode == nextNode){
+						edgeInExclusionList = 1;
+						break;
+					}
+				}
+				if(nextNode > 0 && flag[nextNode] == 0 && !edgeInExclusionList){
 					flag[nextNode] = 1;
 					prev[nextNode] = val;
 					bwassert(addToBuffer(nextNode, &cb), COM2, "<TrackGraphFind>:ERROR 5, Could not add %d to cb.", nextNode); //enque node start sensor into path 
@@ -802,7 +838,14 @@ int getShortestPathPlus(TrackGraph * t, int sensorStart, int sensorEnd, int * pa
 				//bwprintf(COM2, "Found node %d, which is a multiswitch.\r\n", val);
 				//cs case
 				nextNode = node[val].CSnextNodeIndex;
-				if(nextNode > 0 && flag[nextNode] == 0){
+				edgeInExclusionList = 0;
+				for(i=0;i<exclusionCount; i++){
+					if(exclusionList[i].currentNode == val && exclusionList[i].nextNode == nextNode){
+						edgeInExclusionList = 1;
+						break;
+					}
+				}
+				if(nextNode > 0 && flag[nextNode] == 0 && !edgeInExclusionList){
 					flag[nextNode] = 1;
 					prev[nextNode] = val;
 					bwassert(addToBuffer(nextNode, &cb), COM2, "<TrackGraphFind>:ERROR 6, Could not add %d to cb.", nextNode); //enque node start sensor into path 
@@ -811,7 +854,14 @@ int getShortestPathPlus(TrackGraph * t, int sensorStart, int sensorEnd, int * pa
 
 				//Sc case
 				nextNode = node[val].SCnextNodeIndex;
-				if(nextNode > 0 && flag[nextNode] == 0){
+				edgeInExclusionList = 0;
+				for(i=0;i<exclusionCount; i++){
+					if(exclusionList[i].currentNode == val && exclusionList[i].nextNode == nextNode){
+						edgeInExclusionList = 1;
+						break;
+					}
+				}
+				if(nextNode > 0 && flag[nextNode] == 0 && !edgeInExclusionList){
 					flag[nextNode] = 1;
 					prev[nextNode] = val;
 					bwassert(addToBuffer(nextNode, &cb), COM2, "<TrackGraphFind>:ERROR 7, Could not add %d to cb.", nextNode); //enque node start sensor into path 
@@ -821,7 +871,7 @@ int getShortestPathPlus(TrackGraph * t, int sensorStart, int sensorEnd, int * pa
 			}
 		}
 		
-		if(prev[i] == -1) return 0; //there is no path to this node
+		if(prev[sensorEnd] == -1) return 0; //there is no path to this node
 		*pathLength = 0;
 		i = sensorEnd;
 		for (;i != sensorStart; i = prev[i]) {
@@ -1158,6 +1208,7 @@ int getShortestPathDjikstra(TrackGraph * t, int sensorStart, int sensorEnd, int 
     return 1;
 
 }
+
 
 
 

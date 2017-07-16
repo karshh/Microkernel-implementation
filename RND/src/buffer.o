@@ -1,403 +1,496 @@
 	.file	"buffer.c"
 	.text
-	.globl	circularBufferInit
-	.type	circularBufferInit, @function
+	.align	2
+	.global	circularBufferInit
+	.type	circularBufferInit, %function
 circularBufferInit:
-.LFB0:
-	.cfi_startproc
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
-	movq	%rdi, -8(%rbp)
-	movq	-8(%rbp), %rax
-	movl	$0, 16384(%rax)
-	movq	-8(%rbp), %rax
-	movl	$0, 16388(%rax)
-	movl	$1, %eax
-	popq	%rbp
-	.cfi_def_cfa 7, 8
-	ret
-	.cfi_endproc
-.LFE0:
+	@ args = 0, pretend = 0, frame = 4
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #4
+	str	r0, [fp, #-16]
+	ldr	r1, [fp, #-16]
+	mov	r2, #16384
+	mov	r3, #0
+	str	r3, [r1, r2]
+	ldr	r1, [fp, #-16]
+	mov	r3, #16384
+	add	r3, r3, #4
+	mov	r2, #0
+	str	r2, [r1, r3]
+	mov	r3, #1
+	mov	r0, r3
+	ldmfd	sp, {r3, fp, sp, pc}
 	.size	circularBufferInit, .-circularBufferInit
-	.globl	addToBuffer
-	.type	addToBuffer, @function
+	.align	2
+	.global	addToBuffer
+	.type	addToBuffer, %function
 addToBuffer:
-.LFB1:
-	.cfi_startproc
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
-	movl	%edi, -20(%rbp)
-	movq	%rsi, -32(%rbp)
-	movq	-32(%rbp), %rax
-	movl	16384(%rax), %eax
-	addl	$1, %eax
-	cmpl	$4095, %eax
-	jg	.L4
-	movq	-32(%rbp), %rax
-	movl	16384(%rax), %eax
-	addl	$1, %eax
-	jmp	.L5
+	@ args = 0, pretend = 0, frame = 20
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #20
+	str	r0, [fp, #-20]
+	str	r1, [fp, #-24]
+	ldr	r2, [fp, #-24]
+	mov	r3, #16384
+	ldr	r3, [r2, r3]
+	add	r2, r3, #1
+	mov	r3, #4080
+	add	r3, r3, #15
+	cmp	r2, r3
+	bgt	.L4
+	ldr	r3, [fp, #-24]
+	mov	r2, #16384
+	ldr	r3, [r3, r2]
+	add	r3, r3, #1
+	str	r3, [fp, #-32]
+	b	.L6
 .L4:
-	movl	$0, %eax
-.L5:
-	movl	%eax, -4(%rbp)
-	movq	-32(%rbp), %rax
-	movl	16388(%rax), %eax
-	cmpl	-4(%rbp), %eax
-	jne	.L6
-	movl	$0, %eax
-	jmp	.L7
+	mov	r3, #0
+	str	r3, [fp, #-32]
 .L6:
-	movq	-32(%rbp), %rax
-	movl	16384(%rax), %edx
-	movq	-32(%rbp), %rax
-	movslq	%edx, %rdx
-	movl	-20(%rbp), %ecx
-	movl	%ecx, (%rax,%rdx,4)
-	movq	-32(%rbp), %rax
-	movl	-4(%rbp), %edx
-	movl	%edx, 16384(%rax)
-	movl	$1, %eax
+	ldr	r3, [fp, #-32]
+	str	r3, [fp, #-16]
+	ldr	r2, [fp, #-24]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r2, [r2, r3]
+	ldr	r3, [fp, #-16]
+	cmp	r2, r3
+	bne	.L7
+	mov	r3, #0
+	str	r3, [fp, #-28]
+	b	.L9
 .L7:
-	popq	%rbp
-	.cfi_def_cfa 7, 8
-	ret
-	.cfi_endproc
-.LFE1:
-	.size	addToBuffer, .-addToBuffer
-	.globl	getFromBuffer
-	.type	getFromBuffer, @function
-getFromBuffer:
-.LFB2:
-	.cfi_startproc
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
-	movq	%rdi, -24(%rbp)
-	movq	%rsi, -32(%rbp)
-	movq	-32(%rbp), %rax
-	movl	16388(%rax), %eax
-	addl	$1, %eax
-	cmpl	$4095, %eax
-	jg	.L9
-	movq	-32(%rbp), %rax
-	movl	16388(%rax), %eax
-	addl	$1, %eax
-	jmp	.L10
+	ldr	r2, [fp, #-24]
+	mov	r3, #16384
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-24]
+	ldr	r3, [fp, #-20]
+	str	r3, [r2, r1, asl #2]
+	ldr	r1, [fp, #-24]
+	mov	r2, #16384
+	ldr	r3, [fp, #-16]
+	str	r3, [r1, r2]
+	mov	r3, #1
+	str	r3, [fp, #-28]
 .L9:
-	movl	$0, %eax
-.L10:
-	movl	%eax, -4(%rbp)
-	movq	-32(%rbp), %rax
-	movl	16384(%rax), %edx
-	movq	-32(%rbp), %rax
-	movl	16388(%rax), %eax
-	cmpl	%eax, %edx
-	jne	.L11
-	movl	$0, %eax
-	jmp	.L12
-.L11:
-	movq	-32(%rbp), %rax
-	movl	16388(%rax), %edx
-	movq	-32(%rbp), %rax
-	movslq	%edx, %rdx
-	movl	(%rax,%rdx,4), %edx
-	movq	-24(%rbp), %rax
-	movl	%edx, (%rax)
-	movq	-32(%rbp), %rax
-	movl	-4(%rbp), %edx
-	movl	%edx, 16388(%rax)
-	movl	$1, %eax
+	ldr	r3, [fp, #-28]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	addToBuffer, .-addToBuffer
+	.align	2
+	.global	getFromBuffer
+	.type	getFromBuffer, %function
+getFromBuffer:
+	@ args = 0, pretend = 0, frame = 20
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #20
+	str	r0, [fp, #-20]
+	str	r1, [fp, #-24]
+	ldr	r2, [fp, #-24]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	add	r2, r3, #1
+	mov	r3, #4080
+	add	r3, r3, #15
+	cmp	r2, r3
+	bgt	.L12
+	ldr	r3, [fp, #-24]
+	mov	r2, #16384
+	add	r2, r2, #4
+	ldr	r3, [r3, r2]
+	add	r3, r3, #1
+	str	r3, [fp, #-32]
+	b	.L14
 .L12:
-	popq	%rbp
-	.cfi_def_cfa 7, 8
-	ret
-	.cfi_endproc
-.LFE2:
-	.size	getFromBuffer, .-getFromBuffer
-	.globl	isBufferEmpty
-	.type	isBufferEmpty, @function
-isBufferEmpty:
-.LFB3:
-	.cfi_startproc
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
-	movq	%rdi, -8(%rbp)
-	movq	-8(%rbp), %rax
-	movl	16384(%rax), %edx
-	movq	-8(%rbp), %rax
-	movl	16388(%rax), %eax
-	cmpl	%eax, %edx
-	jne	.L14
-	movl	$1, %eax
-	jmp	.L15
+	mov	r3, #0
+	str	r3, [fp, #-32]
 .L14:
-	movl	$0, %eax
+	ldr	r3, [fp, #-32]
+	str	r3, [fp, #-16]
+	ldr	r2, [fp, #-24]
+	mov	r3, #16384
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-24]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	bne	.L15
+	mov	r3, #0
+	str	r3, [fp, #-28]
+	b	.L17
 .L15:
-	popq	%rbp
-	.cfi_def_cfa 7, 8
-	ret
-	.cfi_endproc
-.LFE3:
-	.size	isBufferEmpty, .-isBufferEmpty
-	.globl	bufferLength
-	.type	bufferLength, @function
-bufferLength:
-.LFB4:
-	.cfi_startproc
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
-	movq	%rdi, -8(%rbp)
-	movq	-8(%rbp), %rax
-	movl	16384(%rax), %edx
-	movq	-8(%rbp), %rax
-	movl	16388(%rax), %eax
-	cmpl	%eax, %edx
-	jne	.L17
-	movl	$0, %eax
-	jmp	.L18
+	ldr	r2, [fp, #-24]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r2, [r2, r3]
+	ldr	r3, [fp, #-24]
+	ldr	r2, [r3, r2, asl #2]
+	ldr	r3, [fp, #-20]
+	str	r2, [r3, #0]
+	ldr	r1, [fp, #-24]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r2, [fp, #-16]
+	str	r2, [r1, r3]
+	mov	r3, #1
+	str	r3, [fp, #-28]
 .L17:
-	movq	-8(%rbp), %rax
-	movl	16384(%rax), %edx
-	movq	-8(%rbp), %rax
-	movl	16388(%rax), %eax
-	cmpl	%eax, %edx
-	jle	.L19
-	movq	-8(%rbp), %rax
-	movl	16384(%rax), %edx
-	movq	-8(%rbp), %rax
-	movl	16388(%rax), %eax
-	subl	%eax, %edx
-	movl	%edx, %eax
-	jmp	.L18
-.L19:
-	movq	-8(%rbp), %rax
-	movl	16384(%rax), %eax
-	leal	4096(%rax), %edx
-	movq	-8(%rbp), %rax
-	movl	16388(%rax), %eax
-	subl	%eax, %edx
-	movl	%edx, %eax
-.L18:
-	popq	%rbp
-	.cfi_def_cfa 7, 8
-	ret
-	.cfi_endproc
-.LFE4:
-	.size	bufferLength, .-bufferLength
-	.globl	circularBufferInitB
-	.type	circularBufferInitB, @function
-circularBufferInitB:
-.LFB5:
-	.cfi_startproc
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
-	movq	%rdi, -8(%rbp)
-	movq	-8(%rbp), %rax
-	movl	$0, 102400(%rax)
-	movq	-8(%rbp), %rax
-	movl	$0, 102404(%rax)
-	movl	$1, %eax
-	popq	%rbp
-	.cfi_def_cfa 7, 8
-	ret
-	.cfi_endproc
-.LFE5:
-	.size	circularBufferInitB, .-circularBufferInitB
-	.globl	addToBufferB
-	.type	addToBufferB, @function
-addToBufferB:
-.LFB6:
-	.cfi_startproc
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
-	movl	%edi, %eax
-	movq	%rsi, -32(%rbp)
-	movb	%al, -20(%rbp)
-	movq	-32(%rbp), %rax
-	movl	102400(%rax), %eax
-	addl	$1, %eax
-	cmpl	$102399, %eax
-	jg	.L23
-	movq	-32(%rbp), %rax
-	movl	102400(%rax), %eax
-	addl	$1, %eax
-	jmp	.L24
-.L23:
-	movl	$0, %eax
-.L24:
-	movl	%eax, -4(%rbp)
-	movq	-32(%rbp), %rax
-	movl	102404(%rax), %eax
-	cmpl	-4(%rbp), %eax
-	jne	.L25
-	movl	$0, %eax
-	jmp	.L26
+	ldr	r3, [fp, #-28]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	getFromBuffer, .-getFromBuffer
+	.align	2
+	.global	isBufferEmpty
+	.type	isBufferEmpty, %function
+isBufferEmpty:
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #8
+	str	r0, [fp, #-16]
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	bne	.L20
+	mov	r3, #1
+	str	r3, [fp, #-20]
+	b	.L22
+.L20:
+	mov	r3, #0
+	str	r3, [fp, #-20]
+.L22:
+	ldr	r3, [fp, #-20]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	isBufferEmpty, .-isBufferEmpty
+	.align	2
+	.global	bufferLength
+	.type	bufferLength, %function
+bufferLength:
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #8
+	str	r0, [fp, #-16]
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	bne	.L25
+	mov	r3, #0
+	str	r3, [fp, #-20]
+	b	.L27
 .L25:
-	movq	-32(%rbp), %rax
-	movl	102400(%rax), %eax
-	movq	-32(%rbp), %rdx
-	cltq
-	movzbl	-20(%rbp), %ecx
-	movb	%cl, (%rdx,%rax)
-	movq	-32(%rbp), %rax
-	movl	-4(%rbp), %edx
-	movl	%edx, 102400(%rax)
-	movl	$1, %eax
-.L26:
-	popq	%rbp
-	.cfi_def_cfa 7, 8
-	ret
-	.cfi_endproc
-.LFE6:
-	.size	addToBufferB, .-addToBufferB
-	.globl	getFromBufferB
-	.type	getFromBufferB, @function
-getFromBufferB:
-.LFB7:
-	.cfi_startproc
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
-	movq	%rdi, -24(%rbp)
-	movq	%rsi, -32(%rbp)
-	movq	-32(%rbp), %rax
-	movl	102404(%rax), %eax
-	addl	$1, %eax
-	cmpl	$102399, %eax
-	jg	.L28
-	movq	-32(%rbp), %rax
-	movl	102404(%rax), %eax
-	addl	$1, %eax
-	jmp	.L29
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	ble	.L28
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	rsb	r1, r3, r1
+	str	r1, [fp, #-20]
+	b	.L27
 .L28:
-	movl	$0, %eax
-.L29:
-	movl	%eax, -4(%rbp)
-	movq	-32(%rbp), %rax
-	movl	102400(%rax), %edx
-	movq	-32(%rbp), %rax
-	movl	102404(%rax), %eax
-	cmpl	%eax, %edx
-	jne	.L30
-	movl	$0, %eax
-	jmp	.L31
-.L30:
-	movq	-32(%rbp), %rax
-	movl	102404(%rax), %eax
-	movq	-32(%rbp), %rdx
-	cltq
-	movzbl	(%rdx,%rax), %edx
-	movq	-24(%rbp), %rax
-	movb	%dl, (%rax)
-	movq	-32(%rbp), %rax
-	movl	-4(%rbp), %edx
-	movl	%edx, 102404(%rax)
-	movl	$1, %eax
-.L31:
-	popq	%rbp
-	.cfi_def_cfa 7, 8
-	ret
-	.cfi_endproc
-.LFE7:
-	.size	getFromBufferB, .-getFromBufferB
-	.globl	isBufferEmptyB
-	.type	isBufferEmptyB, @function
-isBufferEmptyB:
-.LFB8:
-	.cfi_startproc
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
-	movq	%rdi, -8(%rbp)
-	movq	-8(%rbp), %rax
-	movl	102400(%rax), %edx
-	movq	-8(%rbp), %rax
-	movl	102404(%rax), %eax
-	cmpl	%eax, %edx
-	jne	.L33
-	movl	$1, %eax
-	jmp	.L34
-.L33:
-	movl	$0, %eax
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #16384
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	rsb	r3, r3, r1
+	add	r3, r3, #4096
+	str	r3, [fp, #-20]
+.L27:
+	ldr	r3, [fp, #-20]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	bufferLength, .-bufferLength
+	.align	2
+	.global	circularBufferInitB
+	.type	circularBufferInitB, %function
+circularBufferInitB:
+	@ args = 0, pretend = 0, frame = 4
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #4
+	str	r0, [fp, #-16]
+	ldr	r1, [fp, #-16]
+	mov	r2, #102400
+	mov	r3, #0
+	str	r3, [r1, r2]
+	ldr	r1, [fp, #-16]
+	mov	r3, #102400
+	add	r3, r3, #4
+	mov	r2, #0
+	str	r2, [r1, r3]
+	mov	r3, #1
+	mov	r0, r3
+	ldmfd	sp, {r3, fp, sp, pc}
+	.size	circularBufferInitB, .-circularBufferInitB
+	.align	2
+	.global	addToBufferB
+	.type	addToBufferB, %function
+addToBufferB:
+	@ args = 0, pretend = 0, frame = 20
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #20
+	mov	r3, r0
+	str	r1, [fp, #-24]
+	strb	r3, [fp, #-20]
+	ldr	r2, [fp, #-24]
+	mov	r3, #102400
+	ldr	r3, [r2, r3]
+	add	r2, r3, #1
+	mov	r3, #101376
+	add	r3, r3, #1020
+	add	r3, r3, #3
+	cmp	r2, r3
+	bgt	.L34
+	ldr	r3, [fp, #-24]
+	mov	r2, #102400
+	ldr	r3, [r3, r2]
+	add	r3, r3, #1
+	str	r3, [fp, #-32]
+	b	.L36
 .L34:
-	popq	%rbp
-	.cfi_def_cfa 7, 8
-	ret
-	.cfi_endproc
-.LFE8:
-	.size	isBufferEmptyB, .-isBufferEmptyB
-	.globl	bufferLengthB
-	.type	bufferLengthB, @function
-bufferLengthB:
-.LFB9:
-	.cfi_startproc
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
-	movq	%rdi, -8(%rbp)
-	movq	-8(%rbp), %rax
-	movl	102400(%rax), %edx
-	movq	-8(%rbp), %rax
-	movl	102404(%rax), %eax
-	cmpl	%eax, %edx
-	jne	.L36
-	movl	$0, %eax
-	jmp	.L37
+	mov	r3, #0
+	str	r3, [fp, #-32]
 .L36:
-	movq	-8(%rbp), %rax
-	movl	102400(%rax), %edx
-	movq	-8(%rbp), %rax
-	movl	102404(%rax), %eax
-	cmpl	%eax, %edx
-	jle	.L38
-	movq	-8(%rbp), %rax
-	movl	102400(%rax), %edx
-	movq	-8(%rbp), %rax
-	movl	102404(%rax), %eax
-	subl	%eax, %edx
-	movl	%edx, %eax
-	jmp	.L37
-.L38:
-	movq	-8(%rbp), %rax
-	movl	102400(%rax), %eax
-	leal	102400(%rax), %edx
-	movq	-8(%rbp), %rax
-	movl	102404(%rax), %eax
-	subl	%eax, %edx
-	movl	%edx, %eax
+	ldr	r3, [fp, #-32]
+	str	r3, [fp, #-16]
+	ldr	r2, [fp, #-24]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r2, [r2, r3]
+	ldr	r3, [fp, #-16]
+	cmp	r2, r3
+	bne	.L37
+	mov	r3, #0
+	str	r3, [fp, #-28]
+	b	.L39
 .L37:
-	popq	%rbp
-	.cfi_def_cfa 7, 8
-	ret
-	.cfi_endproc
-.LFE9:
+	ldr	r2, [fp, #-24]
+	mov	r3, #102400
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-24]
+	ldrb	r3, [fp, #-20]
+	strb	r3, [r2, r1]
+	ldr	r1, [fp, #-24]
+	mov	r2, #102400
+	ldr	r3, [fp, #-16]
+	str	r3, [r1, r2]
+	mov	r3, #1
+	str	r3, [fp, #-28]
+.L39:
+	ldr	r3, [fp, #-28]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	addToBufferB, .-addToBufferB
+	.align	2
+	.global	getFromBufferB
+	.type	getFromBufferB, %function
+getFromBufferB:
+	@ args = 0, pretend = 0, frame = 20
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #20
+	str	r0, [fp, #-20]
+	str	r1, [fp, #-24]
+	ldr	r2, [fp, #-24]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	add	r2, r3, #1
+	mov	r3, #101376
+	add	r3, r3, #1020
+	add	r3, r3, #3
+	cmp	r2, r3
+	bgt	.L42
+	ldr	r3, [fp, #-24]
+	mov	r2, #102400
+	add	r2, r2, #4
+	ldr	r3, [r3, r2]
+	add	r3, r3, #1
+	str	r3, [fp, #-32]
+	b	.L44
+.L42:
+	mov	r3, #0
+	str	r3, [fp, #-32]
+.L44:
+	ldr	r3, [fp, #-32]
+	str	r3, [fp, #-16]
+	ldr	r2, [fp, #-24]
+	mov	r3, #102400
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-24]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	bne	.L45
+	mov	r3, #0
+	str	r3, [fp, #-28]
+	b	.L47
+.L45:
+	ldr	r2, [fp, #-24]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r2, [r2, r3]
+	ldr	r3, [fp, #-24]
+	ldrb	r3, [r3, r2]	@ zero_extendqisi2
+	ldr	r2, [fp, #-20]
+	strb	r3, [r2, #0]
+	ldr	r1, [fp, #-24]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r2, [fp, #-16]
+	str	r2, [r1, r3]
+	mov	r3, #1
+	str	r3, [fp, #-28]
+.L47:
+	ldr	r3, [fp, #-28]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	getFromBufferB, .-getFromBufferB
+	.align	2
+	.global	isBufferEmptyB
+	.type	isBufferEmptyB, %function
+isBufferEmptyB:
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #8
+	str	r0, [fp, #-16]
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	bne	.L50
+	mov	r3, #1
+	str	r3, [fp, #-20]
+	b	.L52
+.L50:
+	mov	r3, #0
+	str	r3, [fp, #-20]
+.L52:
+	ldr	r3, [fp, #-20]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
+	.size	isBufferEmptyB, .-isBufferEmptyB
+	.align	2
+	.global	bufferLengthB
+	.type	bufferLengthB, %function
+bufferLengthB:
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 1, uses_anonymous_args = 0
+	mov	ip, sp
+	stmfd	sp!, {fp, ip, lr, pc}
+	sub	fp, ip, #4
+	sub	sp, sp, #8
+	str	r0, [fp, #-16]
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	bne	.L55
+	mov	r3, #0
+	str	r3, [fp, #-20]
+	b	.L57
+.L55:
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	cmp	r1, r3
+	ble	.L58
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	rsb	r1, r3, r1
+	str	r1, [fp, #-20]
+	b	.L57
+.L58:
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	ldr	r1, [r2, r3]
+	ldr	r2, [fp, #-16]
+	mov	r3, #102400
+	add	r3, r3, #4
+	ldr	r3, [r2, r3]
+	rsb	r3, r3, r1
+	add	r3, r3, #102400
+	str	r3, [fp, #-20]
+.L57:
+	ldr	r3, [fp, #-20]
+	mov	r0, r3
+	sub	sp, fp, #12
+	ldmfd	sp, {fp, sp, pc}
 	.size	bufferLengthB, .-bufferLengthB
-	.ident	"GCC: (Ubuntu 5.4.0-6ubuntu1~16.04.4) 5.4.0 20160609"
-	.section	.note.GNU-stack,"",@progbits
+	.ident	"GCC: (GNU) 4.0.2"

@@ -12,7 +12,27 @@
 #include "pkstring.h"
 #include "controller.h"
 
+void testTrackPathRevAndEX(){
+	TrackGraph t;
+	TrackGraphInitA(&t);
+	int pathLength=0;
+	int path[150];
+	exclusionEdge exclusionList[10];
+	
+	int exclusionCount = 0;
+	exclusionList[0].currentNode = sensor2i("E07");
+	exclusionList[0].nextNode = sensor2i("D07");
+	exclusionList[1].currentNode = sensor2i("E11");
+	exclusionList[1].nextNode = sensor2i("D10");
+	exclusionList[2].currentNode = sensor2i("A04");
+	exclusionList[2].nextNode = sensor2i("B16");
+	exclusionList[3].currentNode = sensor2i("E16");
+	exclusionList[3].nextNode = sensor2i("E01");
+ 
+	bwprintf(1,"has path[%s] to [%s]: %d\n\r","C13", "D07", getShortestPathPlus(&t, sensor2i("C13"), sensor2i("D07"), path, &pathLength,exclusionList,exclusionCount));
+	Exit();
 
+}
 
 
 void drawTrack(int iosTID) {
@@ -1201,7 +1221,7 @@ int main(void) {
         "ORR r0, r0, #0x1 <<2 \n"
         "MCR p15, 0, r0, c1, c0, 0 \n");
 
-    kernelRun(2,(int) testStructPass);
+    kernelRun(2,(int) testTrackPathRevAndEX);
 	
 
 
