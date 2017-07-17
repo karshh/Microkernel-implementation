@@ -52,6 +52,8 @@ typedef struct TrackGraph {
 } TrackGraph;
 
 
+int markedOutSensor(int sensor);
+
 // void sensorModelInit(sensorModel * vm);
 
 int findAltSensor(TrackGraph * t, int i, int * dist);

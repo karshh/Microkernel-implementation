@@ -12,6 +12,12 @@
 #include "pkstring.h"
 #include "controller.h"
 
+
+
+int markedOutSensor(int sensor) {
+    return 0;
+}
+
 void testTrackPathRevAndEX(){
 	TrackGraph t;
 	TrackGraphInitA(&t);
@@ -22,10 +28,13 @@ void testTrackPathRevAndEX(){
 	int exclusionCount = 0;
 	exclusionList[0].currentNode = sensor2i("E07");
 	exclusionList[0].nextNode = sensor2i("D07");
+
 	exclusionList[1].currentNode = sensor2i("E11");
 	exclusionList[1].nextNode = sensor2i("D10");
+
 	exclusionList[2].currentNode = sensor2i("A04");
 	exclusionList[2].nextNode = sensor2i("B16");
+    
 	exclusionList[3].currentNode = sensor2i("E16");
 	exclusionList[3].nextNode = sensor2i("E01");
  

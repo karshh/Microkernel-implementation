@@ -129,6 +129,8 @@ void trainServer(){
 
 	int tr58TID = Create(7,(void *)trainProfile);
 	int tr76TID = Create(7,(void *)trainProfile);
+	int tr70TID = Create(7,(void *)trainProfile);
+	int tr69TID = Create(7,(void *)trainProfile);
 
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
@@ -136,6 +138,8 @@ void trainServer(){
 			case TRAINS_GETPROFILEID:
 				if(_tid == tr58TID) rpl[0] = 58;
 				if(_tid == tr76TID) rpl[0] = 76;
+				if(_tid == tr69TID) rpl[0] = 69;
+				if(_tid == tr70TID) rpl[0] = 70;
 				rpl[1] = 0;
 		        	Reply(_tid,rpl, 2); 
 				break;
@@ -152,6 +156,17 @@ void trainServer(){
 		        			Reply(_tid, rpl, 2);
 
 						break;
+					case 70:
+						bwassert(Send(tr70TID, msg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        			Reply(_tid, rpl, 2);
+
+						break;
+					case 69:
+						bwassert(Send(tr69TID, msg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        			Reply(_tid, rpl, 2);
+
+						break;
+
 					default:
 		        			Reply(_tid, "0", 2); //seriosly, why are you even here?
 						break;
@@ -169,6 +184,16 @@ void trainServer(){
 						bwassert(err >= 0, COM2, "<trainServer>: Error %d sending TR 76 message to CommandServer.\r\n",err);
 						}
 		        			Reply(_tid, rpl, 2);
+						break;
+					case 70:
+						bwassert(Send(tr70TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        			Reply(_tid, rpl, 2);
+						break;
+					case 69:
+						bwassert(Send(tr69TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+		        			Reply(_tid, rpl, 2);
+
+
 
 						break;
 					default:
@@ -185,6 +210,18 @@ void trainServer(){
 					case 76:
 		        			Reply(_tid, "1", 2);
 						bwassert(Send(tr76TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+
+						break;
+
+					case 70:
+		        			Reply(_tid, "1", 2);
+						bwassert(Send(tr70TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+
+						break;
+
+					case 69:
+		        			Reply(_tid, "1", 2);
+						bwassert(Send(tr69TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 
 						break;
 					default:
@@ -369,6 +406,7 @@ void trainProfile(){ //will replace trainVelocityServer
 				msg[0] = trSpeed;
 				msg[1] = rpl[0];
 		        	Reply(_tid, msg, 2);
+				break;
 			case COMMAND_IS: //initialize sensor
 				//purpose of IS to determine where the train is and get initial velocity.
 				// since we don't know what speed the train is at when is is called (could be at constant speed/in the middle of changing speeds/at rest)

@@ -14,6 +14,7 @@
 
 
 void UserPrompt() {
+	RegisterAs("userPrompt");
 	int parentTID = MyParentTid();
 	int iosTID = WhoIs("UART2R");
 	bwassert(iosTID >= 0, COM2, "<UserPrompt>: UART2ReceiveServer has not been set up.\r\n");
