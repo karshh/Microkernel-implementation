@@ -170,6 +170,7 @@ void commandServer() {
 
 
 				break;
+			case COMMAND_RVT:
 			case COMMAND_TR: // train speed
 			case COMMAND_LI:
  
