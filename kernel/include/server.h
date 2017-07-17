@@ -142,7 +142,7 @@ typedef enum WORKER_STATE {
 	WORKER_IS1,
 	WORKER_IS2,
 	WORKER_VELE, //worker waiting on expected sensor
-	WORKER_VELN, //worker waiting on next sensor (broken sensor case)
+	WORKER_VELF, //worker waiting on next sensor (broken sensor case)
 	WORKER_VELS //worker waiting on sensor on other side of switch (broken switch cases)
 } WORKER_STATE;
 
