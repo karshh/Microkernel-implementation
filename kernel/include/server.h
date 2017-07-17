@@ -230,11 +230,18 @@ typedef struct sensorCurrentStatusStruct {
 typedef struct sensorWorkerRegStruct{
 	int exists;
 	int tid;
-	int sensor;
+	int sensorE;
+	int sensorF;
+	int sensorS;
+	int sensorSHit;
+	int sensorSTime;
+	int sensorFHit;
+	int sensorFTime;
+	int firstTimeout;
 } sensorWorkerRegStruct;
 
-int registerSensorWorker(sensorWorkerRegStruct * workerList, int tid, int sensor);
-void bootSensorWorker(sensorWorkerRegStruct * workerList, int tid);
+int registerSensorWorker(sensorWorkerRegStruct * workerList, int tid, int sensorE, int sensorF, int sensorS);
+void bootSensorWorker(sensorWorkerRegStruct * workerList, int tid,int firstTimeout);
 void wakeupWaitingSensorWorker(sensorWorkerRegStruct * workerList,  sensorWarehouseStruct * sw);
 void initSensorWorker(sensorWorkerRegStruct * workerList);
 
