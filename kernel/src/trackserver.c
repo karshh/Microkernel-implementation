@@ -55,7 +55,7 @@ void trackServer() {
 	trackNextSensorstruct tns; //struct decleration in server.h
 	const int tr58 = -1; //Create(23, (void*) trainLocation);
 	const int tr76 = -1; //Create(23, (void*) trainLocation);
-	int pingTID = Create(5, (void*) trackServerPing);
+	int pingTID = Create(10, (void*) trackServerPing);
 
 	int trainCurrentSensor[80];
 	int trainExpectedSensor[80];

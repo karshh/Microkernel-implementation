@@ -43,7 +43,7 @@ void sensorServer(){
  	sensorWarehouseStruct sw;
  	sensorCourierStruct sc;
 	sensorCurrentStatusStruct scs;
-	int dcTID = Create(3,(void *)sensorDisplayCourier); 
+	int dcTID = Create(10,(void *)sensorDisplayCourier); 
 	bwassert(dcTID >= 0, COM2, "<sensorServer>: sensor to display courier has not been set up.\r\n");
 	int dcWaiting =0;
 
@@ -66,7 +66,7 @@ void sensorServer(){
 	for (i=0; i < 81; i++) sw.recentSensors[i] = 0;
 	sw.recentSensors[0] =0;
 	sw.counter =1;
-	int spTID = Create(3,(void *)sensorProcessor);
+	int spTID = Create(5,(void *)sensorProcessor);
 	bwassert(spTID >= 0, COM2, "<sensorServer>: sensor processor has not been set up.\r\n");
 	
 	sensorWorkerRegStruct workerList[MAX_SENSOR_WORKERS];
@@ -243,10 +243,10 @@ void sensorNotifier(){
 void sensorProcessor(){ 
 //gets raw info from Terminal/Notifier, processes it and sends it to Sensor Server
 	bwassert(!RegisterAs("sensorProcessor"), COM2, "Failed to register sensorProcessor.\r\n");
-	int scTID = Create(3,(void *)sensorCourier); 
+	int scTID = Create(10,(void *)sensorCourier); 
 	bwassert(scTID >= 0, COM2, "<sensorServer>: sensor courier has not been set up.\r\n");
 	int scWaiting =0;
-	int snTID = Create(3,(void *)sensorNotifier); 
+	int snTID = Create(10,(void *)sensorNotifier); 
 	bwassert(snTID >= 0, COM2, "<sensorServer>: sensor notifier has not been set up.\r\n");
 	int csTID = WhoIs("clockServer");
     	int _tid = -1;

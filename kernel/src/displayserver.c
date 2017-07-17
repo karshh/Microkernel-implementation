@@ -193,8 +193,8 @@ void displayServer() {
 	int Death_TID = -1; //created with quit command issued
 
 	//Create(14, (void *) displaySensors); //will be moved later to train server
-	Create(15, (void *) displayClock); //displays clock
-	Create(4, (void *) trainTask); //creates and runs this task imediatly
+	Create(10, (void *) displayClock); //displays clock
+	Create(3, (void *) trainTask); //creates and runs this task imediatly
 	//since this task is higher than any in display server side, trainserver should be registered to nameserver when we return
 	//int Train_TID = Create(4, (void *) trainServer);
 
@@ -354,7 +354,7 @@ void displayServer() {
 	                		Printf(iosTID, COM2, "\033[s\033[?25l\033[34;1H\033[K\033[35;1H\033[KInitializing Switches.\033[34;1H>\033[u\033[?25h");
 				else{
 	                		Printf(iosTID, COM2, "\033[s\033[?25l\033[34;1H\033[K\033[35;1H\033[K\033[34;1H>\033[u\033[?25h");
-					Prompt_TID = Create(15, (void *) UserPrompt);
+					Prompt_TID = Create(20, (void *) UserPrompt);
 				}
 
 				break;
