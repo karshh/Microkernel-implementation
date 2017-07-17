@@ -272,9 +272,9 @@ void bwassert( int condition, int channel, char *fmt, ... ) {
 
 	        bwprintf(channel, "\r\nRestart required.\r\n");
 	        bwprintf(channel, "\r\nRestart required.\r\n");
-		//assuming that this gets called only in user tasks (restart elsewise)
 		Quit();
-	        //while(1) {}
+	//        while(1) {}
+		//assuming that this gets called only in user tasks (restart elsewise)
 
         }
 }

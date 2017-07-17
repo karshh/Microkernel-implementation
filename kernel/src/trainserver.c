@@ -27,18 +27,42 @@
 //train profile codes
 #define TRAIN_WORKER_READY 1
 #define TRAIN_WORKER_IS_REPLY 2
+#define TRAIN_WORKER_IS_REPLY2 5 //depreciate when done
 #define TRAIN_WORKER_VELOCITY_REPLY 3
+#define TRAIN_WORKER_VELOCITY_REPLY2 6 //depreciate when done
 //#define COMMAND_TR 13 //set train speed   (controller)
 //#define COMMAND_LI  14 //turn on lights    (controller)
 //#define COMMAND_IS	22 //Init at sensor "IS <TR> <SEN>" (controller)
 //#define COMMAND_RV 12 //reverse train (controller)
+#define TRAIN_TIMER_PING 4
 
 //train Worker codes
 #define TRAIN_WORKER_IS_SENSOR 1
 #define TRAIN_WORKER_VELOCITY_SENSOR 2
 
 
-#define TRAIN_CREW_COUNT 10
+#define TRAIN_CREW_COUNT 5 //be conservative
+
+int trainPrintLocation(int train){
+	if(train == 58) return 6;
+	else if(train ==69) return 13;
+	else if(train ==70) return 20;
+	else if(train ==76) return 27;
+	else return 34;
+	
+}
+
+void printTrainDiagnostics(int dspTID,int train, int lost, int velocity, int lastSensor, int deltaTime){
+	iodebug(dspTID,"D6\033[%d;53HTR# %2d",trainPrintLocation(train),train);
+	iodebug(dspTID,"D6\033[%d;53HLost[%d]",trainPrintLocation(train)+1,lost);
+	if(!lost){
+		iodebug(dspTID,"D6\033[%d;53Hsens :%d",trainPrintLocation(train)+2,lastSensor);
+		iodebug(dspTID,"D6\033[%10d;53Hvel  :%d",trainPrintLocation(train)+3,velocity);
+		iodebug(dspTID,"D6\033[%10d;53HdTime:%d",trainPrintLocation(train)+4,deltaTime);
+		iodebug(dspTID,"D6\033[%10d;53HdDist:%d",trainPrintLocation(train)+5,(velocity * deltaTime *10)/1000);
+	}
+}
+
 
 void initTrains(int csTID, int commandServerTID, int dspTID, int trackServerTID){
     	char msg[64];
@@ -103,10 +127,10 @@ void trainServer(){
 
  	initTrains(csTID,commandServerTID, dspTID, trackTID);
 
-	int tr58TID = Create(7,(void *)trainProfile);
-	int tr76TID = Create(7,(void *)trainProfile);
-	int tr70TID = Create(7,(void *)trainProfile);
-	int tr69TID = Create(7,(void *)trainProfile);
+	int tr58TID = Create(15,(void *)trainProfile);
+	int tr76TID = Create(15,(void *)trainProfile);
+	int tr70TID = Create(15,(void *)trainProfile);
+	int tr69TID = Create(15,(void *)trainProfile);
 
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
@@ -149,28 +173,26 @@ void trainServer(){
 				}		
 				break;
 			case COMMAND_TR:
+				bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");		        	Reply(_tid, rpl, 2);
 				switch(msg[2]){
 					case 58:
 						bwassert(Send(tr58TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-		        			Reply(_tid, rpl, 2);
 						break;
 					case 76:
-						bwassert(Send(tr76TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-		        			Reply(_tid, rpl, 2);
+						{
+						int err = Send(tr76TID, msg, 3, rpl, rpllen) ;
+						bwassert(err >= 0, COM2, "<trainServer>: Error %d sending TR 76 message to CommandServer.\r\n",err);
+						}
 						break;
 					case 70:
 						bwassert(Send(tr70TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-		        			Reply(_tid, rpl, 2);
 						break;
 					case 69:
 						bwassert(Send(tr69TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-		        			Reply(_tid, rpl, 2);
-
 
 
 						break;
 					default:
-		        			Reply(_tid, "0", 2); //seriosly, why are you even here?
 						break;
 				}		
 				break;
@@ -215,18 +237,22 @@ void trainServer(){
 	}
 }
 
-
-
+int max(int val1, int val2){
+	if(val1 >= val2)
+		return val1;
+	else
+		return val2;
+}
 void trainProfile(){ //will replace trainVelocityServer
 	int tsTID = MyParentTid();
 	int commandServerTID = WhoIs("commandServer");
 	int dspTID = WhoIs("displayServer");
 	int trkTID = WhoIs("trackServer");
+	int ssTID = WhoIs("sensorServer"); //replace with courier when ready
 	int trNumber = 0;
 	int trSpeed = 0;
 	int lightFlag = 0;
     	int _tid = -1;
-
     	char msg[64];
     	int msgCap = 64;
 	char rpl[64];
@@ -234,13 +260,23 @@ void trainProfile(){ //will replace trainVelocityServer
 	int msgLen = 0;
 	
 	int currentSensor = -1;
-	int nextSensor =-1;
-	int dist =0;
+	int expectedSensor =-1;
+	int distE =0;
+	int distF =0;
 	int time1 =0; //in ticks
 	int time2 =0; //in ticks
 	int deltaTime=0; //in ticks
-	int expectedDeltaTime =0;
-	int expectedTime =0;
+	int tempV =0;
+	int velocityAlpha =10;
+
+
+	int expectedDeltaTimeE =0;
+	int expectedDeltaTimeF =0;
+	int expectedTimeE =0;
+	int expectedTimeF =0;
+	//int expectedTimeS =0;
+
+
 	int velocity=1; //in um/ms
 	trackNextSensorstruct tns;
 
@@ -253,11 +289,22 @@ void trainProfile(){ //will replace trainVelocityServer
 	//worker list.
 	//int wkr1TID = Create(6,(void *)trainWorker); 
 	//int wkr2TID = Create(6,(void *)trainWorker);
-	int wkr1Status = WORKER_INIT;
-	int wkr2Status = WORKER_INIT;
+	//int wkr1Status = WORKER_INIT;
+	//int wkr2Status = WORKER_INIT;
 
 	trainWorkerListItem workerList[TRAIN_CREW_COUNT];
 	initTrainWorker(workerList);
+	int worker_crew_count_out = TRAIN_CREW_COUNT; //acts as a semephore
+	int trTimerTID = Create(17,(void *) trainTimer);
+	//used for timeout/boot
+	int workerIS1TID =-1;
+	int workerIS2TID =-1;
+	int workerVelETID = -1;
+	int workerVelFTID = -1;
+	int workerVelSTID = -1;
+	int timeout = 0;
+	int timeoutE =0;
+	int delayedVelocityStart = 0;
 
 	//iodebug(dspTID, "D5 train init. Free worker TID %d",nextFreeTrainWorker(workerList));
 	//task management
@@ -265,6 +312,10 @@ void trainProfile(){ //will replace trainVelocityServer
 	
 	int trainTask =-1;
 	int trainTaskType = TTK_NONE;
+	//trainTaskWorkerReturnVal[4];
+	
+
+	int lost = 1; // true if we don't know where train is.
 
 
 
@@ -273,7 +324,53 @@ void trainProfile(){ //will replace trainVelocityServer
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
 		switch(msg[0]){
+			case TRAIN_TIMER_PING:
+				if(timeout ==1){
+	iodebug(dspTID,"D6 timeout:[%d]",Time(csTID));
+					//recall the workers
+					if( trainTaskType == TTK_IS){
+						if(workerIS1TID>0){
+							msg[0] = SENSOR_BOOT_WORKERS;
+							msg[1] = workerIS1TID;
+							msg[2] = 0;
+							Send(ssTID, msg, 3, rpl, rpllen);
+						}
+						if(workerIS2TID > 0){
+							msg[0] = SENSOR_BOOT_WORKERS;
+							msg[1] = workerIS2TID;
+							msg[2] = 0;
+							Send(ssTID, msg, 3, rpl, rpllen);
+						}
+						//WIP
+					}else if(trainTaskType == TTK_VEL && workerVelETID > 0){
+						msg[0] = SENSOR_BOOT_WORKERS;
+						msg[1] = workerVelETID;
+						msg[2] = 0;
+						Send(ssTID, msg, 4, rpl, rpllen);
+
+					}
+					
+				}
+				if(timeoutE ==1){
+	iodebug(dspTID,"D5 timeoutE:[%d]",Time(csTID));
+					//recall the workers
+					if(trainTaskType == TTK_VEL && workerVelETID){
+						msg[0] = SENSOR_BOOT_WORKERS;
+						msg[1] = workerVelETID;
+						msg[2] = 1;
+						Send(ssTID, msg, 4, rpl, rpllen);
+
+					}
+					
+				}
+				timeout --;
+				timeoutE --;
+				if (timeout != 0){
+					Reply(_tid,"1",2); //remind me in 6 ticks
+				}
+			break;
 			case TRAIN_WORKER_READY:
+				//called by init or if train worker got wierd reply
 /*
 				if(_tid == wkr1TID ){
 					wkr1Status = WORKER_READY;
@@ -284,6 +381,7 @@ void trainProfile(){ //will replace trainVelocityServer
 				elsea*/ 
 				if( trainWorkerIndex(workerList, _tid) >= 0){
 					setTrainWorkerStatus(workerList, _tid,WORKER_READY);
+					worker_crew_count_out --;
 				}
 				else{
 					bwassert(0,COM2, "<trainProfile %dr> someone [%d] calling himmself my worker who i don't know is telling me he's ready", trNumber, _tid);
@@ -299,7 +397,7 @@ void trainProfile(){ //will replace trainVelocityServer
 				msg[1] = lightFlag + trSpeed;
 				msg[2] = trNumber;
 				msg[3] = 0;
-				bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+				//bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 		        	Reply(_tid, rpl, 2);
 				break;
 
@@ -309,7 +407,7 @@ void trainProfile(){ //will replace trainVelocityServer
 				msg[1] = lightFlag + trSpeed;
 				msg[2] = trNumber;
 				msg[3] = 0;
-				bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+				//bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainProfile>: Error sending message to CommandServer.\r\n");
 		        	Reply(_tid, rpl, 2);
 				break;
 
@@ -319,7 +417,7 @@ void trainProfile(){ //will replace trainVelocityServer
 				msg[1] = trNumber;
 				msg[2] = trSpeed;
 				msg[3] = 0;
-				bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+				//bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 
 				msg[0] = trSpeed;
 				msg[1] = rpl[0];
@@ -336,47 +434,300 @@ void trainProfile(){ //will replace trainVelocityServer
 				msg[0] = TRACK_GETNEXTSENSOR;
 				msg[1] = currentSensor;
 				bwassert(Send(trkTID, msg, 2,(char *) &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
-				if (tns.nextSensor == -1) {
-					iodebug(dspTID, "D2 %d is failed, reached dead end", trNumber);
+				if (tns.expectedSensor == -1 ) {
+					//iodebug(dspTID, "D2 %d is failed, reached dead end", trNumber);
 				}else{
-
-					trainTask++;
-					trainTaskType = TTK_IS;
-					dist = tns.dist;
-					time1 = -1;
-					time2 = -1;
-					int wkr1 = nextFreeTrainWorker(workerList);
-					if( wkr1 >=0){
-						setTrainWorkerStatus(workerList, wkr1,WORKER_IS1);
-						int wkr2 = nextFreeTrainWorker(workerList);
-						if( wkr1 >=0 && wkr2 >=0){
-						//send first child
-						//wkr1 &2 used only for IS
-								msg[0] = TRAIN_WORKER_IS_SENSOR;
-								msg[1] = currentSensor;
-								msg[2] = trainTask; //keep track what task im dealing with.
-								msg[3] = WORKER_IS1;
-								setTrainWorkerStatus(workerList, wkr1,WORKER_IS1);
-								Reply(wkr1,msg,4);
-
-								msg[0] = TRAIN_WORKER_IS_SENSOR;
-								msg[1] = tns.nextSensor;
-								msg[2] = trainTask;
-								msg[3] = WORKER_IS2;
-								setTrainWorkerStatus(workerList, wkr2,WORKER_IS2);
-								Reply(wkr2,msg,4);
-						}else{
+					//should keep track of all the workers who have returned
+					//if they all returned, run is
+					//else set nextTast to this and leave a reminder to run when all workers have returned.
+					if(worker_crew_count_out){ //true if we don't have full cappacity
 							bwassert(0,COM2, "<trainProfile %dr> ran out of workers, COMMAND IS. Fix this Paily", trNumber);
-
-						}
 					}else{
-							bwassert(0,COM2, "<trainProfile %dr> ran out of workers, COMMAND IS. Fix this Paily", trNumber);
-					}
+						delayedVelocityStart =0;
+						trainTask ++;
+						trainTaskType = TTK_IS;
+						distE = tns.expectedDist;
+						time1 = -1;
+						time2 = -1;
+						workerIS1TID = nextFreeTrainWorker(workerList);
+						setTrainWorkerStatus(workerList, workerIS1TID,WORKER_IS1);
 
+						workerIS2TID = nextFreeTrainWorker(workerList);
+						setTrainWorkerStatus(workerList, workerIS2TID,WORKER_IS2);
+
+						msg[0] = TRAIN_WORKER_IS_SENSOR;
+						msg[1] = currentSensor;
+						msg[2] = trainTask; //keep track what task im dealing with.
+						msg[3] = WORKER_IS1;
+						Reply(workerIS1TID,msg,4);
+
+						worker_crew_count_out ++;
+
+
+						msg[0] = TRAIN_WORKER_IS_SENSOR;
+						msg[1] = tns.expectedSensor;
+						msg[2] = trainTask;
+						msg[3] = WORKER_IS2;
+						Reply(workerIS2TID,msg,4);
+						worker_crew_count_out ++;
+						//set timeout timer. turn it on if its off
+						if(timeout){
+							timeout = 2000 ; //2000 * 60ms = 2 min
+							timeoutE = 0;
+						}
+						else{
+							timeout = 2000 ; //2000 * 60ms = 2 min
+							timeoutE = 0;
+							Reply(trTimerTID, "1",2);//turn on timer
+						}
+						
+
+					}
 
 				}
 				break;
+			case TRAIN_WORKER_VELOCITY_REPLY:
+				if( trainWorkerIndex(workerList, _tid) >= 0){
+					//first do some housekeeping to get worker ready for future tasks
+					setTrainWorkerStatus(workerList, _tid, WORKER_READY);
+					worker_crew_count_out --;
+					//now look at message
+					pkmemcpy((void *)&tws, (void *)msg, sizeof(trainWorkerSensorReportStruct));
+					//check we are talking about same task (might be redundant)
+					if(trainTask == tws.trainTask){
+						if(tws.error == TWSR_SUCCESS){
+							lost = 0; //we have an idea where the train is now
+							time2 = tws.lastSensorTime;
+							currentSensor = tws.sensor;
+							deltaTime =( (time2 - time1) * 10);
+							if(tws.taskStatus == WORKER_VELE){
+								tempV = (distE * 1000) / deltaTime;
+								velocity = ((tempV * velocityAlpha)+(velocity * (100-velocityAlpha)))/100;
+								printTrainDiagnostics(dspTID,trNumber,0,velocity,tws.sensor,time2 -expectedTimeE);
+							}else if(tws.taskStatus == WORKER_VELF){
+								tempV = (distF * 1000) / deltaTime;
+								velocity = ((tempV * velocityAlpha)+(velocity * (100-velocityAlpha)))/100;
+								printTrainDiagnostics(dspTID,trNumber,0,velocity,tws.sensor,time2 -expectedTimeF);
+							}
+						/*	else{
+								tempV = (distS * 1000) / deltaTime;
+								velocity = ((tempV * velocityAlpha)+(velocity * (100-velocityAlpha)))/100;
+								printTrainDiagnostics(dspTID,trNumber,0,velocity,tws.sensor,time2 -expectedTimeS);
+							}
+						*/
+ 							//when init velocity function created, this will be modified to Alpha change
+							trainTask ++; //start test for next sensor
+							time1 = time2;
+
+						}
+						else if(tws.error == TWSR_TIMEOUT){
+							//only one worker so no waiting for worker count to be 0
+								trainTaskType = TTK_NONE;
+								lost = 1;
+								trainTask ++;
+								printTrainDiagnostics(dspTID,trNumber,1,velocity,tws.sensor,time2 -expectedTimeE);
+						}
+						workerVelETID = -1;
+
+					}
+	
+				}
+
+				break;
 			case TRAIN_WORKER_IS_REPLY:
+				//first deal with good case then with timeout case
+				if( trainWorkerIndex(workerList, _tid) >= 0){
+					//first do some housekeeping to get worker ready for future tasks
+					setTrainWorkerStatus(workerList, _tid, WORKER_READY);
+					worker_crew_count_out --;
+					//now look at message
+					pkmemcpy((void *)&tws, (void *)msg, sizeof(trainWorkerSensorReportStruct));
+					//check we are talking about same task (might be redundant)
+					if(trainTask == tws.trainTask){
+						if(tws.taskStatus == WORKER_IS1){
+							if(tws.error == TWSR_SUCCESS){
+								
+								if( time2 > -1){
+									//this could indicate that the two sensors where pinged in same sensor report......hmmmm
+									if(!worker_crew_count_out){//this should be the case
+										//if last worker, increment task
+										trainTaskType = TTK_NONE;
+										lost = 1;
+										trainTask ++;
+									}
+								}
+								else{
+									time1 = tws.lastSensorTime;
+								}
+							}
+							else if(tws.error == TWSR_TIMEOUT){
+								//we got timeout (either from timeout or manual boot)
+								//other workers should be timing out as well
+									
+								//this test has been botched, if last worker increment task    
+								if(!worker_crew_count_out){
+									//if last worker, increment task
+									trainTaskType = TTK_NONE;
+									lost = 1;
+									trainTask ++;
+								}
+							}
+							workerIS1TID = -1;
+						}
+						else if(tws.taskStatus == WORKER_IS2){
+							if(tws.error == TWSR_SUCCESS){
+								if( time1 == -1){
+									//this could indicate that the two sensors where pinged in same sensor report......hmmmm
+									//this is botced....recall other
+									//could IS on next sensor ..... (we shall see)
+									time1 = tws.lastSensorTime;
+									trainTask ++;
+									currentSensor = tws.sensor;
+									timeout = 0;
+									timeoutE = 0;
+									msg[0] = SENSOR_BOOT_WORKERS;
+									msg[1] = workerIS1TID;
+									msg[2] = workerIS1TID;
+									msg[3] = workerIS1TID;
+									Send(ssTID, msg, 4, rpl, rpllen);
+
+									msg[0] = TRACK_GETNEXTSENSOR;
+									msg[1] = currentSensor;
+									bwassert(Send(trkTID, msg, 2,(char *) &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
+									if (tns.expectedSensor == -1 ) {
+										//iodebug(dspTID, "D2 %d is failed, reached dead end", trNumber);
+									}else{
+										//should keep track of all the workers who have returned
+										//if they all returned, run is
+										//else set nextTast to this and leave a reminder to run when all workers have returned.
+										if(nextFreeTrainWorker(workerList) ==-1){ //true if we don't have full cappacity
+												bwassert(0,COM2, "<trainProfile %dr> ran out of workers, COMMAND IS. Fix this Paily", trNumber);
+										}else{
+											trainTaskType = TTK_IS;
+											distE = tns.expectedDist;
+											time2 = -1;
+											workerIS2TID = nextFreeTrainWorker(workerList);
+											setTrainWorkerStatus(workerList, workerIS2TID,WORKER_IS2);
+
+											msg[0] = TRAIN_WORKER_IS_SENSOR;
+											msg[1] = tns.expectedSensor;
+											msg[2] = trainTask;
+											msg[3] = WORKER_IS2;
+											Reply(workerIS2TID,msg,4);
+											worker_crew_count_out ++;
+											//set timeout timer. turn it on if its off
+											if(timeout){
+												timeout = 500; //500 * 60ms = 30 s
+												timeoutE = 0;
+											}
+											else{
+												timeout = 500 ; //500 * 60ms = 30 s
+												timeoutE = 0;
+												Reply(trTimerTID, "1",2);//turn on timer
+											}
+											
+
+										}
+
+									}
+
+
+									//call courier when you get it working
+
+								}
+								else{
+									lost = 0; //we have an idea where the train is now
+									time2 = tws.lastSensorTime;
+									deltaTime =( (time2 - time1) * 10);
+									velocity = (distE * 1000) / deltaTime;
+ 									//when init velocity function created, this will be modified to Alpha change
+									printTrainDiagnostics(dspTID,trNumber,0,velocity,tws.sensor,0);
+									trainTask ++; //start test for next sensor
+									time1 = time2;
+									currentSensor = tws.sensor;
+									msg[0] = TRACK_GETNEXTSENSOR;
+									msg[1] = currentSensor;
+									bwassert(Send(trkTID, msg, 2,(char *) &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
+
+
+
+
+									//now 				
+									if(tns.expectedSensor == -1){
+										lost = 1; //entering uncharted waters now (can 2-minute wait for inverse)
+									}
+									else{
+										trainTaskType = TTK_VEL;
+										distE = tns.expectedDist;
+										expectedDeltaTimeE = ((1000*distE)/velocity) /10; //(in ticks)
+										expectedTimeE = time1 + expectedDeltaTimeE;
+
+										distF = 0;
+										expectedDeltaTimeF = 0;
+										expectedTimeF = 0;
+
+										workerVelETID = nextFreeTrainWorker(workerList);
+										setTrainWorkerStatus(workerList, workerVelETID,WORKER_VELE);
+										//only deal with one case, but add broken 
+
+										msg[0] = TRAIN_WORKER_VELOCITY_SENSOR;
+										msg[1] = tns.expectedSensor;
+										msg[2] = 0;
+										msg[3] = 0;
+										msg[4] = trainTask; //keep track what task im dealing with.
+										msg[5] = WORKER_VELE;
+
+										if(tns.followingSensor != -1){
+											distF = tns.followingDist;
+											expectedDeltaTimeF = ((1000*distF)/velocity) /10; //(in ticks)
+											expectedTimeF = time1 + expectedDeltaTimeF;
+
+											msg[2] = tns.followingSensor; //keep track what task im dealing with.
+										}
+										
+										Reply(workerVelETID,msg,6);
+										worker_crew_count_out ++;
+
+										if(timeout){
+											timeout = (max(expectedTimeF,expectedTimeE) + 3000)/6 ; //2000 * 60ms = 2 min														//30
+												timeoutE = (expectedTimeE + 1000)/6;
+															//20
+										}
+										else{
+											timeout = (max(expectedTimeF,expectedTimeE)+ 3000)/6 ; //2000 * 60ms = 2 min
+												timeoutE = (expectedTimeE + 1000)/6;
+											Reply(trTimerTID, "1",2);//turn on timer
+										}
+										iodebug(dspTID,"D3 is-vel set timeout:[%d]",timeout*6+Time(csTID));
+										iodebug(dspTID,"D4 is-vel set timeoutE:[%d]",timeoutE*6+Time(csTID));
+
+									}
+
+								}
+							}
+							else if(tws.error == TWSR_TIMEOUT){
+								//we got timeout (either from timeout or manual boot)
+								//other workers should be timing out as well
+									
+								//this test has been botched, if last worker increment task    
+								if(!worker_crew_count_out){
+									//if last worker, increment task
+									trainTaskType = TTK_NONE;
+									lost = 1;
+									trainTask ++;
+								}
+							}
+							workerIS2TID = -1;
+						}else{	//in
+							bwassert(0,COM2,"We got a worker that doesnt have an VEL based id,,,,PAILY?!!!!");
+							//how did we get here?
+						}
+						
+						
+					}
+				}
+				break;
+/*
 				if( trainWorkerIndex(workerList, _tid) >= 0){
 				//if(_tid == wkr1TID || wkr2TID){
 					setTrainWorkerStatus(workerList, _tid, WORKER_INIT);
@@ -411,7 +762,7 @@ void trainProfile(){ //will replace trainVelocityServer
 								iodebug(dspTID, "D6Train %d new dist[%d], last time[%d], velocity[%d] exDTime[%d], expTime[%d]",trNumber,dist,time1,velocity, expectedDeltaTime, expectedTime);
 								int wkr1 = nextFreeTrainWorker(workerList);
 								if(wkr1 >=0){
-									setTrainWorkerStatus(workerList, wkr1,WORKER_VELE);
+setTrainWorkerStatus(workerList, wkr1,WORKER_VELE);
 									trainWorkerSensorTask twst;
 									twst.message[0] = TRAIN_WORKER_VELOCITY_SENSOR;
 									twst.trainTask = trainTask;
@@ -439,17 +790,20 @@ void trainProfile(){ //will replace trainVelocityServer
 				else{
 		        		Reply(_tid, 0, 1); //seriosly, why are you even here?
 				}
+*/
+/*
 				break;
-		case TRAIN_WORKER_VELOCITY_REPLY:
+			case TRAIN_WORKER_VELOCITY_REPLY:
 				if( trainWorkerIndex(workerList, _tid) >= 0){
 				//if(_tid == wkr1TID || wkr2TID){
 					setTrainWorkerStatus(workerList, _tid, WORKER_INIT);
 		        		Reply(_tid, "1", 2); //k let the worker go home and return when its fresh
 					pkmemcpy((void *)&tws, (void *)msg, sizeof(trainWorkerSensorReportStruct));
 					if(trainTask == tws.trainTask){
+
 						//if its a older train task ignore report
 						//assume IS does not have faulty sensors
-						if(tws.taskStatus == WORKER_VELE)
+						if(tws.taskStatus == WORKER_VELE){
 							if(tws.error == TWSR_SUCCESS){
 								time2 = tws.lastSensorTime;
 								deltaTime =( (time2 - time1) * 10);
@@ -495,17 +849,18 @@ void trainProfile(){ //will replace trainVelocityServer
 								iodebug(dspTID, "D16Train %d dist[%d], last time[%d], time2[%d] expTime[%d]",trNumber,dist,time1,Time(csTID), expectedTime);
 							}
 
-
-							//lets start with assumumption everything works then work with edge cases
 						}
+							//lets start with assumumption everything works then work with edge cases
+					}
 					//going to assume no missed sensors for IS.
-
 					
 				}
 				else{
 		        		Reply(_tid, 0, 1); //seriosly, why are you even here?
+
 				}
 				break;
+*/
 
 			default:
 		        	Reply(_tid, 0, 1); //seriosly, why are you even here?
@@ -518,12 +873,30 @@ void trainProfile(){ //will replace trainVelocityServer
 
 }
 
+void trainTimer(){
+//all it does is poll parent  train profile once every 60 ms. mainly used to timeout tests;
+	int csTID = WhoIs("clockServer");
+	int trTID = MyParentTid();
+
+   	char msg[64];
+	char rpl[64];
+	char rpllen = 64;
+
+
+	while(1){
+		Delay(csTID,6);
+		msg[0] = TRAIN_TIMER_PING;
+		Send(trTID, msg, 1, rpl, rpllen);
+	}
+	Exit();
+}
+
 void initTrainWorker(trainWorkerListItem * workerList){
 	int dspTID = WhoIs("displayServer"); //used for debugging
 	int i;
 	for(i =0; i< TRAIN_CREW_COUNT; i++){
 		workerList[i].taskStatus = WORKER_INIT;	
-		workerList[i].tid = Create(6, (void *) trainWorker); 
+		workerList[i].tid = Create(17, (void *) trainWorker); 
 	}
 
 }
@@ -574,7 +947,9 @@ void trainWorker(){
 	char rpllen = 64;
 	int msgLen = 0;
 
-	int sensor;
+	int sensorE;
+	int sensorF;
+	int sensorS;
 	sensorCurrentStatusStruct scs;
 	trainWorkerSensorReportStruct tws;
 	trainWorkerSensorTask twst;
@@ -584,120 +959,68 @@ void trainWorker(){
 	int taskStatus;
 	int expectedTime =0;
 	
+	msg[0] = TRAIN_WORKER_READY;
+	Send(trTID, msg, 1, rpl, rpllen);
 	while(1){
-		msg[0] = TRAIN_WORKER_READY;
-		Send(trTID, msg, 1, rpl, rpllen);
 		switch(rpl[0]){ //jobs...don't return till job is finished
 			case TRAIN_WORKER_VELOCITY_SENSOR:
-				pkmemcpy((void *)&twst, (void *)rpl,sizeof(trainWorkerSensorTask));
+				sensorE = rpl[1];
+				sensorF = rpl[2];
+				sensorS = rpl[3];
+				trainTask = rpl[4];
+				taskStatus = rpl[5];
 
-				trainTask = twst.trainTask;
-				taskStatus = twst.taskStatus;
-				sensor = twst.sensor;
-				expectedTime = twst.expectedTime;
+				msg[0] = SENSOR_REGISTER_WORKER;
+				msg[1] = sensorE;
+				msg[2] = sensorF;
+				msg[3] = sensorS;
+				Send(ssTID, msg, 4,(char *) &scs, sizeof(sensorCurrentStatusStruct));
 
-				msg[0] = SENSOR_CURRENT_SENSOR_STATUS;
-				msg[1] = sensor;
-				Send(ssTID, msg, 2,(char *) &scs, sizeof(sensorCurrentStatusStruct));
-				tws.taskStatus = taskStatus;
+				iodebug(dspTID,"D8 trainworker sensorE:%d sensorF%d: sensorS:%d sensorH%d" ,sensorE,sensorF,sensorS,scs.sensor);
+				if(scs.sensor = sensorE){
+					tws.taskStatus = WORKER_VELE;
+				}
+				else if(scs.sensor = sensorF){
+					tws.taskStatus = WORKER_VELF;
+				}
+				else{
+					tws.taskStatus = WORKER_VELS;
+				}
+
 				tws.trainTask = trainTask;
 				tws.message[0] = TRAIN_WORKER_VELOCITY_REPLY;
-				tws.sensor = sensor;
-				if(scs.sensor == -1){
-					//sensor is invalid sensor
-					tws.error = TWSR_INVALID_SENSOR;
-					 //invalid sensor	
-					 //let train know this sensor doesnt exist
-				}
-				else{
-					if(scs.sensorHeld){
-						//train stationary on is sensor or is stationary on is sensor
-						tws.error = TWSR_SUCCESS;
-						tws.lastSensorTime = scs.lastSensorTime;
-					}else{
-						first_sensorTime = scs.lastSensorTime;
-						//sleep til expected time;
-						DelayUntil(csTID,expectedTime);
-						poll_limit = 0;
-						while(poll_limit < 100){
-							//poll once every 60ms for 6 sec, else timeout;
-							msg[0] = SENSOR_CURRENT_SENSOR_STATUS;
-							msg[1] = sensor;
-							Send(ssTID, msg, 2,(char *) &scs, sizeof(sensorCurrentStatusStruct));
-							if(scs.sensorHeld || (scs.lastSensorTime > first_sensorTime)){
-								tws.error = TWSR_SUCCESS;
-								tws.lastSensorTime = scs.lastSensorTime;
-								break;
-							}
-							Delay(csTID,6);
-							poll_limit ++;
-						}
-						if(poll_limit == 100){
-							tws.error = TWSR_TIMEOUT;
-						}
-					
-					}
-				}
+				tws.sensor = scs.sensor;
+				tws.error = scs.taskStatus;
+				tws.lastSensorTime =scs.lastSensorTime;
 
-				iodebug(dspTID, "D10Train worker on vele on sensor[%d],eTime[%d]",sensor,expectedTime);
 				Send(trTID, (char *)&tws, sizeof(trainWorkerSensorReportStruct), rpl, rpllen);
 				break;
-
-				//first check sensor (should be locked so only i should have access to it)
 			case TRAIN_WORKER_IS_SENSOR:
-				sensor = rpl[1];
+				sensorE = rpl[1];
 				trainTask = rpl[2];
 				taskStatus = rpl[3];
-				msg[0] = SENSOR_CURRENT_SENSOR_STATUS;
-				msg[1] = sensor;
-				Send(ssTID, msg, 2,(char *) &scs, sizeof(sensorCurrentStatusStruct));
+				msg[0] = SENSOR_REGISTER_WORKER;
+				msg[1] = sensorE;
+				msg[2] = 0;
+				msg[3] = 0;
+				Send(ssTID, msg, 4,(char *) &scs, sizeof(sensorCurrentStatusStruct));
 
 				tws.taskStatus = taskStatus;
 				tws.trainTask = trainTask;
-
 				tws.message[0] = TRAIN_WORKER_IS_REPLY;
-				tws.sensor = sensor;
-				if(scs.sensor == -1){
-					iodebug(dspTID, "D12 invalid sensor(is)");
-					//sensor is invalid sensor
-					tws.error = TWSR_INVALID_SENSOR;
-					 //invalid sensor	
-					 //let train know this sensor doesnt exist
-				}
-				else{
-					if(scs.sensorHeld){
-						//train stationary on is sensor or is stationary on is sensor
-						tws.error = TWSR_SUCCESS;
-						tws.lastSensorTime = scs.lastSensorTime;
-					}else{
-						//cannot accept first sensor report unless if train is on sensor (could be super old, or just hit) but cant be used for calculating speed. get next hit sensor post withn 2 minutes
-						first_sensorTime = scs.lastSensorTime;
-						poll_limit = 0;
-						while(poll_limit < 20*60*1){
-							//poll once every 50ms for 2 minutes, else timeout;
-							Delay(csTID,5);
-							msg[0] = SENSOR_CURRENT_SENSOR_STATUS;
-							msg[1] = sensor;
-							Send(ssTID, msg, 2,(char *) &scs, sizeof(sensorCurrentStatusStruct));
-							if(scs.sensorHeld || (scs.lastSensorTime > first_sensorTime)){
-								tws.error = TWSR_SUCCESS;
-								tws.lastSensorTime = scs.lastSensorTime;
-								break;
-							}
-							poll_limit ++;
-						}
-						if(poll_limit == 20*60*1){
-							tws.error = TWSR_TIMEOUT;
-						}
-					
-					}
-				}
+				tws.sensor = sensorE;
+
+				tws.error = scs.taskStatus;
+				tws.lastSensorTime =scs.lastSensorTime;
+
 				Send(trTID, (char *)&tws, sizeof(trainWorkerSensorReportStruct), rpl, rpllen);
-				
-				
+				//when return we will be at top of loop with new task in rpl,rplen
+				//thus there is no intermediate step to send TRAIN_WORKER_READY, as train already holds the lock on worker.
 				break;
 			default:
-				iodebug(dspTID, "D24 a trainworker got a wierd reply");
+                      
+				msg[0] = TRAIN_WORKER_READY;
+				Send(trTID, msg, 1, rpl, rpllen);
 				break;
 		}
 	}
@@ -1082,239 +1405,4 @@ void trainStopServer(){
 	Exit();
 
 }
-/*
-void trainServer(){
-//keep track of train speeds, and sends instructions to ioserver
-	bwassert(!RegisterAs("trainServer"), COM2, "Failed to register trainServer.\r\n");
-	int commandServerTID = WhoIs("commandServer");
-	int csTID = WhoIs("clockServer");
-	int sensorTID = WhoIs("displaySensors");
-	while (sensorTID < 0) {
-		Pass();
-		sensorTID = WhoIs("displaySensors");
-	}
-	int trackTID = Create(3, (void*) trackServer);
-	int velTID = Create(2,(void *)trainVelocityServer);
-	//keep track of train speeds
-	
-	int trainSpeed[80];
-    int _tid = -1;
-    char msg[64];
-    int msgCap = 64;
-
-    // need seperate Msg and Rpl buffers just for displaying train sensors.
-
-    char commandMsg[64];
-    char rpl[3];
-    int rpllen = 3;
-
-	volatile int i=0;
-	int msgLen = 0;
-	int dspTID = WhoIs("displayServer");
-	
-
-	for (i=0; i < 80; i++){
- 			trainSpeed[i] = 0;
-			commandMsg[0] = 'T';
-			commandMsg[1] = trainSpeed[i];
-			commandMsg[2] = i;
-			commandMsg[3] = 0;
-			bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-			//send message to display thaat trains are initilizaing
-			msg[0] = COMMAND_TRAIN_INIT; //no warning
-			msg[1] = 0;
-			msg[2] = i;//position (0..17)
-			msg[3] = 0;
-			bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
-
-			//Delay(csTID, (14 * 19) + 170);
-			Delay(csTID, 5);
-	}
-	// why do we have this massive delay here?
-	Delay(csTID,436);
-	
-	msg[0] = TRACK_INITSW;
-	msg[1] = 0;
-
-	bwassert(Send(trackTID, msg, 2, rpl, rpllen) >= 0, COM2, "<update switchs>: Updating switches failed."); 
-	//send message to display thaat switches are initilizaing
-	msg[0] = COMMAND_TRAIN_INIT; //no warning
-	msg[1] = 1;
-	msg[2] = 0;//position (0..17)
-	msg[3] = 0;
-	bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
-
-	//send message to display that init is done. allow command line input
-	msg[0] = COMMAND_TRAIN_INIT; //no warning
-	msg[1] = 2;
-	msg[2] = 0;//position (0..17)
-	msg[3] = 0;
-		bwassert(Send(dspTID, msg, 4, rpl, rpllen) >= 0, COM2, "<update switchs>: Displaying switches failed."); 
-
-	Delay(csTID, 5);
-	int train;
-	int speed;
-
-
-	while(1){
-
-		msgLen = Receive(&_tid, msg, msgCap);
-		bwassert(msgLen >= 0, COM2, "<trainServer>: Receive error.\r\n");
-		if (_tid == sensorTID) {
-			// we received a sensor update from dspTID
-			// search for each train if it's expected sensor was hit. If yes, then find next sensor
-			// and add that as it's expected sensor.
-			volatile int j = 0;
-			for (j = 1; j < msgLen; j++) {
-				curSensorTime = getTicks4(0); //in ms
-				curSensorTimeT = Time(csTID);
-				curSensor = msg[j];
-				//for train velocity model
-				//get distance between the current and last sensor in most direct route.
-				if(prevSensor && prevSensor != curSensor){
-					int path[102];
-					int pathLength = 0;
-					getShortestPath(&t,  prevSensor, curSensor,path, &pathLength);
-
-					nextSensor = findNextSensor(&t,curSensor, &distSensor);
-					int distanceList[100];
-					int infoLength = 0;
-
-					getEdgeInfo(&t, path, pathLength, distanceList, &infoLength);
-					int dist = 0;
-					for ( i = 0; i < infoLength; i++) {
-						dist += distanceList[i];
-					}
-					// Fix this!!
-
-					dspMsg[0] = 'S';
-					dspMsg[1] = curSensor;
-					dspMsg[2] = ((curSensorTimeT  -prevSensorTimeT) / 10000) % 100;
-					dspMsg[3] = ((curSensorTimeT - prevSensorTimeT) / 100) % 100;
-					dspMsg[4] = (curSensorTimeT - prevSensorTimeT) % 100;
-					dspMsg[5] = (dist / 10000) % 100;
-					dspMsg[6] = (dist  / 100) % 100;
-					dspMsg[7] = dist % 100;
-					dspMsg[8] = nextSensor;
-					dspMsg[9] = (distSensor / 10000) % 100;
-					dspMsg[10] = (distSensor  / 100) % 100;
-					dspMsg[11] = distSensor  % 100;
-
-					dspMsg[12] = 0;
-					bwassert(Send(velTID, dspMsg, 12, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to Velocity train server.\r\n");
-				}
-
-				prevSensorTime = curSensorTime;
-				prevSensorTimeT = curSensorTimeT;
-				prevSensor = curSensor;
-				
-				for (i = 58; i < 80; i++) {
-					if (trainDestinationSensor[i] == msg[j]) {
-						trainSpeed[i] = 0;
-						trainDestinationSensor[i] = 0;
-					}
-					if (trainExpectedSensor[i] == msg[j] ) {
-						trainCurrentSensor[i] = msg[j];
-						trainExpectedSensor[i] = findNextSensor(&t, msg[j], &distSensor);
-						dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
-						dspMsg[1] = i;
-						dspMsg[2] = trainExpectedSensor[i];
-						dspMsg[3] = 0;
-						bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-					}else if(msg[j] == findNextSensor(&t,trainExpectedSensor[i], &distSensor)){
-						trainCurrentSensor[i] = msg[j];
-						trainExpectedSensor[i] = findNextSensor(&t, msg[j], &distSensor);
-						dspMsg[0] = COMMAND_TRAIN_SENS; //hardcoded to indicate expected sensor
-						dspMsg[1] = i;
-						dspMsg[2] = trainExpectedSensor[i];
-						dspMsg[3] = 0;
-						bwassert(Send(dspTID, dspMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to DisplayServer.\r\n");
-					}
-				}
-			}
-			Reply(_tid, "1", 2);
-
-		}else if( _tid == velTID){
-			trainSpeed[58] = 0;
-			Reply(_tid, "1", 2);
-		} else {
-
-			switch(msg[0]){
-			case 'L':
-				train = msg[1];
-				trainSpeed[train] = 0;
-
-
-				commandMsg[0] = 'L';
-				commandMsg[1] = 16+trainSpeed[train];
-				commandMsg[2] = train;
-				commandMsg[3] = 0;
-				bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-		        Reply(_tid, "1", 2);
-		        break;
-
-			case 'T':
-				speed = msg[1];
-				train = msg[2];
-				trainSpeed[train] = speed;
-
-				commandMsg[0] = 'T';
-				commandMsg[1] = trainSpeed[train];
-				commandMsg[2] = train;
-				commandMsg[3] = 0;
-				bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-
-		        Reply(_tid, "1", 2);
-		        break;
-
-			case 'R':
-				train = msg[1];
-
-				commandMsg[0] = 'R';
-				commandMsg[1] = train;
-				commandMsg[2] = trainSpeed[train];
-				commandMsg[3] = 0;
-				bwassert(Send(commandServerTID, commandMsg, 8, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
-				{ char c[2];
-				 c[0] = trainSpeed[train];
-				 c[1] = 0;
-				
-		        	Reply(_tid, &c[0], 2);
-				}
-
-		        break;
-
-			case 'J': // ss command
-				msg[0] = TRACK_SS;
-				bwassert(Send(trackTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<trainServer>: Updating switches failed."); 
-				Reply(_tid, "1", 2);
-				break;
-
-			case 'I': // is command
-				msg[0] = TRACK_IS;
-				bwassert(Send(trackTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<trainServer>: Updating switches failed."); 
-				Reply(_tid, "1", 2);
-
-		        Reply(_tid, "1", 2);
-
-		        break;
-
-			case 'S': //switch
-
-				msg[0] = TRACK_SW;
-				bwassert(Send(trackTID, msg, msgLen, rpl, rpllen) >= 0, COM2, "<trainServer>: Updating switches failed."); 
-		        Reply(_tid, "1", 2);
-		        break;
-
-			default:
-		        bwassert(0, COM2, "<trainServer>: Illegal request code from userTask <%d>:[%s].\r\n", _tid,msg);
-		        break;
-			}
-
-		}
-	}
-
-}
-
-*/
 

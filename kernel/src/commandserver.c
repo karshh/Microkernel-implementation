@@ -23,10 +23,10 @@
 void commandServer() {
 	bwassert(!RegisterAs("commandServer"), COM2, "Could not register as command server.\r\n");
 	int cDelTid = -1;
-	int cDelTid58 =  Create(5, (void *) commandReverseDelayServer);
-	int cDelTid76 =  Create(5, (void *) commandReverseDelayServer);
-	int cDelTid70 =  Create(5, (void *) commandReverseDelayServer);
-	int cDelTid69 =  Create(5, (void *) commandReverseDelayServer);
+	int cDelTid58 =  Create(10, (void *) commandReverseDelayServer);
+	int cDelTid76 =  Create(10, (void *) commandReverseDelayServer);
+	int cDelTid70 =  Create(10, (void *) commandReverseDelayServer);
+	int cDelTid69 =  Create(10, (void *) commandReverseDelayServer);
 	
 	int csTID = WhoIs("clockServer");
 	int iosUS1TID = WhoIs("UART1S");
@@ -146,8 +146,10 @@ void commandServer() {
 				break;
 			case COMMAND_RV_DELAY: // reverse part 2
 				trainMutex[(int)msg[1]] = 0;
+
 				Putc(iosUS1TID, COM1, 15);
 				Putc(iosUS1TID, COM1, msg[1]);
+
 				Putc(iosUS1TID, COM1, msg[2]);
 				Putc(iosUS1TID, COM1, msg[1]);
 				//Reply(_tid, "1", 2);

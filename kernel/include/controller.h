@@ -55,6 +55,8 @@
 
 #define SENSOR_CURRENT_SENSOR_STATUS		1 //adjust if conflict
 #define SENSOR_RAW_SINGLE 			2 //(controller.h)
+#define SENSOR_REGISTER_WORKER 			5 //(controller.h)
+#define SENSOR_BOOT_WORKERS 			6 //(controller.h)
 
 #define DFA_INIT 0
 #define DFA_ERROR -1
