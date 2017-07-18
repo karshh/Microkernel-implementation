@@ -263,6 +263,7 @@ void trainProfile(){ //will replace trainVelocityServer
 	int expectedSensor =-1;
 	int distE =0;
 	int distF =0;
+	int distS =0;
 	int time1 =0; //in ticks
 	int time2 =0; //in ticks
 	int deltaTime=0; //in ticks
@@ -272,8 +273,10 @@ void trainProfile(){ //will replace trainVelocityServer
 
 	int expectedDeltaTimeE =0;
 	int expectedDeltaTimeF =0;
+	int expectedDeltaTimeS =0;
 	int expectedTimeE =0;
 	int expectedTimeF =0;
+	int expectedTimeS =0;
 	//int expectedTimeS =0;
 
 
@@ -496,25 +499,27 @@ void trainProfile(){ //will replace trainVelocityServer
 					//check we are talking about same task (might be redundant)
 					if(trainTask == tws.trainTask){
 						if(tws.error == TWSR_SUCCESS){
+							iodebug(dspTID,"D10 velrep set timeout:[%d]",tws.sensor);
 							lost = 0; //we have an idea where the train is now
 							time2 = tws.lastSensorTime;
 							currentSensor = tws.sensor;
+							iodebug(dspTID,"D11 velrep set timeout:[%d]",currentSensor);
 							deltaTime =( (time2 - time1) * 10);
 							if(tws.taskStatus == WORKER_VELE){
 								tempV = (distE * 1000) / deltaTime;
 								velocity = ((tempV * velocityAlpha)+(velocity * (100-velocityAlpha)))/100;
-								printTrainDiagnostics(dspTID,trNumber,0,velocity,tws.sensor,time2 -expectedTimeE);
+								printTrainDiagnostics(dspTID,trNumber,0,velocity,currentSensor,time2 -expectedTimeE);
 							}else if(tws.taskStatus == WORKER_VELF){
 								tempV = (distF * 1000) / deltaTime;
 								velocity = ((tempV * velocityAlpha)+(velocity * (100-velocityAlpha)))/100;
-								printTrainDiagnostics(dspTID,trNumber,0,velocity,tws.sensor,time2 -expectedTimeF);
+								printTrainDiagnostics(dspTID,trNumber,0,velocity,currentSensor,time2 -expectedTimeF);
 							}
-						/*	else{
+							else{
 								tempV = (distS * 1000) / deltaTime;
 								velocity = ((tempV * velocityAlpha)+(velocity * (100-velocityAlpha)))/100;
-								printTrainDiagnostics(dspTID,trNumber,0,velocity,tws.sensor,time2 -expectedTimeS);
+								printTrainDiagnostics(dspTID,trNumber,0,velocity,currentSensor,time2 -expectedTimeS);
 							}
-						*/
+						
  							//when init velocity function created, this will be modified to Alpha change
 							trainTask ++; //start test for next sensor
 							time1 = time2;
@@ -665,6 +670,10 @@ void trainProfile(){ //will replace trainVelocityServer
 										distF = 0;
 										expectedDeltaTimeF = 0;
 										expectedTimeF = 0;
+	
+										distS = 0;
+										expectedDeltaTimeS = 0;
+										expectedTimeS = 0;
 
 										workerVelETID = nextFreeTrainWorker(workerList);
 										setTrainWorkerStatus(workerList, workerVelETID,WORKER_VELE);
@@ -678,28 +687,35 @@ void trainProfile(){ //will replace trainVelocityServer
 										msg[5] = WORKER_VELE;
 
 										if(tns.followingSensor != -1){
-											distF = tns.followingDist;
+											distF = tns.followingDist+ distE; //ail to hit this
 											expectedDeltaTimeF = ((1000*distF)/velocity) /10; //(in ticks)
 											expectedTimeF = time1 + expectedDeltaTimeF;
 
 											msg[2] = tns.followingSensor; //keep track what task im dealing with.
+										}
+										if(tns.alternateSensor != -1){
+											distS = tns.alternateDist;
+											expectedDeltaTimeS = ((1000*distS)/velocity) /10; //(in ticks)
+											expectedTimeS = time1 + expectedDeltaTimeS;
+
+											msg[3] = tns.alternateSensor; //keep track what task im dealing with.
 										}
 										
 										Reply(workerVelETID,msg,6);
 										worker_crew_count_out ++;
 
 										if(timeout){
-											timeout = (max(expectedTimeF,expectedTimeE) + 3000)/6 ; //2000 * 60ms = 2 min														//30
-												timeoutE = (expectedTimeE + 1000)/6;
+											timeout = (max(max(expectedDeltaTimeE,expectedDeltaTimeF),expectedDeltaTimeS) + 30)/6 ; //2000 * 60ms = 2 min														//30
+												timeoutE = (expectedDeltaTimeE + 12)/6;
 															//20
 										}
 										else{
-											timeout = (max(expectedTimeF,expectedTimeE)+ 3000)/6 ; //2000 * 60ms = 2 min
-												timeoutE = (expectedTimeE + 1000)/6;
+											timeout = (max(max(expectedDeltaTimeE,expectedDeltaTimeF),expectedDeltaTimeS)+ 30)/6 ; //2000 * 60ms = 2 min
+												timeoutE = (expectedDeltaTimeE + 12)/6;
 											Reply(trTimerTID, "1",2);//turn on timer
 										}
-										iodebug(dspTID,"D3 is-vel set timeout:[%d]",timeout*6+Time(csTID));
-										iodebug(dspTID,"D4 is-vel set timeoutE:[%d]",timeoutE*6+Time(csTID));
+										iodebug(dspTID,"D3 is-vel set timeout:[%d] deltaT[%d]",timeout*6+Time(csTID),max(max(expectedDeltaTimeE,expectedDeltaTimeF),expectedDeltaTimeS));
+										iodebug(dspTID,"D4 is-vel set timeoutE:[%d] deltaE[%d]",timeoutE*6+Time(csTID),expectedDeltaTimeE);
 
 									}
 
@@ -976,20 +992,22 @@ void trainWorker(){
 				msg[3] = sensorS;
 				Send(ssTID, msg, 4,(char *) &scs, sizeof(sensorCurrentStatusStruct));
 
-				iodebug(dspTID,"D8 trainworker sensorE:%d sensorF%d: sensorS:%d sensorH%d" ,sensorE,sensorF,sensorS,scs.sensor);
-				if(scs.sensor = sensorE){
+				if(scs.sensor == sensorE){
 					tws.taskStatus = WORKER_VELE;
+					tws.sensor = sensorE;
 				}
-				else if(scs.sensor = sensorF){
+				else if(scs.sensor == sensorF){
 					tws.taskStatus = WORKER_VELF;
+					tws.sensor = sensorF;
+					tws.sensor = scs.sensor;
 				}
 				else{
 					tws.taskStatus = WORKER_VELS;
+					tws.sensor = sensorS;
 				}
 
 				tws.trainTask = trainTask;
 				tws.message[0] = TRAIN_WORKER_VELOCITY_REPLY;
-				tws.sensor = scs.sensor;
 				tws.error = scs.taskStatus;
 				tws.lastSensorTime =scs.lastSensorTime;
 
