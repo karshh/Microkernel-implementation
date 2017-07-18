@@ -600,9 +600,9 @@ void trainProfile(){ //will replace trainVelocityServer
 								trainTaskType = TTK_NONE;
 								lost = 1;
 								trainTask ++;
+								workerVelETID = -1;
 								printTrainDiagnostics(dspTID,trNumber,1,velocity,tws.sensor,time2 -expectedTimeE);
 						}
-						workerVelETID = -1;
 
 					}
 	
