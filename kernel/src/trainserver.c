@@ -329,7 +329,7 @@ void trainProfile(){ //will replace trainVelocityServer
 		switch(msg[0]){
 			case TRAIN_TIMER_PING:
 				if(timeout ==1){
-	iodebug(dspTID,"D6 timeout:[%d]",Time(csTID));
+	// iodebug(dspTID,"D6 timeout:[%d]",Time(csTID));
 					//recall the workers
 					if( trainTaskType == TTK_IS){
 						if(workerIS1TID>0){
@@ -355,7 +355,7 @@ void trainProfile(){ //will replace trainVelocityServer
 					
 				}
 				if(timeoutE ==1){
-	iodebug(dspTID,"D5 timeoutE:[%d]",Time(csTID));
+	// iodebug(dspTID,"D5 timeoutE:[%d]",Time(csTID));
 					//recall the workers
 					if(trainTaskType == TTK_VEL && workerVelETID){
 						msg[0] = SENSOR_BOOT_WORKERS;
@@ -785,8 +785,8 @@ void trainProfile(){ //will replace trainVelocityServer
 												timeoutE = (expectedDeltaTimeE + 12)/6;
 											Reply(trTimerTID, "1",2);//turn on timer
 										}
-										iodebug(dspTID,"D3 is-vel set timeout:[%d] deltaT[%d]",timeout*6+Time(csTID),max(max(expectedDeltaTimeE,expectedDeltaTimeF),expectedDeltaTimeS));
-										iodebug(dspTID,"D4 is-vel set timeoutE:[%d] deltaE[%d]",timeoutE*6+Time(csTID),expectedDeltaTimeE);
+										// iodebug(dspTID,"D3 is-vel set timeout:[%d]",timeout*6+Time(csTID));
+										// iodebug(dspTID,"D4 is-vel set timeoutE:[%d]",timeoutE*6+Time(csTID));
 
 									}
 
