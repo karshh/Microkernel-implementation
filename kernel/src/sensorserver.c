@@ -476,7 +476,7 @@ void bootSensorWorker(sensorWorkerRegStruct * workerList, int tid, int firstTime
 	for (i=0;i<MAX_SENSOR_WORKERS; i++){
 		if(workerList[i].exists && workerList[i].tid == tid){ //if the worker exists boot him. if not...well its only 18 possible workers
 			if(firstTimeout){
-				iodebug(dspTID,"D7 boot firstTimeout sensorE:%d sensorFa%d: sensorS:%d sensorFH%d ,sensorSH:%d" ,workerList[i].sensorE,workerList[i].sensorF,workerList[i].sensorS,workerList[i].sensorFHit,workerList[i].sensorSHit);
+				// iodebugls(dspTID,"D7 boot firstTimeout sensorE:%d sensorFa%d: sensorS:%d sensorFH%d ,sensorSH:%d" ,workerList[i].sensorE,workerList[i].sensorF,workerList[i].sensorS,workerList[i].sensorFHit,workerList[i].sensorSHit);
 				workerList[i].firstTimeout = 1;
 				if(workerList[i].sensorSHit){
 					scs.sensor = workerList[i].sensorS; //time out so no sensor
@@ -515,7 +515,7 @@ void bootSensorWorker(sensorWorkerRegStruct * workerList, int tid, int firstTime
 
 				}
 			}else{
-				iodebug(dspTID,"D7 boot final");
+				// iodebug(dspTID,"D7 boot final");
 				//so workerList[i].firstTimeout = 1
 				scs.sensor = 0; //time out so no sensor
 				scs.taskStatus = TWSR_TIMEOUT;
