@@ -499,11 +499,11 @@ void trainProfile(){ //will replace trainVelocityServer
 					//check we are talking about same task (might be redundant)
 					if(trainTask == tws.trainTask){
 						if(tws.error == TWSR_SUCCESS){
-							iodebug(dspTID,"D10 velrep set timeout:[%d]",tws.sensor);
+							// iodebug(dspTID,"D10 velrep set timeout:[%d]",tws.sensor);
 							lost = 0; //we have an idea where the train is now
 							time2 = tws.lastSensorTime;
 							currentSensor = tws.sensor;
-							iodebug(dspTID,"D11 velrep set timeout:[%d]",currentSensor);
+							// iodebug(dspTID,"D11 velrep set timeout:[%d]",currentSensor);
 							deltaTime =( (time2 - time1) * 10);
 							if(tws.taskStatus == WORKER_VELE){
 								tempV = (distE * 1000) / deltaTime;
@@ -585,8 +585,8 @@ void trainProfile(){ //will replace trainVelocityServer
 										timeoutE = (expectedDeltaTimeE + 12)/6;
 									Reply(trTimerTID, "1",2);//turn on timer
 								}
-								iodebug(dspTID,"D3 is-vel set timeout:[%d] deltaT[%d]",timeout*6+Time(csTID),max(max(expectedDeltaTimeE,expectedDeltaTimeF),expectedDeltaTimeS));
-								iodebug(dspTID,"D4 is-vel set timeoutE:[%d] deltaE[%d]",timeoutE*6+Time(csTID),expectedDeltaTimeE);
+								// iodebug(dspTID,"D3 is-vel set timeout:[%d] deltaT[%d]",timeout*6+Time(csTID),max(max(expectedDeltaTimeE,expectedDeltaTimeF),expectedDeltaTimeS));
+								// iodebug(dspTID,"D4 is-vel set timeoutE:[%d] deltaE[%d]",timeoutE*6+Time(csTID),expectedDeltaTimeE);
 
 
 							}
