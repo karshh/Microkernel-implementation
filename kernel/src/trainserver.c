@@ -263,6 +263,7 @@ void trainProfile(){ //will replace trainVelocityServer
 	int expectedSensor =-1;
 	int distE =0;
 	int distF =0;
+	int distS =0;
 	int time1 =0; //in ticks
 	int time2 =0; //in ticks
 	int deltaTime=0; //in ticks
@@ -272,8 +273,10 @@ void trainProfile(){ //will replace trainVelocityServer
 
 	int expectedDeltaTimeE =0;
 	int expectedDeltaTimeF =0;
+	int expectedDeltaTimeS =0;
 	int expectedTimeE =0;
 	int expectedTimeF =0;
+	int expectedTimeS =0;
 	//int expectedTimeS =0;
 
 
@@ -496,28 +499,100 @@ void trainProfile(){ //will replace trainVelocityServer
 					//check we are talking about same task (might be redundant)
 					if(trainTask == tws.trainTask){
 						if(tws.error == TWSR_SUCCESS){
+							iodebug(dspTID,"D10 velrep set timeout:[%d]",tws.sensor);
 							lost = 0; //we have an idea where the train is now
 							time2 = tws.lastSensorTime;
 							currentSensor = tws.sensor;
+							iodebug(dspTID,"D11 velrep set timeout:[%d]",currentSensor);
 							deltaTime =( (time2 - time1) * 10);
 							if(tws.taskStatus == WORKER_VELE){
 								tempV = (distE * 1000) / deltaTime;
 								velocity = ((tempV * velocityAlpha)+(velocity * (100-velocityAlpha)))/100;
-								printTrainDiagnostics(dspTID,trNumber,0,velocity,tws.sensor,time2 -expectedTimeE);
+								printTrainDiagnostics(dspTID,trNumber,0,velocity,currentSensor,time2 -expectedTimeE);
 							}else if(tws.taskStatus == WORKER_VELF){
 								tempV = (distF * 1000) / deltaTime;
 								velocity = ((tempV * velocityAlpha)+(velocity * (100-velocityAlpha)))/100;
-								printTrainDiagnostics(dspTID,trNumber,0,velocity,tws.sensor,time2 -expectedTimeF);
+								printTrainDiagnostics(dspTID,trNumber,0,velocity,currentSensor,time2 -expectedTimeF);
 							}
-						/*	else{
+							else{
 								tempV = (distS * 1000) / deltaTime;
 								velocity = ((tempV * velocityAlpha)+(velocity * (100-velocityAlpha)))/100;
-								printTrainDiagnostics(dspTID,trNumber,0,velocity,tws.sensor,time2 -expectedTimeS);
+								printTrainDiagnostics(dspTID,trNumber,0,velocity,currentSensor,time2 -expectedTimeS);
 							}
-						*/
+						
  							//when init velocity function created, this will be modified to Alpha change
 							trainTask ++; //start test for next sensor
 							time1 = time2;
+
+							msg[0] = TRACK_GETNEXTSENSOR;
+							msg[1] = currentSensor;
+							bwassert(Send(trkTID, msg, 2,(char *) &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
+
+							//now 				
+							if(tns.expectedSensor == -1){
+								lost = 1; //entering uncharted waters now (can 2-minute wait for inverse)
+							}
+							else{
+								trainTaskType = TTK_VEL;
+								distE = tns.expectedDist;
+								expectedDeltaTimeE = ((1000*distE)/velocity) /10; //(in ticks)
+								expectedTimeE = time1 + expectedDeltaTimeE;
+
+								distF = 0;
+								expectedDeltaTimeF = 0;
+								expectedTimeF = 0;
+
+								distS = 0;
+								expectedDeltaTimeS = 0;
+								expectedTimeS = 0;
+
+								workerVelETID = nextFreeTrainWorker(workerList);
+								setTrainWorkerStatus(workerList, workerVelETID,WORKER_VELE);
+								//only deal with one case, but add broken 
+
+								msg[0] = TRAIN_WORKER_VELOCITY_SENSOR;
+								msg[1] = tns.expectedSensor;
+								msg[2] = 0;
+								msg[3] = 0;
+								msg[4] = trainTask; //keep track what task im dealing with.
+								msg[5] = WORKER_VELE;
+
+								if(tns.followingSensor != -1){
+									distF = tns.followingDist+ distE; //ail to hit this
+									expectedDeltaTimeF = ((1000*distF)/velocity) /10; //(in ticks)
+									expectedTimeF = time1 + expectedDeltaTimeF;
+
+									msg[2] = tns.followingSensor; //keep track what task im dealing with.
+								}
+								if(tns.alternateSensor != -1){
+									distS = tns.alternateDist;
+									expectedDeltaTimeS = ((1000*distS)/velocity) /10; //(in ticks)
+									expectedTimeS = time1 + expectedDeltaTimeS;
+
+									msg[3] = tns.alternateSensor; //keep track what task im dealing with.
+								}
+										
+								Reply(workerVelETID,msg,6);
+								worker_crew_count_out ++;
+
+								if(timeout){
+									timeout = (max(max(expectedDeltaTimeE,expectedDeltaTimeF),expectedDeltaTimeS) + 30)/6 ; //2000 * 60ms = 2 min														//30
+										timeoutE = (expectedDeltaTimeE + 12)/6;
+													//20
+								}
+								else{
+									timeout = (max(max(expectedDeltaTimeE,expectedDeltaTimeF),expectedDeltaTimeS)+ 30)/6 ; //2000 * 60ms = 2 min
+										timeoutE = (expectedDeltaTimeE + 12)/6;
+									Reply(trTimerTID, "1",2);//turn on timer
+								}
+								iodebug(dspTID,"D3 is-vel set timeout:[%d] deltaT[%d]",timeout*6+Time(csTID),max(max(expectedDeltaTimeE,expectedDeltaTimeF),expectedDeltaTimeS));
+								iodebug(dspTID,"D4 is-vel set timeoutE:[%d] deltaE[%d]",timeoutE*6+Time(csTID),expectedDeltaTimeE);
+
+
+							}
+
+
+
 
 						}
 						else if(tws.error == TWSR_TIMEOUT){
@@ -643,6 +718,7 @@ void trainProfile(){ //will replace trainVelocityServer
  									//when init velocity function created, this will be modified to Alpha change
 									printTrainDiagnostics(dspTID,trNumber,0,velocity,tws.sensor,0);
 									trainTask ++; //start test for next sensor
+
 									time1 = time2;
 									currentSensor = tws.sensor;
 									msg[0] = TRACK_GETNEXTSENSOR;
@@ -665,6 +741,10 @@ void trainProfile(){ //will replace trainVelocityServer
 										distF = 0;
 										expectedDeltaTimeF = 0;
 										expectedTimeF = 0;
+	
+										distS = 0;
+										expectedDeltaTimeS = 0;
+										expectedTimeS = 0;
 
 										workerVelETID = nextFreeTrainWorker(workerList);
 										setTrainWorkerStatus(workerList, workerVelETID,WORKER_VELE);
@@ -678,24 +758,31 @@ void trainProfile(){ //will replace trainVelocityServer
 										msg[5] = WORKER_VELE;
 
 										if(tns.followingSensor != -1){
-											distF = tns.followingDist;
+											distF = tns.followingDist+ distE; //ail to hit this
 											expectedDeltaTimeF = ((1000*distF)/velocity) /10; //(in ticks)
 											expectedTimeF = time1 + expectedDeltaTimeF;
 
 											msg[2] = tns.followingSensor; //keep track what task im dealing with.
+										}
+										if(tns.alternateSensor != -1){
+											distS = tns.alternateDist;
+											expectedDeltaTimeS = ((1000*distS)/velocity) /10; //(in ticks)
+											expectedTimeS = time1 + expectedDeltaTimeS;
+
+											msg[3] = tns.alternateSensor; //keep track what task im dealing with.
 										}
 										
 										Reply(workerVelETID,msg,6);
 										worker_crew_count_out ++;
 
 										if(timeout){
-											timeout = (max(expectedTimeF,expectedTimeE) + 3000)/6 ; //2000 * 60ms = 2 min														//30
-												timeoutE = (expectedTimeE + 1000)/6;
+											timeout = (max(max(expectedDeltaTimeE,expectedDeltaTimeF),expectedDeltaTimeS) + 30)/6 ; //2000 * 60ms = 2 min														//30
+												timeoutE = (expectedDeltaTimeE + 12)/6;
 															//20
 										}
 										else{
-											timeout = (max(expectedTimeF,expectedTimeE)+ 3000)/6 ; //2000 * 60ms = 2 min
-												timeoutE = (expectedTimeE + 1000)/6;
+											timeout = (max(max(expectedDeltaTimeE,expectedDeltaTimeF),expectedDeltaTimeS)+ 30)/6 ; //2000 * 60ms = 2 min
+												timeoutE = (expectedDeltaTimeE + 12)/6;
 											Reply(trTimerTID, "1",2);//turn on timer
 										}
 										// iodebug(dspTID,"D3 is-vel set timeout:[%d]",timeout*6+Time(csTID));
@@ -727,140 +814,6 @@ void trainProfile(){ //will replace trainVelocityServer
 					}
 				}
 				break;
-/*
-				if( trainWorkerIndex(workerList, _tid) >= 0){
-				//if(_tid == wkr1TID || wkr2TID){
-					setTrainWorkerStatus(workerList, _tid, WORKER_INIT);
-		        		Reply(_tid, "1", 2); //k let the worker go home and return when its fresh
-					pkmemcpy((void *)&tws, (void *)msg, sizeof(trainWorkerSensorReportStruct));
-					if(trainTask == tws.trainTask){
-						//if its a older train task ignore report
-						//assume IS does not have faulty sensors
-						if(tws.taskStatus == WORKER_IS1 && tws.error == TWSR_SUCCESS){
-							time1 = tws.lastSensorTime;
-						}else if(tws.taskStatus == WORKER_IS2 && tws.error == TWSR_SUCCESS){
-							time2 = tws.lastSensorTime;
-							deltaTime =( (time2 - time1) * 10);
-							velocity = (dist * 1000) / deltaTime;
- 							//when init velocity function created, this will be modified to Alpha change
-
-							iodebug(dspTID, "D5Train %d init velocity:%d",trNumber,velocity);
-							trainTask ++; //start test for next sensor
-							currentSensor = tws.sensor;	
-							msg[0] = TRACK_GETNEXTSENSOR;
-							msg[1] = currentSensor;
-							bwassert(Send(trkTID, msg, 2,(char *) &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
-							if(tns.nextSensor == -1){
-								iodebug(dspTID, "D2 %d first velocity call failed, reached dead end", trNumber);
-							}{
-								trainTaskType = TTK_VEL;
-								time1 = time2;
-								dist = tns.dist;
-								//expected time
-								expectedDeltaTime = ((1000*dist)/velocity) /10; //(in ticks)
-								expectedTime = time1 + expectedDeltaTime;
-								iodebug(dspTID, "D6Train %d new dist[%d], last time[%d], velocity[%d] exDTime[%d], expTime[%d]",trNumber,dist,time1,velocity, expectedDeltaTime, expectedTime);
-								int wkr1 = nextFreeTrainWorker(workerList);
-								if(wkr1 >=0){
-setTrainWorkerStatus(workerList, wkr1,WORKER_VELE);
-									trainWorkerSensorTask twst;
-									twst.message[0] = TRAIN_WORKER_VELOCITY_SENSOR;
-									twst.trainTask = trainTask;
-									twst.taskStatus = WORKER_VELE;
-									twst.sensor = tns.nextSensor;
-									twst.expectedTime = expectedTime;
-
-				iodebug(dspTID, "D7 wkrtid[%d] trainTask[%d], taskStatus[%d],  sensor[%d] expectedTime[%d]", wkr1,twst.trainTask, twst.taskStatus, twst.sensor, twst.expectedTime);
-									Reply(wkr1,(char *)&twst,sizeof(trainWorkerSensorTask));
-
-								}else{
-									bwassert(0,COM2, "<trainProfile %dr> ran out of workers, COMMAND IS. Fix this Paily", trNumber);
-								}
-
-
-							}
-
-							//lets start with assumumption everything works then work with edge cases
-						}
-					}
-					//going to assume no missed sensors for IS.
-
-					
-				}
-				else{
-		        		Reply(_tid, 0, 1); //seriosly, why are you even here?
-				}
-*/
-/*
-				break;
-			case TRAIN_WORKER_VELOCITY_REPLY:
-				if( trainWorkerIndex(workerList, _tid) >= 0){
-				//if(_tid == wkr1TID || wkr2TID){
-					setTrainWorkerStatus(workerList, _tid, WORKER_INIT);
-		        		Reply(_tid, "1", 2); //k let the worker go home and return when its fresh
-					pkmemcpy((void *)&tws, (void *)msg, sizeof(trainWorkerSensorReportStruct));
-					if(trainTask == tws.trainTask){
-
-						//if its a older train task ignore report
-						//assume IS does not have faulty sensors
-						if(tws.taskStatus == WORKER_VELE){
-							if(tws.error == TWSR_SUCCESS){
-								time2 = tws.lastSensorTime;
-								deltaTime =( (time2 - time1) * 10);
-								velocity = (dist * 1000) / deltaTime;
-								//when init velocity function created, this will be modified to Alpha change
-
-								iodebug(dspTID, "D7Train %d new velocity:%d oldcursens[%d] newSens[%d]",trNumber,velocity, currentSensor, tws.sensor);
-								trainTask ++; //start test for next sensor
-								currentSensor = tws.sensor;	
-								msg[0] = TRACK_GETNEXTSENSOR;
-								msg[1] = currentSensor;
-								bwassert(Send(trkTID, msg, 2,(char *) &tns, sizeof(trackNextSensorstruct)) >= 0, COM2, "<trainProfile %d>: Error sending getNextSensorn message.\r\n", trNumber);
-								if(tns.nextSensor == -1){
-									iodebug(dspTID, "D8 %d first velocity call failed, reached dead end", trNumber);
-								}{
-									trainTaskType = TTK_VEL;
-									time1 = time2;
-									dist = tns.dist;
-									//expected time
-									expectedDeltaTime = ((1000*dist)/velocity) /10; //(in ticks)
-									expectedTime = time1 + expectedDeltaTime;
-									iodebug(dspTID, "D6Train %d sensor1[%d] sensor2[%d]<-- eTime[%d]",trNumber,currentSensor,tns.nextSensor,expectedTime);
-									int wkr1 = nextFreeTrainWorker(workerList);
-									if(wkr1 >=0){
-										setTrainWorkerStatus(workerList, wkr1,WORKER_VELE);
-										trainWorkerSensorTask twst;
-										twst.message[0] = TRAIN_WORKER_VELOCITY_SENSOR;
-										twst.trainTask = trainTask;
-										twst.taskStatus = WORKER_VELE;
-										twst.sensor = tns.nextSensor;
-										twst.expectedTime = expectedTime;
-										Reply(wkr1,(char *)&twst,sizeof(trainWorkerSensorTask));
-
-									}else{
-										bwassert(0,COM2, "<trainProfile %dr> ran out of workers, COMMAND IS. Fix this Paily", trNumber);
-									}
-
-
-								}
-							}
-							else{
-								iodebug(dspTID, "D15Train %d worker on vele came with %d",trNumber,tws.error);
-								iodebug(dspTID, "D16Train %d dist[%d], last time[%d], time2[%d] expTime[%d]",trNumber,dist,time1,Time(csTID), expectedTime);
-							}
-
-						}
-							//lets start with assumumption everything works then work with edge cases
-					}
-					//going to assume no missed sensors for IS.
-					
-				}
-				else{
-		        		Reply(_tid, 0, 1); //seriosly, why are you even here?
-
-				}
-				break;
-*/
 
 			default:
 		        	Reply(_tid, 0, 1); //seriosly, why are you even here?
@@ -976,20 +929,23 @@ void trainWorker(){
 				msg[3] = sensorS;
 				Send(ssTID, msg, 4,(char *) &scs, sizeof(sensorCurrentStatusStruct));
 
-				iodebug(dspTID,"D8 trainworker sensorE:%d sensorF%d: sensorS:%d sensorH%d" ,sensorE,sensorF,sensorS,scs.sensor);
-				if(scs.sensor = sensorE){
+	//iodebug(dspTID,)		
+				if(scs.sensor == sensorE){
 					tws.taskStatus = WORKER_VELE;
+					tws.sensor = sensorE;
 				}
-				else if(scs.sensor = sensorF){
+				else if(scs.sensor == sensorF){
 					tws.taskStatus = WORKER_VELF;
+					tws.sensor = sensorF;
+					tws.sensor = scs.sensor;
 				}
 				else{
 					tws.taskStatus = WORKER_VELS;
+					tws.sensor = sensorS;
 				}
 
 				tws.trainTask = trainTask;
 				tws.message[0] = TRAIN_WORKER_VELOCITY_REPLY;
-				tws.sensor = scs.sensor;
 				tws.error = scs.taskStatus;
 				tws.lastSensorTime =scs.lastSensorTime;
 

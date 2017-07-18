@@ -472,11 +472,15 @@ int registerSensorWorker(sensorWorkerRegStruct * workerList, int tid, int sensor
 void bootSensorWorker(sensorWorkerRegStruct * workerList, int tid, int firstTimeout){
 	int dspTID = WhoIs("displayServer");
 	int i = 0;
+	iodebug(dspTID,"D2%d boot firstTimeout%d",(1-firstTimeout) + 6 ,firstTimeout);
 	sensorCurrentStatusStruct scs;
 	for (i=0;i<MAX_SENSOR_WORKERS; i++){
 		if(workerList[i].exists && workerList[i].tid == tid){ //if the worker exists boot him. if not...well its only 18 possible workers
+				iodebug(dspTID,"D2%d boot firstTimeout%d found tid",(1-firstTimeout) + 6 ,firstTimeout);
 			if(firstTimeout){
+
 				// iodebugls(dspTID,"D7 boot firstTimeout sensorE:%d sensorFa%d: sensorS:%d sensorFH%d ,sensorSH:%d" ,workerList[i].sensorE,workerList[i].sensorF,workerList[i].sensorS,workerList[i].sensorFHit,workerList[i].sensorSHit);
+
 				workerList[i].firstTimeout = 1;
 				if(workerList[i].sensorSHit){
 					scs.sensor = workerList[i].sensorS; //time out so no sensor
