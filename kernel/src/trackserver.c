@@ -89,6 +89,7 @@ void trackServer() {
 	}
 
 	int switch15Delay = 0;
+	int switch9Delay = 0;
 
 	int distSensor = 0;
 
@@ -119,6 +120,20 @@ void trackServer() {
 					commandMsg[0] = COMMAND_SW;
 					commandMsg[1] = node[95].switchConfig == S ? 33 : 34;
 					commandMsg[2] = 15;
+					commandMsg[3] = 0;
+
+					bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
+					update_switch(i, &t, &trainExpectedSensor[0]); //updates the display
+
+				}
+
+
+				if (switch9Delay &&  (Time(csTID)- switch9Delay >= 25)) {
+					switch9Delay = 0;
+					node[89].switchConfig = S;
+					commandMsg[0] = COMMAND_SW;
+					commandMsg[1] = node[89].switchConfig == S ? 33 : 34;
+					commandMsg[2] = 9;
 					commandMsg[3] = 0;
 
 					bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
@@ -265,15 +280,7 @@ void trackServer() {
 								* Train just passed switch 9.
 								*/
 								if (trainCurrentSensor[i] == sensor2i("E06") || trainCurrentSensor[i] == sensor2i("D08")) {
-									node[89].switchConfig = S;
-									commandMsg[0] = COMMAND_SW;
-									commandMsg[1] = node[89].switchConfig == S ? 33 : 34;
-									commandMsg[2] = 9;
-									commandMsg[3] = 0;
-
-									bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-									update_switch(i, &t, &trainExpectedSensor[0]); //updates the display
-
+									switch9Delay = Time(csTID);
 								}
 
 								/*
@@ -301,7 +308,7 @@ void trackServer() {
 								/*
 								* Train hit midpoint of it's loop.
 								*/
-								if (trainCurrentSensor[i] == sensor2i("D04") || trainCurrentSensor[i] == sensor2i("B01")) {
+								if (trainCurrentSensor[i] == sensor2i("E06") || trainCurrentSensor[i] == sensor2i("B01")) {
 									trainSpeed[OUTER_LOOP_TRAIN] = 14;
 									msg[0] = COMMAND_TR;
 									msg[1] = 14;
