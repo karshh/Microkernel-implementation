@@ -7,7 +7,7 @@
 
 
 int markedOutSensor(int sensor) {
-  return 0;
+  return sensor == sensor2i("C09");
 }
 
 

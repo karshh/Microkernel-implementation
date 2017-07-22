@@ -11,7 +11,7 @@ void TrackGraphInit(TrackGraph * t) {
 
 
 int markedOutSensor(int sensor) {
-  return sensor == sensor2i("E04") || sensor == sensor2i("A05");
+  return sensor == sensor2i("E04") || sensor == sensor2i("A05") || sensor == sensor2i("D14");
 }
 
 void drawTrack(int iosTID) {

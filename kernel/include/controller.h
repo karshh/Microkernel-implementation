@@ -37,6 +37,7 @@
 #define COMMAND_ISW				36 //Init at sensor "IS <TR> <SEN>"
 #define COMMAND_RVT				37
 #define TRACK_CSPING			38
+#define COMMAND_TRBATCH			39
 #define COMMAND_DEBUG			68
 
 #define TRACK_INITSW 			1
