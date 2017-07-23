@@ -24,7 +24,7 @@ void commandServer() {
 	bwassert(!RegisterAs("commandServer"), COM2, "Could not register as command server.\r\n");
 	int cDelTid = -1;
 	int cDelTid58 =  Create(10, (void *) commandReverseDelayServer);
-	int cDelTid76 =  Create(10, (void *) commandReverseDelayServer);
+	int cDelTid71 =  Create(10, (void *) commandReverseDelayServer);
 	int cDelTid70 =  Create(10, (void *) commandReverseDelayServer);
 	int cDelTid69 =  Create(10, (void *) commandReverseDelayServer);
 	
@@ -121,8 +121,8 @@ void commandServer() {
 						case 70:
 							cDelTid = cDelTid70;
 							break;
-						case 76:
-							cDelTid = cDelTid76;
+						case 71:
+							cDelTid = cDelTid71;
 							break;
 						default:
 							cDelTid = -1;
@@ -164,8 +164,8 @@ void commandServer() {
 				else if(_tid == cDelTid70){
 					trainMutex[70] = 0;
 				}
-				else if(_tid == cDelTid76){
-					trainMutex[76] = 0;
+				else if(_tid == cDelTid71){
+					trainMutex[71] = 0;
 				}else{
 					//????
 				}

@@ -34,6 +34,7 @@
 //#define COMMAND_LI  14 //turn on lights    (controller)
 //#define COMMAND_IS	22 //Init at sensor "IS <TR> <SEN>" (controller)
 //#define COMMAND_RV 12 //reverse train (controller)
+//#define COMMAND_TRBATCH 39 (controller)
 #define TRAIN_TIMER_PING 4
 
 //train Worker codes
@@ -47,20 +48,20 @@ int trainPrintLocation(int train){
 	if(train == 58) return 6;
 	else if(train ==69) return 13;
 	else if(train ==70) return 20;
-	else if(train ==76) return 27;
+	else if(train ==71) return 27;
 	else return 34;
 	
 }
 
 void printTrainDiagnostics(int dspTID,int train, int lost, int velocity, int lastSensor, int deltaTime){
-	// iodebug(dspTID,"D6\033[%d;53HTR# %2d",trainPrintLocation(train),train);
-	// iodebug(dspTID,"D6\033[%d;53HLost[%d]",trainPrintLocation(train)+1,lost);
-	// if(!lost){
-	// 	iodebug(dspTID,"D6\033[%d;53Hsens :%d",trainPrintLocation(train)+2,lastSensor);
-	// 	iodebug(dspTID,"D6\033[%10d;53Hvel  :%d",trainPrintLocation(train)+3,velocity);
-	// 	iodebug(dspTID,"D6\033[%10d;53HdTime:%d",trainPrintLocation(train)+4,deltaTime);
-	// 	iodebug(dspTID,"D6\033[%10d;53HdDist:%d",trainPrintLocation(train)+5,(velocity * deltaTime *10)/1000);
-	// }
+	 iodebug(dspTID,"D6\033[%d;53HTR# %2d",trainPrintLocation(train),train);
+	 iodebug(dspTID,"D6\033[%d;53HLost[%d]",trainPrintLocation(train)+1,lost);
+	 if(!lost){
+	 	iodebug(dspTID,"D6\033[%d;53Hsens :%d",trainPrintLocation(train)+2,lastSensor);
+	 	iodebug(dspTID,"D6\033[%10d;53Hvel  :%d",trainPrintLocation(train)+3,velocity);
+	 	iodebug(dspTID,"D6\033[%10d;53HdTime:%d",trainPrintLocation(train)+4,deltaTime);
+	 	iodebug(dspTID,"D6\033[%10d;53HdDist:%d",trainPrintLocation(train)+5,(velocity * deltaTime *10)/1000);
+	 }
 }
 
 
@@ -70,7 +71,7 @@ void initTrains(int csTID, int commandServerTID, int dspTID, int trackServerTID)
     	int rpllen = 3;
 
 	int i =0;
-	for (i=58; i < 80; i++){
+	for (i=57; i < 80; i++){
 			msg[0] = COMMAND_TR;
 			msg[1] =  0;
 			msg[2] = i;
@@ -127,17 +128,17 @@ void trainServer(){
 
  	initTrains(csTID,commandServerTID, dspTID, trackTID);
 
-	int tr58TID = Create(15,(void *)trainProfile);
-	int tr76TID = Create(15,(void *)trainProfile);
-	int tr70TID = Create(15,(void *)trainProfile);
-	int tr69TID = Create(15,(void *)trainProfile);
+	int tr58TID = Create(5,(void *)trainProfile);
+	int tr71TID = Create(5,(void *)trainProfile);
+	int tr70TID = Create(5,(void *)trainProfile);
+	int tr69TID = Create(5,(void *)trainProfile);
 
 	while(1){
 		msgLen = Receive(&_tid, msg, msgCap);
 		switch(msg[0]){
 			case TRAINS_GETPROFILEID:
 				if(_tid == tr58TID) rpl[0] = 58;
-				if(_tid == tr76TID) rpl[0] = 76;
+				if(_tid == tr71TID) rpl[0] = 71;
 				if(_tid == tr69TID) rpl[0] = 69;
 				if(_tid == tr70TID) rpl[0] = 70;
 				rpl[1] = 0;
@@ -151,8 +152,8 @@ void trainServer(){
 						bwassert(Send(tr58TID, msg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 		        			Reply(_tid, rpl, 2);
 						break;
-					case 76:
-						bwassert(Send(tr76TID, msg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+					case 71:
+						bwassert(Send(tr71TID, msg, 2, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 		        			Reply(_tid, rpl, 2);
 
 						break;
@@ -173,22 +174,22 @@ void trainServer(){
 				}		
 				break;
 			case COMMAND_TR:
-				bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");		        	Reply(_tid, rpl, 2);
 				switch(msg[2]){
 					case 58:
 						bwassert(Send(tr58TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+				Reply(_tid, rpl, 2);
 						break;
-					case 76:
-						{
-						int err = Send(tr76TID, msg, 3, rpl, rpllen) ;
-						bwassert(err >= 0, COM2, "<trainServer>: Error %d sending TR 76 message to CommandServer.\r\n",err);
-						}
+					case 71:
+						bwassert(Send(tr71TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+				Reply(_tid, rpl, 2);
 						break;
 					case 70:
 						bwassert(Send(tr70TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+				Reply(_tid, rpl, 2);
 						break;
 					case 69:
 						bwassert(Send(tr69TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+				Reply(_tid, rpl, 2);
 
 
 						break;
@@ -199,15 +200,19 @@ void trainServer(){
 
 			case COMMAND_TRBATCH:
 				// initialization of trbatch code. Add here for all initializations to be performed.
+				msg[0] = COMMAND_TRBATCH;
+				bwassert(Send(tr70TID, msg, 1, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+				msg[0] = COMMAND_TRBATCH;
+				//bwassert(Send(tr71TID, msg, 1, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+				Delay(csTID,58);
 				msg[0] = COMMAND_TR;
 				msg[1] = 12;
 				msg[2] = 58;
 				msg[3] = 0;
 
 				bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");       	
+
 				Reply(_tid, rpl, 2);
-
-
 
 				break;
 
@@ -218,9 +223,9 @@ void trainServer(){
 		        			Reply(_tid, "1", 2);
 						bwassert(Send(tr58TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 						break;
-					case 76:
+					case 71:
 		        			Reply(_tid, "1", 2);
-						bwassert(Send(tr76TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
+						bwassert(Send(tr71TID, msg, 3, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");
 
 						break;
 
@@ -259,6 +264,157 @@ int max(int val1, int val2){
 	else
 		return val2;
 }
+
+void trainProfile(){ //will replace trainVelocityServer
+	int tsTID = MyParentTid();
+	int commandServerTID = WhoIs("commandServer");
+	int trNumber = 0;
+
+    	int _tid = -1;
+    	char msg[64];
+    	int msgCap = 64;
+	char rpl[64];
+	char rpllen = 64;
+	int msgLen = 0;
+	int occilate = 0;
+	
+	msg[0] = TRAINS_GETPROFILEID;
+	Send(tsTID, msg, 1, rpl, rpllen);
+	trNumber = rpl[0];
+	if(!trNumber) Exit();
+	int speed =0;
+	int trTimerTID = Create(3,(void *) occilationTimer);
+	ocilStruct oci;
+	while(1){
+		msgLen = Receive(&_tid, msg, msgCap);
+		switch(msg[0]){
+			case TRAIN_TIMER_PING:
+				if(occilate){
+					if(trNumber == 70){
+						//at 15:1 we got about  5 minutes collide????
+						//at 15:2 we got about  minutes derail collide????
+						//at 13:1 we got about  5 min  collide????
+						//at 26:2 we got about  8 min  collide????
+						//at 24:2 we got about  8 min  collide????
+						oci.trNumber = trNumber;
+						oci.speed1 = 10; //9
+						oci.speed2 = 8;
+						oci.time1 = 205;
+						oci.time2 = 200;
+						Reply(trTimerTID,(char *)&oci,sizeof(ocilStruct)); //remind me in 6 ticks
+
+					}else if(trNumber == 71){
+						oci.trNumber = trNumber;
+						oci.speed1 = 13;
+						oci.speed2 = 11;
+						oci.time1 = 51;
+						oci.time2 = 49;
+						Reply(trTimerTID,(char *)&oci,sizeof(ocilStruct)); //remind me in 6 ticks
+					}
+				}else{
+					msg[0] = COMMAND_TR;
+					msg[1] = speed;
+					msg[2] = trNumber;
+					msg[3] = 0;
+					bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");		        	
+					//send speed command;
+				}
+				break;
+			case COMMAND_TR:
+				speed = msg[1];
+				if(occilate){
+					occilate = 0;
+					Reply(_tid, "1", 2);
+				}
+				else{
+					bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");		        	
+					Reply(_tid, rpl, 2);
+					//send speed command;
+				}
+				break;
+			case COMMAND_TRBATCH:
+					Reply(_tid, "1", 2);
+					occilate = 1;
+					if(trNumber == 70){
+						oci.trNumber = trNumber;
+						oci.speed1 = 14;
+						oci.speed2 = 14;
+						oci.time1 = 55;
+						oci.time2 = 6;
+						Reply(trTimerTID,(char *)&oci,sizeof(ocilStruct)); //remind me in 6 ticks
+					}else if(trNumber == 71){
+
+						oci.trNumber = trNumber;
+						oci.speed1 = 14;
+						oci.speed2 = 14;
+						oci.time1 = 51;
+						oci.time2 = 49;
+
+						Reply(trTimerTID,(char *)&oci,sizeof(ocilStruct)); //remind me in 6 ticks
+					}
+				//send to train_timer_PING
+				break;
+			default:
+				break;
+			}
+	}
+				
+
+	
+}
+
+void occilationTimer(){
+//all it does is poll parent  train profile once every 60 ms. mainly used to timeout tests;
+	int csTID = WhoIs("clockServer");
+	int trTID = MyParentTid();
+	int commandServerTID = WhoIs("commandServer");
+	int dspTID = WhoIs("displayServer");
+	ocilStruct oci;
+   	char msg[64];
+	char rpl[64];
+	char rpllen = 64;
+	int speed1 =0;
+	int speed2 =0;
+	int time1 =0;
+	int time2 =0;
+	int trNumber =0;
+
+	while(1){
+		msg[0] = TRAIN_TIMER_PING;
+		Send(trTID, msg, 1, (char *) &oci, sizeof(ocilStruct));
+		trNumber = oci.trNumber;;
+		speed1 = oci.speed1;
+		speed2 = oci.speed2;
+		time1 = oci.time1;
+		time2 = oci.time2;
+
+	 iodebug(dspTID,"D7train %d speed1:%d speed2:%d time1:%d time2:%d",trNumber, speed1, speed2, time1, time2);
+		msg[0] = COMMAND_TR;
+		msg[1] = speed1;
+		msg[2] = trNumber;
+		msg[3] = 0;
+		bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");		        	
+		Delay(csTID,time1);
+		msg[0] = COMMAND_TR;
+		msg[1] = speed2+16;
+		msg[2] = trNumber;
+		msg[3] = 0;
+		bwassert(Send(commandServerTID, msg, 4, rpl, rpllen) >= 0, COM2, "<trainServer>: Error sending message to CommandServer.\r\n");		        	
+		Delay(csTID,time2);
+
+
+		//always be in faster speed when next speed is requested
+
+
+
+	
+
+	}
+	Exit();
+}
+
+
+/*
 void trainProfile(){ //will replace trainVelocityServer
 	int tsTID = MyParentTid();
 	int commandServerTID = WhoIs("commandServer");
@@ -336,6 +492,7 @@ void trainProfile(){ //will replace trainVelocityServer
 
 	int lost = 1; // true if we don't know where train is.
 
+	int D14Count =0;
 
 
 	int csTID = WhoIs("clockServer");//used for delaying
@@ -390,14 +547,6 @@ void trainProfile(){ //will replace trainVelocityServer
 			break;
 			case TRAIN_WORKER_READY:
 				//called by init or if train worker got wierd reply
-/*
-				if(_tid == wkr1TID ){
-					wkr1Status = WORKER_READY;
-				}
-				else if( _tid == wkr2TID){
-					wkr2Status = WORKER_READY;
-				}
-				elsea*/ 
 				if( trainWorkerIndex(workerList, _tid) >= 0){
 					setTrainWorkerStatus(workerList, _tid,WORKER_READY);
 					worker_crew_count_out --;
@@ -519,6 +668,12 @@ void trainProfile(){ //will replace trainVelocityServer
 							lost = 0; //we have an idea where the train is now
 							time2 = tws.lastSensorTime;
 							currentSensor = tws.sensor;
+							if(currentSensor == 62) //D14
+							{
+	 							iodebug(dspTID,"D%d D14 time:%d",D14Count+6 , time2);
+								D14Count ++;
+							}
+
 							// iodebug(dspTID,"D11 velrep set timeout:[%d]",currentSensor);
 							deltaTime =( (time2 - time1) * 10);
 							if(tws.taskStatus == WORKER_VELE){
@@ -841,7 +996,7 @@ void trainProfile(){ //will replace trainVelocityServer
 	
 
 }
-
+*/
 void trainTimer(){
 //all it does is poll parent  train profile once every 60 ms. mainly used to timeout tests;
 	int csTID = WhoIs("clockServer");

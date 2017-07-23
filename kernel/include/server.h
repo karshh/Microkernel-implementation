@@ -136,6 +136,8 @@ void trainWorker(); // child worker used to do work for any given train
 void trainTimer();
 void trainSensorCourier();
 
+void occilationTimer();
+
 typedef enum WORKER_STATE {
 	WORKER_INIT,
 	WORKER_READY,
@@ -184,6 +186,13 @@ typedef struct trainWorkerListItem {
 	int  taskStatus;
 } trainWorkerListItem;
 
+typedef struct ocilStruct{
+	int trNumber;
+	int speed1;
+	int speed2;
+	int time1;
+	int time2;
+} ocilStruct;
 
 //might depreciate next set of functions
 void initTrainWorker(trainWorkerListItem * workerList);
