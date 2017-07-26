@@ -8,7 +8,7 @@
 #include "ui.h"
 
 
-#define OUTER_LOOP_TRAIN 69
+#define OUTER_LOOP_TRAIN 71
 
 int shortEdge(TrackGraph * t, int sensor) {
 
@@ -27,7 +27,7 @@ void trackServerPing() {
 	int rpllen = 2;
 
 	while(1) {
-		Delay(csTID, 25);
+		Delay(csTID, 1);
 		msg[0] = TRACK_CSPING;
 		msg[1] = 0;
 		bwassert(Send(parentTid, msg, 2, rpl, rpllen) >= 0, COM2, "<trackServerPing>: Error sending message to TrackServer[%d].\r\n", parentTid);
@@ -90,6 +90,7 @@ void trackServer() {
 
 	int switch15Delay = 0;
 	int switch9Delay = 0;
+	int tr69Delay = 0;
 
 	int distSensor = 0;
 
@@ -99,6 +100,7 @@ void trackServer() {
 	int dist = 0;
 	int sw = 0;
 	int swd = 0;
+
 
 
 	// iodebug(dspTID, "D12TrackTID:%d trackPingTID:%d", MyTid(), pingTID); 
@@ -111,10 +113,9 @@ void trackServer() {
 		switch((int) msg[0]) {
 
 			case TRACK_CSPING:
-				if (switch15Delay &&  (Time(csTID)- switch15Delay >= 100)) {
-					
-					iodebug(dspTID, "D10          ");
-					iodebug(dspTID, "D11Switch Delay:%d", Time(csTID)- switch15Delay);
+
+				i = Time(csTID);
+				if (switch15Delay &&  (i- switch15Delay >= 145)) {
 					switch15Delay = 0;
 					node[95].switchConfig = S;
 					commandMsg[0] = COMMAND_SW;
@@ -123,12 +124,10 @@ void trackServer() {
 					commandMsg[3] = 0;
 
 					bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-					update_switch(i, &t, &trainExpectedSensor[0]); //updates the display
-
+					update_switch(15, &t, &trainExpectedSensor[0]); //updates the display
 				}
 
-
-				if (switch9Delay &&  (Time(csTID)- switch9Delay >= 25)) {
+				if (switch9Delay &&  (i- switch9Delay >= 60)) {
 					switch9Delay = 0;
 					node[89].switchConfig = S;
 					commandMsg[0] = COMMAND_SW;
@@ -137,9 +136,18 @@ void trackServer() {
 					commandMsg[3] = 0;
 
 					bwassert(Send(commandServerTID, commandMsg, 4, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to CommandServer.\r\n");
-					update_switch(i, &t, &trainExpectedSensor[0]); //updates the display
-
+					update_switch(9, &t, &trainExpectedSensor[0]); //updates the display
 				}
+
+				if (tr69Delay &&  (i- tr69Delay >= 1)) {
+					tr69Delay = 0;
+					trainSpeed[OUTER_LOOP_TRAIN] = 14;
+					msg[0] = COMMAND_TR;
+					msg[1] = 14;
+					msg[2] = OUTER_LOOP_TRAIN;
+					bwassert(Send(trainTID, msg, 3, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to TrainServer[%d].\r\n", trainTID);
+				}
+
 				Reply(_tid, "1", 2);
 				break;
 
@@ -309,11 +317,7 @@ void trackServer() {
 								* Train hit midpoint of it's loop.
 								*/
 								if (trainCurrentSensor[i] == sensor2i("E06") || trainCurrentSensor[i] == sensor2i("B01")) {
-									trainSpeed[OUTER_LOOP_TRAIN] = 14;
-									msg[0] = COMMAND_TR;
-									msg[1] = 14;
-									msg[2] = OUTER_LOOP_TRAIN;
-									bwassert(Send(trainTID, msg, 3, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to TrainServer[%d].\r\n", trainTID);
+									tr69Delay = Time(csTID);
 
 								}
 
@@ -342,9 +346,9 @@ void trackServer() {
 								* Train passed by mutually shared segment. Slow it down until 58 speeds it up.
 								*/ 
 								if (trainCurrentSensor[i] == sensor2i("D08") || trainCurrentSensor[i] == sensor2i("C05")) {
-									trainSpeed[i] = 9;
+									trainSpeed[i] = 11;
 									msg[0] = COMMAND_TR;
-									msg[1] = 9;
+									msg[1] = 11;
 									msg[2] = i;
 									bwassert(Send(trainTID, msg, 3, rpl, rpllen) >= 0, COM2, "<trackServer>: Error sending message to TrainServer[%d].\r\n", trainTID);
 
@@ -367,6 +371,8 @@ void trackServer() {
 						} else if (i == 69) {
 							i = 70;
 						} else if (i == 70) {
+							i = 71;
+						}  else if (i == 71) {
 							i = 76;
 						} else {
 							i = 99;
